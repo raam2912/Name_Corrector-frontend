@@ -1,0 +1,360 @@
+/* Name_Corrector/frontend/src/App.css */
+
+/* Basic styling for the main container to center content */
+.app-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align items to the start (top) */
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f0f2f5; /* Light background */
+    font-family: 'Inter', sans-serif; /* Use Inter font */
+    color: #333;
+}
+
+/* Styling for the main content box that holds all forms and reports */
+.content-box {
+    background-color: #ffffff;
+    border-radius: 1rem; /* Rounded corners */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+    padding: 2.5rem; /* More padding */
+    width: 100%;
+    max-width: 900px; /* Max width for readability */
+    box-sizing: border-box; /* Include padding in width */
+}
+
+/* Headings */
+.main-heading {
+    font-size: 2.5rem; /* Larger main heading */
+    font-weight: 700;
+    text-align: center;
+    color: #6a0dad; /* Deep purple */
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.sub-heading {
+    font-size: 1.1rem;
+    text-align: center;
+    color: #555;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.profile-heading {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #4a627a; /* Dark blue-grey */
+    margin-top: 3rem; /* More space above sections */
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.suggestions-heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50; /* Darker grey */
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #444;
+}
+
+.input-field,
+.textarea-field {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 0.5rem; /* Slightly more rounded */
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-field:focus,
+.textarea-field:focus {
+    border-color: #6a0dad; /* Focus color */
+    box-shadow: 0 0 0 3px rgba(106, 0, 173, 0.2); /* Light purple glow */
+    outline: none;
+}
+
+.textarea-field {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Buttons */
+.submit-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background-color: #8e44ad; /* Purple button */
+    color: white;
+    border: none;
+    border-radius: 0.75rem; /* Rounded corners */
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    gap: 10px; /* Space between emoji and text */
+}
+
+.submit-button:hover {
+    background-color: #9b59b6; /* Lighter purple on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.download-button {
+    background-color: #27ae60 !important; /* Green for download */
+}
+
+.download-button:hover {
+    background-color: #2ecc71 !important; /* Lighter green on hover */
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Error Message */
+.error-message {
+    background-color: #ffe0e0;
+    border: 1px solid #ff0000;
+    color: #ff0000;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+/* Numerology Profile Display */
+.numerology-profile {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.current-numerology-box {
+    background-color: #e0f7fa; /* Light blue background */
+    border: 1px solid #b2ebf2;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.current-numerology-box h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #00796b; /* Dark teal */
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.numerology-number-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.numerology-number-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #d35400; /* Orange */
+}
+
+.numerology-explanation {
+    font-style: italic;
+    color: #555;
+    margin-top: 1rem;
+    line-height: 1.4;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-content h1 { font-size: 2em; }
+.markdown-content h2 { font-size: 1.75em; }
+.markdown-content h3 { font-size: 1.5em; }
+.markdown-content h4 { font-size: 1.25em; }
+.markdown-content h5 { font-size: 1.1em; }
+.markdown-content h6 { font-size: 1em; }
+
+.markdown-content p {
+    margin-bottom: 1em;
+    line-height: 1.6;
+}
+
+.markdown-content ul {
+    list-style-type: disc;
+    margin-left: 20px;
+    margin-bottom: 1em;
+}
+
+.markdown-content ol {
+    list-style-type: decimal;
+    margin-left: 20px;
+    margin-bottom: 1em;
+}
+
+.markdown-content li {
+    margin-bottom: 0.5em;
+}
+
+.markdown-content strong, .markdown-content b {
+    font-weight: 700;
+    color: #8e44ad; /* Highlight bold text */
+}
+
+.markdown-content em, .markdown-content i {
+    font-style: italic;
+}
+
+.markdown-content hr {
+    border: 0;
+    border-top: 1px dashed #ccc;
+    margin: 2em 0;
+}
+
+.footer-text {
+    text-align: center;
+    font-size: 0.9em;
+    color: #777;
+    margin-top: 2rem;
+    font-style: italic;
+}
+
+/* Chat specific styles */
+.chat-container {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 450px; /* Fixed height for chat */
+    margin-bottom: 2rem;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.message {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.75rem;
+    max-width: 80%;
+    word-wrap: break-word; /* Ensure long words wrap */
+}
+
+.message.user {
+    background-color: #e0f2fe; /* Light blue */
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.message.bot {
+    background-color: #f3e8ff; /* Light purple */
+    align-self: flex-start;
+    margin-right: auto;
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input-field {
+    flex-grow: 1;
+}
+
+.chat-send-button {
+    width: auto; /* Allow button to size content */
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .content-box {
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+    .main-heading {
+        font-size: 2rem;
+    }
+    .profile-heading, .suggestions-heading {
+        font-size: 1.5rem;
+    }
+    .chat-container {
+        height: 400px; /* Slightly smaller on mobile */
+    }
+}
