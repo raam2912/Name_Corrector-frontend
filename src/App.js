@@ -140,6 +140,7 @@ const App = () => {
         setError('');
         setResponse('');
         setValidationResult(''); // Clear validation result when generating new report
+        setSuggestedName(''); // Clear suggested name input
         setCurrentNumerology(null); // Clear previous numerology display
 
         if (!fullName || !birthDate || !desiredOutcome) {
@@ -169,7 +170,9 @@ const App = () => {
             });
 
             // Construct the message for the AI agent on the backend for initial report
-            const message = `GENERATE_REPORT: My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. I desire the following positive outcome in my life: "${desiredOutcome}". Based on this, please suggest at least 6, but ideally 8-10, acceptable and usable name corrections that align with my desired outcome, explaining the numerological benefit of each in a much more descriptive way (2-3 sentences per name, covering impact on career, relationships, etc.). Format your response using Markdown, starting with a warm greeting, then the current numerology summary, followed by a "Suggested Name Corrections" heading, and then bullet points for each name with "Suggested Name:", "Expression Number:", and "Explanation:". Finally, conclude your response with this exact sentence: "For a much detailed report, book your appointment using Sheelaa.com."`;
+            // --- UPDATED MESSAGE FORMAT TO MATCH BACKEND REGEX ---
+            const message = `GENERATE_REPORT: My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. I desire the following positive outcome in my life: "${desiredOutcome}".`;
+            // --- END UPDATED MESSAGE FORMAT ---
 
             // Make API call to your Flask backend
             const res = await fetch(BACKEND_API_URL, {
@@ -212,8 +215,9 @@ const App = () => {
 
         try {
             // Construct the message for the AI agent for name validation
-            // Explicitly pass all necessary context from the first form
-            const message = `VALIDATE_NAME: Original Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}", Suggested Name to Validate: "${suggestedName}". Please validate this suggested name against the user's desired outcome. State clearly if it is "Valid" or "Invalid" for their goals and provide a detailed explanation (2-4 sentences) of why, referring to its numerological meaning and alignment/misalignment with the desired outcome. Conclude with: "For a much detailed report, book your appointment using Sheelaa.com."`;
+            // --- UPDATED MESSAGE FORMAT TO MATCH BACKEND REGEX ---
+            const message = `VALIDATE_NAME: Original Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}", Suggested Name to Validate: "${suggestedName}".`;
+            // --- END UPDATED MESSAGE FORMAT ---
 
             const res = await fetch(BACKEND_API_URL, {
                 method: 'POST',
