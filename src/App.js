@@ -14,7 +14,7 @@ const App = () => {
     const [error, setError] = useState('');
     const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
 
-    const BACKEND_API_URL = "https://name-corrector-backend.onrender.com"; // <<<--- THIS IS A PLACEHOLDER! YOU WILL REPLACE THIS LATER!
+    const BACKEND_API_URL = "https://name-corrector-backend.onrender.com/chat"; // <<<--- THIS IS A PLACEHOLDER! YOU WILL REPLACE THIS LATER!
 
     // --- Numerology Core Logic (duplicated in frontend for immediate display) ---
     // This client-side logic is for quick display of current numbers before the AI response.
