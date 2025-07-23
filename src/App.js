@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { marked } from 'marked'; // Import marked for Markdown parsing
-import jsPDF from 'jspdf'; // Import jsPDF for PDF generation
-import html2canvas from 'html2canvas'; // Import html2canvas for capturing HTML as image
+
+// Assuming your CSS files are correctly linked in public/index.html or imported here
+import './index.css';
+import './App.css';
 
 // Main App component
 const App = () => {
@@ -14,15 +16,20 @@ const App = () => {
     const [error, setError] = useState('');
     const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
 
-    // New state variables for name validation feature
+    // State variables for name validation feature
     const [suggestedName, setSuggestedName] = useState('');
     const [validationResult, setValidationResult] = useState(''); // Stores the Markdown response for validation
     const [isValidationLoading, setIsValidationLoading] = useState(false);
     const [validationError, setValidationError] = useState('');
 
+    // State variables for chat functionality
+    const [chatInput, setChatInput] = useState('');
+    const [chatMessages, setChatMessages] = useState([{ sender: 'bot', text: "Hello! I am Sheelaa's Elite AI Numerology Assistant. How can I help you today?" }]);
+    const [isChatLoading, setIsChatLoading] = useState(false);
 
-    // IMPORTANT: This is your deployed Render Flask backend URL.
-    const BACKEND_API_URL = "https://name-corrector-backend.onrender.com/chat"; // <<<--- VERIFY THIS IS YOUR ACTUAL RENDER URL!
+
+    // IMPORTANT: This is the base URL for your deployed Render Flask backend.
+    const BACKEND_BASE_URL = "https://name-corrector-backend.onrender.com"; // <<<--- VERIFY THIS IS YOUR ACTUAL RENDER URL!
 
     // --- Numerology Core Logic (duplicated in frontend for immediate display) ---
     // This client-side calculation is for immediate display of current numbers,
@@ -96,44 +103,74 @@ const App = () => {
         }
     };
 
-    // Function to generate PDF
-    const generatePdf = () => {
-        const input = document.getElementById('numerology-report-content'); // Target the div containing the report
-        if (!input) {
-            setError("Could not find report content to generate PDF.");
+    // Function to handle PDF download (calls backend endpoint)
+    const handleDownloadPdf = async () => {
+        setIsLoading(true); // Use main loading indicator for PDF generation
+        setError('');
+
+        if (!fullName || !birthDate || !desiredOutcome) {
+            setError('Please fill in Full Name, Birth Date, and Desired Outcome to generate a PDF report.');
+            setIsLoading(false);
             return;
         }
 
-        html2canvas(input, {
-            scale: 2, // Increase scale for better quality
-            useCORS: true, // Important if you have images from external sources
-            logging: false, // Disable logging for cleaner console
-        }).then((canvas) => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait, 'mm' for millimeters, 'a4' for A4 size
+        try {
+            // We need current numerology numbers to send to the backend for PDF generation
+            const currentExpNum = calculateNameNumber(fullName);
+            const currentLifePathNum = calculateLifePathNumber(birthDate);
 
-            // Calculate dimensions to fit the image on the PDF page
-            const imgWidth = 210; // A4 width in mm
-            const pageHeight = 297; // A4 height in mm
-            const imgHeight = canvas.height * imgWidth / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
+            if (currentExpNum === 0 || currentLifePathNum === 0) {
+                setError('Could not calculate initial numerology for PDF. Please check your inputs.');
+                setIsLoading(false);
+                return;
             }
 
-            pdf.save(`Numerology_Report_${fullName.replace(/\s+/g, '_') || 'Guest'}.pdf`);
-        }).catch(err => {
-            console.error("Error generating PDF:", err);
-            setError(`Failed to generate PDF: ${err.message}`);
-        });
+            const response = await fetch(`${BACKEND_BASE_URL}/generate_pdf_report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    full_name: fullName,
+                    birth_date: birthDate,
+                    desired_outcome: desiredOutcome,
+                    current_expression_number: currentExpNum,
+                    current_life_path_number: currentLifePathNum
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate PDF.');
+            }
+
+            // Get the filename from the Content-Disposition header
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `Numerology_Report_${fullName.replace(/\s+/g, '_') || 'report'}.pdf`;
+            if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+                const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            alert('PDF report downloaded successfully!');
+
+        } catch (err) {
+            console.error('Error downloading PDF:', err);
+            setError(`Failed to download PDF: ${err.message}`);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Main form submission handler (for initial report generation)
@@ -168,16 +205,14 @@ const App = () => {
                 expression: currentExpNum,
                 lifePath: currentLifePathNum,
                 explanation: `Your current name's energy (${currentExpNum}) resonates with ${NUMEROLOGY_INTERPRETATIONS[currentExpNum] || "a unique path."}. ` +
-                             `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}.`
+                                 `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}.`
             });
 
             // Construct the message for the AI agent on the backend for initial report
-            // --- UPDATED MESSAGE FORMAT TO MATCH BACKEND REGEX (enhanced_single_backend.py) ---
             const message = `GENERATE_ADVANCED_REPORT: My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. I desire the following positive outcome in my life: "${desiredOutcome}".`;
-            // --- END UPDATED MESSAGE FORMAT ---
 
-            // Make API call to your Flask backend
-            const res = await fetch(BACKEND_API_URL, {
+            // Make API call to your Flask backend's /chat endpoint
+            const res = await fetch(`${BACKEND_BASE_URL}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -201,7 +236,7 @@ const App = () => {
         }
     };
 
-    // New function for validating a suggested name
+    // Function for validating a suggested name
     const handleValidateName = async (e) => {
         e.preventDefault();
         setValidationError('');
@@ -217,11 +252,9 @@ const App = () => {
 
         try {
             // Construct the message for the AI agent for name validation
-            // --- UPDATED MESSAGE FORMAT TO MATCH BACKEND REGEX (enhanced_single_backend.py) ---
             const message = `VALIDATE_NAME_ADVANCED: Original Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}", Suggested Name to Validate: "${suggestedName}".`;
-            // --- END UPDATED MESSAGE FORMAT ---
 
-            const res = await fetch(BACKEND_API_URL, {
+            const res = await fetch(`${BACKEND_BASE_URL}/chat`, { // Call /chat endpoint
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -245,6 +278,48 @@ const App = () => {
         }
     };
 
+    // Handle sending chat messages
+    const handleChatSend = async () => {
+        const message = chatInput.trim();
+        if (!message) return;
+
+        const newMessages = [...chatMessages, { sender: 'user', text: message }];
+        setChatMessages(newMessages);
+        setChatInput('');
+        setIsChatLoading(true);
+
+        try {
+            const response = await fetch(`${BACKEND_BASE_URL}/chat`, { // Call /chat endpoint
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Something went wrong on the server.');
+            }
+
+            const data = await response.json();
+            setChatMessages(prev => [...prev, { sender: 'bot', text: data.response }]);
+        } catch (err) {
+            console.error('Error sending chat message:', err);
+            setChatMessages(prev => [...prev, { sender: 'bot', text: `Error: ${err.message}` }]);
+        } finally {
+            setIsChatLoading(false);
+        }
+    };
+
+    // Effect to scroll chat messages to bottom
+    useEffect(() => {
+        const chatMessagesDiv = document.getElementById('chat-messages');
+        if (chatMessagesDiv) {
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+        }
+    }, [chatMessages]);
+
 
     return (
         <div className="app-container">
@@ -256,8 +331,43 @@ const App = () => {
                     Discover the profound influence of your name and birth date. Get AI-powered corrections and validate your own name ideas.
                 </p>
 
+                {/* Chat Interface */}
+                <h2 className="profile-heading" style={{marginTop: '40px'}}>
+                    <span role="img" aria-label="chat icon">💬</span> Sheelaa AI Chat
+                </h2>
+                <div className="chat-container">
+                    <div id="chat-messages" className="chat-messages">
+                        {chatMessages.map((msg, index) => (
+                            <div key={index} className={`message ${msg.sender}`}>
+                                {marked.parse(msg.text)} {/* Use marked.parse here */}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="chat-input-area">
+                        <input
+                            type="text"
+                            id="chat-input"
+                            placeholder="Type your message..."
+                            className="input-field chat-input-field"
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            onKeyPress={(e) => { if (e.key === 'Enter') handleChatSend(); }}
+                            disabled={isChatLoading}
+                        />
+                        <button
+                            id="send-button"
+                            className="submit-button chat-send-button"
+                            onClick={handleChatSend}
+                            disabled={isChatLoading}
+                        >
+                            {isChatLoading ? <div className="spinner"></div> : 'Send'}
+                        </button>
+                    </div>
+                </div>
+
+
                 {/* Section for Initial Report Generation */}
-                <h2 className="profile-heading" style={{marginTop: '0'}}>
+                <h2 className="profile-heading" style={{marginTop: '40px'}}>
                     <span role="img" aria-label="form icon">📝</span>Generate Personalized Report
                 </h2>
                 <form onSubmit={handleSubmit}>
@@ -368,9 +478,10 @@ const App = () => {
                 {/* Download PDF Button - only shown when a report is available */}
                 {response && (
                     <button
-                        onClick={generatePdf}
+                        onClick={handleDownloadPdf}
                         className="submit-button download-button"
                         style={{ marginTop: '20px', backgroundColor: '#28a745' }}
+                        disabled={isLoading}
                     >
                         <span className="flex-center">
                             <span role="img" aria-label="download icon" className="emoji-icon">⬇️</span>
@@ -380,7 +491,7 @@ const App = () => {
                 )}
 
                 {/* Separator and Name Validation Section - ONLY DISPLAYED IF response IS AVAILABLE */}
-                {response && ( // <--- NEW CONDITIONAL RENDERING HERE
+                {response && (
                     <>
                         <hr style={{ margin: '60px auto', width: '80%', border: '0', borderTop: '1px dashed #4a627a' }} />
 
@@ -442,7 +553,7 @@ const App = () => {
                             </div>
                         )}
                     </>
-                )} {/* <--- END OF NEW CONDITIONAL RENDERING */}
+                )}
             </div>
         </div>
     );
