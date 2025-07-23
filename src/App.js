@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { marked } from 'marked'; // Import marked for Markdown parsing
 
 // Assuming your CSS files are correctly linked in public/index.html or imported here
@@ -11,7 +11,7 @@ const App = () => {
     const [fullName, setFullName] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [desiredOutcome, setDesiredOutcome] = useState('');
-    const [response, setResponse] = useState(''); // Stores the Markdown response from backend (for initial report)
+    const [reportContent, setReportContent] = useState(''); // Stores the Markdown response from backend
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
@@ -21,12 +21,6 @@ const App = () => {
     const [validationResult, setValidationResult] = useState(''); // Stores the Markdown response for validation
     const [isValidationLoading, setIsValidationLoading] = useState(false);
     const [validationError, setValidationError] = useState('');
-
-    // State variables for chat functionality
-    const [chatInput, setChatInput] = useState('');
-    const [chatMessages, setChatMessages] = useState([{ sender: 'bot', text: "Hello! I am Sheelaa's Elite AI Numerology Assistant. How can I help you today?" }]);
-    const [isChatLoading, setIsChatLoading] = useState(false);
-
 
     // IMPORTANT: This is the base URL for your deployed Render Flask backend.
     const BACKEND_BASE_URL = "https://name-corrector-backend.onrender.com"; // <<<--- VERIFY THIS IS YOUR ACTUAL RENDER URL!
@@ -108,8 +102,8 @@ const App = () => {
         setIsLoading(true); // Use main loading indicator for PDF generation
         setError('');
 
-        if (!fullName || !birthDate || !desiredOutcome) {
-            setError('Please fill in Full Name, Birth Date, and Desired Outcome to generate a PDF report.');
+        if (!fullName || !birthDate || !desiredOutcome || !reportContent) {
+            setError('Please generate a report first before attempting to download the PDF.');
             setIsLoading(false);
             return;
         }
@@ -135,7 +129,8 @@ const App = () => {
                     birth_date: birthDate,
                     desired_outcome: desiredOutcome,
                     current_expression_number: currentExpNum,
-                    current_life_path_number: currentLifePathNum
+                    current_life_path_number: currentLifePathNum,
+                    intro_response: reportContent // Pass the generated Markdown report content
                 }),
             });
 
@@ -177,7 +172,7 @@ const App = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setResponse('');
+        setReportContent(''); // Clear previous report
         setValidationResult(''); // Clear validation result when generating new report
         setSuggestedName(''); // Clear suggested name input
         setCurrentNumerology(null); // Clear previous numerology display
@@ -226,7 +221,7 @@ const App = () => {
             }
 
             const data = await res.json();
-            setResponse(data.response);
+            setReportContent(data.response); // Store the raw Markdown response
 
         } catch (err) {
             console.error('Error fetching data:', err);
@@ -278,49 +273,6 @@ const App = () => {
         }
     };
 
-    // Handle sending chat messages
-    const handleChatSend = async () => {
-        const message = chatInput.trim();
-        if (!message) return;
-
-        const newMessages = [...chatMessages, { sender: 'user', text: message }];
-        setChatMessages(newMessages);
-        setChatInput('');
-        setIsChatLoading(true);
-
-        try {
-            const response = await fetch(`${BACKEND_BASE_URL}/chat`, { // Call /chat endpoint
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Something went wrong on the server.');
-            }
-
-            const data = await response.json();
-            setChatMessages(prev => [...prev, { sender: 'bot', text: data.response }]);
-        } catch (err) {
-            console.error('Error sending chat message:', err);
-            setChatMessages(prev => [...prev, { sender: 'bot', text: `Error: ${err.message}` }]);
-        } finally {
-            setIsChatLoading(false);
-        }
-    };
-
-    // Effect to scroll chat messages to bottom
-    useEffect(() => {
-        const chatMessagesDiv = document.getElementById('chat-messages');
-        if (chatMessagesDiv) {
-            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-        }
-    }, [chatMessages]);
-
-
     return (
         <div className="app-container">
             <div className="content-box">
@@ -331,43 +283,8 @@ const App = () => {
                     Discover the profound influence of your name and birth date. Get AI-powered corrections and validate your own name ideas.
                 </p>
 
-                {/* Chat Interface */}
-                <h2 className="profile-heading" style={{marginTop: '40px'}}>
-                    <span role="img" aria-label="chat icon">💬</span> Sheelaa AI Chat
-                </h2>
-                <div className="chat-container">
-                    <div id="chat-messages" className="chat-messages">
-                        {chatMessages.map((msg, index) => (
-                            <div key={index} className={`message ${msg.sender}`}>
-                                {marked.parse(msg.text)} {/* Use marked.parse here */}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="chat-input-area">
-                        <input
-                            type="text"
-                            id="chat-input"
-                            placeholder="Type your message..."
-                            className="input-field chat-input-field"
-                            value={chatInput}
-                            onChange={(e) => setChatInput(e.target.value)}
-                            onKeyPress={(e) => { if (e.key === 'Enter') handleChatSend(); }}
-                            disabled={isChatLoading}
-                        />
-                        <button
-                            id="send-button"
-                            className="submit-button chat-send-button"
-                            onClick={handleChatSend}
-                            disabled={isChatLoading}
-                        >
-                            {isChatLoading ? <div className="spinner"></div> : 'Send'}
-                        </button>
-                    </div>
-                </div>
-
-
                 {/* Section for Initial Report Generation */}
-                <h2 className="profile-heading" style={{marginTop: '40px'}}>
+                <h2 className="profile-heading" style={{marginTop: '0'}}>
                     <span role="img" aria-label="form icon">📝</span>Generate Personalized Report
                 </h2>
                 <form onSubmit={handleSubmit}>
@@ -459,13 +376,13 @@ const App = () => {
                             <p className="numerology-explanation">{currentNumerology.explanation}</p>
                         </div>
 
-                        {response && (
+                        {reportContent && (
                             <>
                                 <h3 className="suggestions-heading">
                                     <span role="img" aria-label="lightbulb">💡</span> Personalized Name Corrections:
                                 </h3>
                                 {/* Render Markdown content directly */}
-                                <div className="markdown-content" dangerouslySetInnerHTML={{ __html: marked.parse(response) }} />
+                                <div className="markdown-content" dangerouslySetInnerHTML={{ __html: marked.parse(reportContent) }} />
                             </>
                         )}
                         <p className="footer-text">
@@ -476,7 +393,7 @@ const App = () => {
                 )}
 
                 {/* Download PDF Button - only shown when a report is available */}
-                {response && (
+                {reportContent && (
                     <button
                         onClick={handleDownloadPdf}
                         className="submit-button download-button"
@@ -490,8 +407,8 @@ const App = () => {
                     </button>
                 )}
 
-                {/* Separator and Name Validation Section - ONLY DISPLAYED IF response IS AVAILABLE */}
-                {response && (
+                {/* Separator and Name Validation Section - ONLY DISPLAYED IF reportContent IS AVAILABLE */}
+                {reportContent && (
                     <>
                         <hr style={{ margin: '60px auto', width: '80%', border: '0', borderTop: '1px dashed #4a627a' }} />
 
