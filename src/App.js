@@ -25,6 +25,8 @@ const App = () => {
     const BACKEND_API_URL = "https://name-corrector-backend.onrender.com/chat"; // <<<--- VERIFY THIS IS YOUR ACTUAL RENDER URL!
 
     // --- Numerology Core Logic (duplicated in frontend for immediate display) ---
+    // This client-side calculation is for immediate display of current numbers,
+    // the backend will perform its own comprehensive calculations.
     const NUMEROLOGY_MAP = {
         'A': 1, 'J': 1, 'S': 1, 'B': 2, 'K': 2, 'T': 2, 'C': 3, 'L': 3, 'U': 3,
         'D': 4, 'M': 4, 'V': 4, 'E': 5, 'N': 5, 'W': 5, 'F': 6, 'O': 6, 'X': 6,
@@ -170,8 +172,8 @@ const App = () => {
             });
 
             // Construct the message for the AI agent on the backend for initial report
-            // --- UPDATED MESSAGE FORMAT TO MATCH BACKEND REGEX ---
-            const message = `GENERATE_REPORT: My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. I desire the following positive outcome in my life: "${desiredOutcome}".`;
+            // --- UPDATED MESSAGE FORMAT TO MATCH BACKEND REGEX (enhanced_single_backend.py) ---
+            const message = `GENERATE_ADVANCED_REPORT: My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. I desire the following positive outcome in my life: "${desiredOutcome}".`;
             // --- END UPDATED MESSAGE FORMAT ---
 
             // Make API call to your Flask backend
@@ -215,8 +217,8 @@ const App = () => {
 
         try {
             // Construct the message for the AI agent for name validation
-            // --- UPDATED MESSAGE FORMAT TO MATCH BACKEND REGEX ---
-            const message = `VALIDATE_NAME: Original Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}", Suggested Name to Validate: "${suggestedName}".`;
+            // --- UPDATED MESSAGE FORMAT TO MATCH BACKEND REGEX (enhanced_single_backend.py) ---
+            const message = `VALIDATE_NAME_ADVANCED: Original Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}", Suggested Name to Validate: "${suggestedName}".`;
             // --- END UPDATED MESSAGE FORMAT ---
 
             const res = await fetch(BACKEND_API_URL, {
