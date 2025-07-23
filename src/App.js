@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { marked } from 'marked'; // Import marked for Markdown parsing
-import jsPDF from 'jspdf'; // Import jsPDF for PDF generation
-import html2canvas from 'html2canvas'; // Import html2canvas for capturing HTML as image
+import { marked } from 'marked'; 
+import jsPDF from 'jspdf'; 
+import html2canvas from 'html2canvas';
 
 // Main App component
 const App = () => {
@@ -14,9 +14,6 @@ const App = () => {
     const [error, setError] = useState('');
     const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
 
-    // IMPORTANT: This is a placeholder. You will replace this with your actual
-    // deployed Flask backend URL from Render AFTER you deploy the backend.
-    // For local testing, you will set it to 'http://localhost:5000/chat'.
     const BACKEND_API_URL = "https://name-corrector-backend.onrender.com"; // <<<--- THIS IS A PLACEHOLDER! YOU WILL REPLACE THIS LATER!
 
     // --- Numerology Core Logic (duplicated in frontend for immediate display) ---
