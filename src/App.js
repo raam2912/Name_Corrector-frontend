@@ -202,8 +202,9 @@ const App = () => {
         setValidationError('');
         setValidationResult('');
 
+        // Ensure original data is present for validation context
         if (!fullName || !birthDate || !desiredOutcome || !suggestedName) {
-            setValidationError('Please fill in your Full Name, Birth Date, Desired Outcome, and the Suggested Name to Validate.');
+            setValidationError('Please ensure your Full Name, Birth Date, and Desired Outcome are entered in the top form, and provide the Suggested Name to Validate.');
             return;
         }
 
@@ -211,6 +212,7 @@ const App = () => {
 
         try {
             // Construct the message for the AI agent for name validation
+            // Explicitly pass all necessary context from the first form
             const message = `VALIDATE_NAME: Original Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}", Suggested Name to Validate: "${suggestedName}". Please validate this suggested name against the user's desired outcome. State clearly if it is "Valid" or "Invalid" for their goals and provide a detailed explanation (2-4 sentences) of why, referring to its numerological meaning and alignment/misalignment with the desired outcome. Conclude with: "For a much detailed report, book your appointment using Sheelaa.com."`;
 
             const res = await fetch(BACKEND_API_URL, {
@@ -371,67 +373,70 @@ const App = () => {
                     </button>
                 )}
 
-                {/* Separator for new functionality */}
-                <hr style={{ margin: '60px auto', width: '80%', border: '0', borderTop: '1px dashed #4a627a' }} />
+                {/* Separator and Name Validation Section - ONLY DISPLAYED IF response IS AVAILABLE */}
+                {response && ( // <--- NEW CONDITIONAL RENDERING HERE
+                    <>
+                        <hr style={{ margin: '60px auto', width: '80%', border: '0', borderTop: '1px dashed #4a627a' }} />
 
-                {/* Section for Name Validation */}
-                <h2 className="profile-heading">
-                    <span role="img" aria-label="validate icon">✅</span>Validate Your Own Name Idea
-                </h2>
-                <p className="sub-heading">
-                    Enter a name you're considering (first, last, middle, or full name) to see if its numerology aligns with your goals.
-                </p>
-                <form onSubmit={handleValidateName}>
-                    <div className="form-group">
-                        <label htmlFor="suggestedName" className="form-label">
-                            Suggested Name to Validate
-                        </label>
-                        <input
-                            type="text"
-                            id="suggestedName"
-                            className="input-field"
-                            placeholder="e.g., Emily Rose, Thompson, or a new first name"
-                            value={suggestedName}
-                            onChange={(e) => setSuggestedName(e.target.value)}
-                            required
-                        />
-                    </div>
+                        <h2 className="profile-heading">
+                            <span role="img" aria-label="validate icon">✅</span>Validate Your Own Name Idea
+                        </h2>
+                        <p className="sub-heading">
+                            Enter a name you're considering (first, last, middle, or full name) to see if its numerology aligns with your goals.
+                        </p>
+                        <form onSubmit={handleValidateName}>
+                            <div className="form-group">
+                                <label htmlFor="suggestedName" className="form-label">
+                                    Suggested Name to Validate
+                                </label>
+                                <input
+                                    type="text"
+                                    id="suggestedName"
+                                    className="input-field"
+                                    placeholder="e.g., Emily Rose, Thompson, or a new first name"
+                                    value={suggestedName}
+                                    onChange={(e) => setSuggestedName(e.target.value)}
+                                    required
+                                />
+                            </div>
 
-                    <button
-                        type="submit"
-                        className="submit-button"
-                        disabled={isValidationLoading}
-                        style={{ backgroundColor: '#3498db' }} // Blue color for validation button
-                    >
-                        {isValidationLoading ? (
-                            <span className="flex-center">
-                                <div className="spinner"></div>
-                                Validating Name...
-                            </span>
-                        ) : (
-                            <span className="flex-center">
-                                <span role="img" aria-label="check mark" className="emoji-icon">✔️</span>
-                                Validate Name
-                            </span>
+                            <button
+                                type="submit"
+                                className="submit-button"
+                                disabled={isValidationLoading}
+                                style={{ backgroundColor: '#3498db' }} // Blue color for validation button
+                            >
+                                {isValidationLoading ? (
+                                    <span className="flex-center">
+                                        <div className="spinner"></div>
+                                        Validating Name...
+                                    </span>
+                                ) : (
+                                    <span className="flex-center">
+                                        <span role="img" aria-label="check mark" className="emoji-icon">✔️</span>
+                                        Validate Name
+                                    </span>
+                                )}
+                            </button>
+                        </form>
+
+                        {validationError && (
+                            <div className="error-message" role="alert">
+                                <p><strong>Error:</strong></p>
+                                <p>{validationError}</p>
+                            </div>
                         )}
-                    </button>
-                </form>
 
-                {validationError && (
-                    <div className="error-message" role="alert">
-                        <p><strong>Error:</strong></p>
-                        <p>{validationError}</p>
-                    </div>
-                )}
-
-                {validationResult && (
-                    <div className="numerology-profile" style={{marginTop: '40px'}}>
-                        <h3 className="suggestions-heading">
-                            <span role="img" aria-label="result icon">✨</span>Validation Result:
-                        </h3>
-                        <div className="markdown-content" dangerouslySetInnerHTML={{ __html: marked.parse(validationResult) }} />
-                    </div>
-                )}
+                        {validationResult && (
+                            <div className="numerology-profile" style={{marginTop: '40px'}}>
+                                <h3 className="suggestions-heading">
+                                    <span role="img" aria-label="result icon">✨</span>Validation Result:
+                                </h3>
+                                <div className="markdown-content" dangerouslySetInnerHTML={{ __html: marked.parse(validationResult) }} />
+                            </div>
+                        )}
+                    </>
+                )} {/* <--- END OF NEW CONDITIONAL RENDERING */}
             </div>
         </div>
     );
