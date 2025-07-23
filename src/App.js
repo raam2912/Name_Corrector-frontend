@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { marked } from 'marked'; 
-import jsPDF from 'jspdf'; 
-import html2canvas from 'html2canvas';
+import { marked } from 'marked'; // Import marked for Markdown parsing
+import jsPDF from 'jspdf'; // Import jsPDF for PDF generation
+import html2canvas from 'html2canvas'; // Import html2canvas for capturing HTML as image
 
 // Main App component
 const App = () => {
@@ -9,16 +9,22 @@ const App = () => {
     const [fullName, setFullName] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [desiredOutcome, setDesiredOutcome] = useState('');
-    const [response, setResponse] = useState(''); // Stores the Markdown response from backend
+    const [response, setResponse] = useState(''); // Stores the Markdown response from backend (for initial report)
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
 
-    const BACKEND_API_URL = "https://name-corrector-backend.onrender.com/chat"; // <<<--- THIS IS A PLACEHOLDER! YOU WILL REPLACE THIS LATER!
+    // New state variables for name validation feature
+    const [suggestedName, setSuggestedName] = useState('');
+    const [validationResult, setValidationResult] = useState(''); // Stores the Markdown response for validation
+    const [isValidationLoading, setIsValidationLoading] = useState(false);
+    const [validationError, setValidationError] = useState('');
+
+
+    // IMPORTANT: This is your deployed Render Flask backend URL.
+    const BACKEND_API_URL = "https://name-corrector-backend.onrender.com/chat"; // <<<--- VERIFY THIS IS YOUR ACTUAL RENDER URL!
 
     // --- Numerology Core Logic (duplicated in frontend for immediate display) ---
-    // This client-side logic is for quick display of current numbers before the AI response.
-    // The backend will also have its own robust numerology calculator tool.
     const NUMEROLOGY_MAP = {
         'A': 1, 'J': 1, 'S': 1, 'B': 2, 'K': 2, 'T': 2, 'C': 3, 'L': 3, 'U': 3,
         'D': 4, 'M': 4, 'V': 4, 'E': 5, 'N': 5, 'W': 5, 'F': 6, 'O': 6, 'X': 6,
@@ -88,69 +94,6 @@ const App = () => {
         }
     };
 
-    // Main form submission handler
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setResponse('');
-        setCurrentNumerology(null); // Clear previous numerology display
-
-        if (!fullName || !birthDate || !desiredOutcome) {
-            setError('Please fill in all fields: Full Name, Birth Date, and Desired Outcome.');
-            return;
-        }
-
-        setIsLoading(true);
-
-        try {
-            // Calculate current numerology on frontend for immediate display
-            const currentExpNum = calculateNameNumber(fullName);
-            const currentLifePathNum = calculateLifePathNumber(birthDate);
-
-            if (currentExpNum === 0 || currentLifePathNum === 0) {
-                setError('Could not calculate initial numerology. Please check your inputs, especially the name (letters only) and date (YYYY-MM-DD).');
-                setIsLoading(false);
-                return;
-            }
-
-            // Set current numerology state for display
-            setCurrentNumerology({
-                expression: currentExpNum,
-                lifePath: currentLifePathNum,
-                explanation: `Your current name's energy (${currentExpNum}) resonates with ${NUMEROLOGY_INTERPRETATIONS[currentExpNum] || "a unique path."}. ` +
-                             `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}.`
-            });
-
-            // Construct the message for the AI agent on the backend
-            // This message will be interpreted by the LLM (via LangChain) to generate name corrections.
-            const message = `My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. I desire the following positive outcome in my life: "${desiredOutcome}". Based on this, please suggest at least 6 acceptable and usable name corrections that align with my desired outcome, explaining the numerological benefit of each. Format your response using Markdown, starting with a warm greeting, then the current numerology summary, followed by a "Suggested Name Corrections" heading, and then bullet points for each name with "Suggested Name:", "Expression Number:", and "Explanation:". Finally, conclude your response with this exact sentence: "For a much detailed report, book your appointment using Sheelaa.com."`;
-
-            // Make API call to your Flask backend
-            const res = await fetch(BACKEND_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message }),
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-            }
-
-            const data = await res.json();
-            // Assuming the backend returns Markdown text in the 'response' key
-            setResponse(data.response);
-
-        } catch (err) {
-            console.error('Error fetching data:', err);
-            setError(`Failed to get a response from the AI: ${err.message}. Please ensure your backend is running and its URL is correct.`);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     // Function to generate PDF
     const generatePdf = () => {
         const input = document.getElementById('numerology-report-content'); // Target the div containing the report
@@ -191,6 +134,109 @@ const App = () => {
         });
     };
 
+    // Main form submission handler (for initial report generation)
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setResponse('');
+        setValidationResult(''); // Clear validation result when generating new report
+        setCurrentNumerology(null); // Clear previous numerology display
+
+        if (!fullName || !birthDate || !desiredOutcome) {
+            setError('Please fill in all fields: Full Name, Birth Date, and Desired Outcome.');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            // Calculate current numerology on frontend for immediate display
+            const currentExpNum = calculateNameNumber(fullName);
+            const currentLifePathNum = calculateLifePathNumber(birthDate);
+
+            if (currentExpNum === 0 || currentLifePathNum === 0) {
+                setError('Could not calculate initial numerology. Please check your inputs, especially the name (letters only) and date (YYYY-MM-DD).');
+                setIsLoading(false);
+                return;
+            }
+
+            // Set current numerology state for display
+            setCurrentNumerology({
+                expression: currentExpNum,
+                lifePath: currentLifePathNum,
+                explanation: `Your current name's energy (${currentExpNum}) resonates with ${NUMEROLOGY_INTERPRETATIONS[currentExpNum] || "a unique path."}. ` +
+                             `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}.`
+            });
+
+            // Construct the message for the AI agent on the backend for initial report
+            const message = `GENERATE_REPORT: My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. I desire the following positive outcome in my life: "${desiredOutcome}". Based on this, please suggest at least 6, but ideally 8-10, acceptable and usable name corrections that align with my desired outcome, explaining the numerological benefit of each in a much more descriptive way (2-3 sentences per name, covering impact on career, relationships, etc.). Format your response using Markdown, starting with a warm greeting, then the current numerology summary, followed by a "Suggested Name Corrections" heading, and then bullet points for each name with "Suggested Name:", "Expression Number:", and "Explanation:". Finally, conclude your response with this exact sentence: "For a much detailed report, book your appointment using Sheelaa.com."`;
+
+            // Make API call to your Flask backend
+            const res = await fetch(BACKEND_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+            }
+
+            const data = await res.json();
+            setResponse(data.response);
+
+        } catch (err) {
+            console.error('Error fetching data:', err);
+            setError(`Failed to get a response from the AI: ${err.message}. Please ensure your backend is running and its URL is correct.`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // New function for validating a suggested name
+    const handleValidateName = async (e) => {
+        e.preventDefault();
+        setValidationError('');
+        setValidationResult('');
+
+        if (!fullName || !birthDate || !desiredOutcome || !suggestedName) {
+            setValidationError('Please fill in your Full Name, Birth Date, Desired Outcome, and the Suggested Name to Validate.');
+            return;
+        }
+
+        setIsValidationLoading(true);
+
+        try {
+            // Construct the message for the AI agent for name validation
+            const message = `VALIDATE_NAME: Original Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}", Suggested Name to Validate: "${suggestedName}". Please validate this suggested name against the user's desired outcome. State clearly if it is "Valid" or "Invalid" for their goals and provide a detailed explanation (2-4 sentences) of why, referring to its numerological meaning and alignment/misalignment with the desired outcome. Conclude with: "For a much detailed report, book your appointment using Sheelaa.com."`;
+
+            const res = await fetch(BACKEND_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+            }
+
+            const data = await res.json();
+            setValidationResult(data.response);
+
+        } catch (err) {
+            console.error('Error validating name:', err);
+            setValidationError(`Failed to validate name with AI: ${err.message}.`);
+        } finally {
+            setIsValidationLoading(false);
+        }
+    };
+
 
     return (
         <div className="app-container">
@@ -199,9 +245,13 @@ const App = () => {
                     <span role="img" aria-label="sparkles">✨</span>Unlock Your Destiny
                 </h1>
                 <p className="sub-heading">
-                    Discover the profound influence of your name and birth date. Get AI-powered corrections to align with your deepest desires.
+                    Discover the profound influence of your name and birth date. Get AI-powered corrections and validate your own name ideas.
                 </p>
 
+                {/* Section for Initial Report Generation */}
+                <h2 className="profile-heading" style={{marginTop: '0'}}>
+                    <span role="img" aria-label="form icon">📝</span>Generate Personalized Report
+                </h2>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label htmlFor="fullName" className="form-label">
@@ -275,7 +325,7 @@ const App = () => {
 
                 {/* The numerology report content, now with an ID for PDF generation */}
                 {currentNumerology && (
-                    <div id="numerology-report-content" className="numerology-profile">
+                    <div id="numerology-report-content" className="numerology-profile" style={{marginTop: '40px'}}>
                         <h2 className="profile-heading">Your Numerology Profile</h2>
 
                         <div className="current-numerology-box">
@@ -307,18 +357,80 @@ const App = () => {
                     </div>
                 )}
 
-                {/* Download PDF Button - only shown when a response is available */}
+                {/* Download PDF Button - only shown when a report is available */}
                 {response && (
                     <button
                         onClick={generatePdf}
-                        className="submit-button download-button" // Added a new class for specific styling if needed
-                        style={{ marginTop: '20px', backgroundColor: '#28a745' }} // Inline style for distinct color
+                        className="submit-button download-button"
+                        style={{ marginTop: '20px', backgroundColor: '#28a745' }}
                     >
                         <span className="flex-center">
                             <span role="img" aria-label="download icon" className="emoji-icon">⬇️</span>
                             Download Report as PDF
                         </span>
                     </button>
+                )}
+
+                {/* Separator for new functionality */}
+                <hr style={{ margin: '60px auto', width: '80%', border: '0', borderTop: '1px dashed #4a627a' }} />
+
+                {/* Section for Name Validation */}
+                <h2 className="profile-heading">
+                    <span role="img" aria-label="validate icon">✅</span>Validate Your Own Name Idea
+                </h2>
+                <p className="sub-heading">
+                    Enter a name you're considering (first, last, middle, or full name) to see if its numerology aligns with your goals.
+                </p>
+                <form onSubmit={handleValidateName}>
+                    <div className="form-group">
+                        <label htmlFor="suggestedName" className="form-label">
+                            Suggested Name to Validate
+                        </label>
+                        <input
+                            type="text"
+                            id="suggestedName"
+                            className="input-field"
+                            placeholder="e.g., Emily Rose, Thompson, or a new first name"
+                            value={suggestedName}
+                            onChange={(e) => setSuggestedName(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="submit-button"
+                        disabled={isValidationLoading}
+                        style={{ backgroundColor: '#3498db' }} // Blue color for validation button
+                    >
+                        {isValidationLoading ? (
+                            <span className="flex-center">
+                                <div className="spinner"></div>
+                                Validating Name...
+                            </span>
+                        ) : (
+                            <span className="flex-center">
+                                <span role="img" aria-label="check mark" className="emoji-icon">✔️</span>
+                                Validate Name
+                            </span>
+                        )}
+                    </button>
+                </form>
+
+                {validationError && (
+                    <div className="error-message" role="alert">
+                        <p><strong>Error:</strong></p>
+                        <p>{validationError}</p>
+                    </div>
+                )}
+
+                {validationResult && (
+                    <div className="numerology-profile" style={{marginTop: '40px'}}>
+                        <h3 className="suggestions-heading">
+                            <span role="img" aria-label="result icon">✨</span>Validation Result:
+                        </h3>
+                        <div className="markdown-content" dangerouslySetInnerHTML={{ __html: marked.parse(validationResult) }} />
+                    </div>
                 )}
             </div>
         </div>
