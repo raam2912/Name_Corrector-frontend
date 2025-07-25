@@ -15,7 +15,18 @@ const App = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
-    const [fullReportDataForPdf, setFullReportDataForPdf] = useState(null);
+    
+    // NEW: State to hold the full report data for PDF generation, allowing modifications
+    const [fullReportDataForPdf, setFullReportDataForPdf] = useState(null); 
+    // NEW: Editable content for the main report (for practitioner tailoring)
+    const [editableMainReportContent, setEditableMainReportContent] = useState('');
+    // NEW: Editable list of final suggested names (for practitioner tailoring)
+    const [finalSuggestedNamesList, setFinalSuggestedNamesList] = useState([]);
+    // NEW: Editable validation summary (for practitioner tailoring)
+    const [editableValidationSummary, setEditableValidationSummary] = useState('');
+    // NEW: Editable practitioner notes (for practitioner tailoring)
+    const [editablePractitionerNotes, setEditablePractitionerNotes] = useState('');
+
 
     // State variables for NEW conversational name validation feature
     const [suggestedNameForChat, setSuggestedNameForChat] = useState(''); // Input for the name to validate in chat
@@ -130,11 +141,31 @@ const App = () => {
         setIsLoading(true); // Use main loading indicator for PDF generation
         setError('');
 
-        // Ensure fullReportDataForPdf is available
+        // Ensure fullReportDataForPdf is available from initial report generation
         if (!fullReportDataForPdf) {
-            setError('No report data available to download. Please generate a report first.');
+            setError('No base report data available to download. Please generate an initial report first.');
             setIsLoading(false);
             return;
+        }
+
+        // Create a mutable copy of the base report data
+        const payloadForPdf = { ...fullReportDataForPdf };
+
+        // Overwrite the main report content with the editable version
+        payloadForPdf.intro_response = editableMainReportContent;
+
+        // Overwrite the suggested names with the final, practitioner-selected/edited list
+        payloadForPdf.suggested_names = {
+            suggestions: finalSuggestedNamesList,
+            reasoning: "These suggested names have been refined and validated through a detailed consultation." // Or a dynamic reasoning
+        };
+
+        // Add optional validation summary and practitioner notes
+        if (editableValidationSummary.trim()) {
+            payloadForPdf.validation_summary = editableValidationSummary;
+        }
+        if (editablePractitionerNotes.trim()) {
+            payloadForPdf.practitioner_notes = editablePractitionerNotes;
         }
 
         try {
@@ -143,8 +174,7 @@ const App = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // Send the stored fullReportDataForPdf directly
-                body: JSON.stringify(fullReportDataForPdf),
+                body: JSON.stringify(payloadForPdf),
             });
 
             if (!response.ok) {
@@ -186,14 +216,18 @@ const App = () => {
         e.preventDefault();
         setError('');
         setReportContent(''); // Clear previous report
-        // Clear validation related states when generating a new main report
+        // Clear all validation/PDF related states when generating a new main report
         setValidationChatMessages([]);
         setCurrentValidationInput('');
         setSuggestedNameForChat('');
         setValidationChatError('');
+        setCurrentNumerology(null); 
+        setFullReportDataForPdf(null); 
+        setEditableMainReportContent('');
+        setFinalSuggestedNamesList([]);
+        setEditableValidationSummary('');
+        setEditablePractitionerNotes('');
 
-        setCurrentNumerology(null); // Clear previous numerology display
-        setFullReportDataForPdf(null); // Clear previous PDF data
 
         if (!fullName || !birthDate || !desiredOutcome) {
             setError('Please fill in all fields: Full Name, Birth Date, and Desired Outcome.');
@@ -242,9 +276,15 @@ const App = () => {
             }
 
             const data = await res.json();
-            setReportContent(data.response); // Store the raw Markdown response
-            // NEW: Store the full structured data for PDF generation
-            setFullReportDataForPdf(data.full_report_data_for_pdf);
+            setReportContent(data.response); // Store the raw Markdown response for display
+            setEditableMainReportContent(data.response); // Initialize editable content
+            setFullReportDataForPdf(data.full_report_data_for_pdf); // Store the full structured data for PDF generation
+            
+            // Initialize final suggested names from the initial report's suggestions
+            if (data.full_report_data_for_pdf && data.full_report_data_for_pdf.suggested_names && data.full_report_data_for_pdf.suggested_names.suggestions) {
+                setFinalSuggestedNamesList(data.full_report_data_for_pdf.suggested_names.suggestions);
+            }
+
 
         } catch (err) {
             console.error('Error fetching data:', err);
@@ -342,6 +382,23 @@ const App = () => {
         setValidationChatMessages([]);
         setCurrentValidationInput('');
         setValidationChatError('');
+        setEditableValidationSummary(''); // Clear summary when chat resets
+    };
+
+    // Function to handle adding/removing/editing suggested names in the final list
+    const handleFinalSuggestedNameChange = (index, field, value) => {
+        const updatedList = [...finalSuggestedNamesList];
+        updatedList[index][field] = value;
+        setFinalSuggestedNamesList(updatedList);
+    };
+
+    const addFinalSuggestedName = () => {
+        setFinalSuggestedNamesList([...finalSuggestedNamesList, { name: '', rationale: '', expression_number: 0 }]);
+    };
+
+    const removeFinalSuggestedName = (index) => {
+        const updatedList = finalSuggestedNamesList.filter((_, i) => i !== index);
+        setFinalSuggestedNamesList(updatedList);
     };
 
 
@@ -455,10 +512,24 @@ const App = () => {
                         {reportContent && (
                             <>
                                 <h3 className="suggestions-heading">
-                                    <span role="img" aria-label="lightbulb">💡</span> Personalized Name Corrections:
+                                    <span role="img" aria-label="lightbulb">💡</span> Personalized Name Corrections (Initial AI Suggestions):
                                 </h3>
-                                {/* Render Markdown content directly */}
-                                <div className="markdown-content" dangerouslySetInnerHTML={{ __html: marked.parse(reportContent) }} />
+                                {/* Display the initial AI-generated report content in an editable textarea */}
+                                <div className="form-group">
+                                    <label htmlFor="editableMainReportContent" className="form-label">
+                                        Edit Main Report Content:
+                                    </label>
+                                    <textarea
+                                        id="editableMainReportContent"
+                                        className="textarea-field"
+                                        rows="15"
+                                        value={editableMainReportContent}
+                                        onChange={(e) => setEditableMainReportContent(e.target.value)}
+                                    ></textarea>
+                                    <p className="sub-heading-small" style={{textAlign: 'left', marginTop: '5px'}}>
+                                        This content will be included in the PDF. You can edit it as needed.
+                                    </p>
+                                </div>
                             </>
                         )}
                         <p className="footer-text">
@@ -466,21 +537,6 @@ const App = () => {
                             Remember, the power to choose your path lies within you.
                         </p>
                     </div>
-                )}
-
-                {/* Download PDF Button - only shown when a report is available */}
-                {reportContent && (
-                    <button
-                        onClick={handleDownloadPdf}
-                        className="submit-button download-button"
-                        style={{ marginTop: '20px', backgroundColor: '#28a745' }}
-                        disabled={isLoading}
-                    >
-                        <span className="flex-center">
-                            <span role="img" aria-label="download icon" className="emoji-icon">⬇️</span>
-                            Download Report as PDF
-                        </span>
-                    </button>
                 )}
 
                 {/* Separator and Name Validation Section - NOW A CHAT INTERFACE */}
@@ -548,7 +604,7 @@ const App = () => {
                             <form onSubmit={handleValidationChatSubmit} className="chat-input-form">
                                 <textarea
                                     className="textarea-field chat-input"
-                                    placeholder={validationChatMessages.length === 0 ? "Type your initial message or just click 'Start Validation Chat'" : "Type your reply..."}
+                                    placeholder={validationChatMessages.length === 0 ? "Type your initial message or just click 'Start Validation Chat'" : "Type your reply (e.g., 'Final validation report for Emily Rose')..."}
                                     value={currentValidationInput}
                                     onChange={(e) => setCurrentValidationInput(e.target.value)}
                                     rows="2"
@@ -579,6 +635,133 @@ const App = () => {
                                 )}
                             </form>
                         </div>
+                    </>
+                )}
+
+                {/* Practitioner Customization Section (Editable Suggested Names, Validation Summary, Notes) */}
+                {reportContent && ( // Only show this section if a report has been generated
+                    <>
+                        <hr style={{ margin: '60px auto', width: '80%', border: '0', borderTop: '1px dashed #4a627a' }} />
+
+                        <h2 className="profile-heading">
+                            <span role="img" aria-label="customize icon">🛠️</span> Final Report Customization
+                        </h2>
+                        <p className="sub-heading">
+                            Review and refine the suggested names, add validation conclusions, and include any personal notes before generating the final PDF.
+                        </p>
+
+                        {/* Editable Suggested Names List */}
+                        <div className="numerology-profile">
+                            <h3 className="suggestions-heading">
+                                <span role="img" aria-label="name tag">🏷️</span> Final Suggested Names for PDF:
+                            </h3>
+                            {finalSuggestedNamesList.length === 0 && (
+                                <p className="sub-heading-small" style={{textAlign: 'left'}}>
+                                    No names added yet. Click "Add Name" to include suggestions in the PDF.
+                                </p>
+                            )}
+                            {finalSuggestedNamesList.map((suggestion, index) => (
+                                <div key={index} style={{ marginBottom: '20px', padding: '15px', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#fdfdfd' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Name:</label>
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            value={suggestion.name}
+                                            onChange={(e) => handleFinalSuggestedNameChange(index, 'name', e.target.value)}
+                                            placeholder="e.g., Emily Rose"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Expression Number:</label>
+                                        <input
+                                            type="number"
+                                            className="input-field"
+                                            value={suggestion.expression_number}
+                                            onChange={(e) => handleFinalSuggestedNameChange(index, 'expression_number', parseInt(e.target.value) || 0)}
+                                            placeholder="e.g., 5"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Rationale:</label>
+                                        <textarea
+                                            className="textarea-field"
+                                            rows="3"
+                                            value={suggestion.rationale}
+                                            onChange={(e) => handleFinalSuggestedNameChange(index, 'rationale', e.target.value)}
+                                            placeholder="Explain the numerological benefits of this name."
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeFinalSuggestedName(index)}
+                                        className="submit-button reset-chat-button" // Reusing style
+                                        style={{ backgroundColor: '#dc3545', width: 'auto', padding: '8px 15px', fontSize: '0.9em' }}
+                                    >
+                                        Remove Name
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={addFinalSuggestedName}
+                                className="submit-button chat-send-button" // Reusing style
+                                style={{ backgroundColor: '#28a745', width: 'auto', padding: '8px 15px', fontSize: '0.9em', marginTop: '10px' }}
+                            >
+                                Add New Suggested Name
+                            </button>
+                        </div>
+
+                        {/* Editable Validation Summary */}
+                        <div className="numerology-profile" style={{marginTop: '30px'}}>
+                            <h3 className="suggestions-heading">
+                                <span role="img" aria-label="summary icon">📋</span> Validation Chat Summary (for PDF):
+                            </h3>
+                            <div className="form-group">
+                                <textarea
+                                    className="textarea-field"
+                                    rows="8"
+                                    value={editableValidationSummary}
+                                    onChange={(e) => setEditableValidationSummary(e.target.value)}
+                                    placeholder="Summarize the key conclusions from the validation chat here. This will be included in the PDF."
+                                ></textarea>
+                                <p className="sub-heading-small" style={{textAlign: 'left', marginTop: '5px'}}>
+                                    You can copy and paste the final validation report from the chat above, or write your own summary.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Editable Practitioner Notes */}
+                        <div className="numerology-profile" style={{marginTop: '30px'}}>
+                            <h3 className="suggestions-heading">
+                                <span role="img" aria-label="notes icon">✍️</span> Practitioner's Private Notes (for PDF):
+                            </h3>
+                            <div className="form-group">
+                                <textarea
+                                    className="textarea-field"
+                                    rows="8"
+                                    value={editablePractitionerNotes}
+                                    onChange={(e) => setEditablePractitionerNotes(e.target.value)}
+                                    placeholder="Add any additional private notes, observations, or specific guidance for the client that you want included in the PDF report."
+                                ></textarea>
+                                <p className="sub-heading-small" style={{textAlign: 'left', marginTop: '5px'}}>
+                                    This section is for any extra details you want to include in the final client report.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Download PDF Button - now located after all customization options */}
+                        <button
+                            onClick={handleDownloadPdf}
+                            className="submit-button download-button"
+                            style={{ marginTop: '40px' }}
+                            disabled={isLoading || !fullReportDataForPdf}
+                        >
+                            <span className="flex-center">
+                                <span role="img" aria-label="download icon" className="emoji-icon">⬇️</span>
+                                Generate & Download Final PDF Report
+                            </span>
+                        </button>
                     </>
                 )}
             </div>
