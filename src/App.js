@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { marked } from 'marked'; // Import marked for Markdown parsing
 
 // Assuming your CSS files are correctly linked in public/index.html or imported here
@@ -7,7 +7,7 @@ import './App.css';
 
 // Main App component
 const App = () => {
-    // State variables for form inputs and display
+    // State variables for main report form inputs and display
     const [fullName, setFullName] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [desiredOutcome, setDesiredOutcome] = useState('');
@@ -15,14 +15,16 @@ const App = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
-    // NEW STATE: To store the full structured data received from the backend for PDF generation
     const [fullReportDataForPdf, setFullReportDataForPdf] = useState(null);
 
-    // State variables for name validation feature
-    const [suggestedName, setSuggestedName] = useState('');
-    const [validationResult, setValidationResult] = useState(''); // Stores the Markdown response for validation
-    const [isValidationLoading, setIsValidationLoading] = useState(false);
-    const [validationError, setValidationError] = useState('');
+    // State variables for NEW conversational name validation feature
+    const [suggestedNameForChat, setSuggestedNameForChat] = useState(''); // Input for the name to validate in chat
+    const [validationChatMessages, setValidationChatMessages] = useState([]); // Stores chat history: [{ sender: 'user'/'ai', text: '...' }]
+    const [currentValidationInput, setCurrentValidationInput] = useState(''); // Current message in validation chat input
+    const [isValidationChatLoading, setIsValidationChatLoading] = useState(false);
+    const [validationChatError, setValidationChatError] = useState('');
+
+    const validationChatEndRef = useRef(null); // Ref for auto-scrolling chat
 
     // IMPORTANT: This is the base URL for your deployed Render Flask backend.
     const BACKEND_BASE_URL = "https://name-corrector-backend.onrender.com"; // <<<--- VERIFY THIS IS YOUR ACTUAL RENDER URL!
@@ -115,6 +117,13 @@ const App = () => {
         }
     };
 
+    // Effect to scroll to the bottom of the chat when messages update
+    useEffect(() => {
+        if (validationChatEndRef.current) {
+            validationChatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [validationChatMessages]);
+
 
     // Function to handle PDF download (calls backend endpoint)
     const handleDownloadPdf = async () => {
@@ -177,8 +186,12 @@ const App = () => {
         e.preventDefault();
         setError('');
         setReportContent(''); // Clear previous report
-        setValidationResult(''); // Clear validation result when generating new report
-        setSuggestedName(''); // Clear suggested name input
+        // Clear validation related states when generating a new main report
+        setValidationChatMessages([]);
+        setCurrentValidationInput('');
+        setSuggestedNameForChat('');
+        setValidationChatError('');
+
         setCurrentNumerology(null); // Clear previous numerology display
         setFullReportDataForPdf(null); // Clear previous PDF data
 
@@ -241,30 +254,64 @@ const App = () => {
         }
     };
 
-    // Function for validating a suggested name
-    const handleValidateName = async (e) => {
+    // Function to handle starting or continuing the validation chat
+    const handleValidationChatSubmit = async (e) => {
         e.preventDefault();
-        setValidationError('');
-        setValidationResult('');
+        setValidationChatError('');
 
-        // Ensure original data is present for validation context
-        if (!fullName || !birthDate || !desiredOutcome || !suggestedName) {
-            setValidationError('Please ensure your Full Name, Birth Date, and Desired Outcome are entered in the top form, and provide the Suggested Name to Validate.');
+        // Ensure original profile data is available from the main form
+        if (!fullName || !birthDate || !desiredOutcome) {
+            setValidationChatError('Please fill in your Full Name, Birth Date, and Desired Outcome in the top form before starting name validation.');
             return;
         }
 
-        setIsValidationLoading(true);
+        // If it's the very first message for this validation session
+        const isInitialMessage = validationChatMessages.length === 0;
+        let userMessageContent = currentValidationInput.trim();
+
+        if (isInitialMessage) {
+            if (!suggestedNameForChat.trim()) {
+                setValidationChatError('Please enter a Suggested Name to Validate to start the chat.');
+                return;
+            }
+            // For the initial message, include the suggested name and full profile context
+            userMessageContent = `INITIATE_VALIDATION_CHAT: Suggested Name: "${suggestedNameForChat.trim()}". My original profile: Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}". My current Expression Number is ${calculateNameNumber(fullName)} and Life Path Number is ${calculateLifePathNumber(birthDate)}. My Birth Number is ${calculateBirthNumber(birthDate)}.`;
+        } else {
+            if (!userMessageContent) {
+                setValidationChatError('Please type a message.');
+                return;
+            }
+        }
+
+        // Add user's message to chat history
+        const newUserMessage = { sender: 'user', text: userMessageContent };
+        setValidationChatMessages(prevMessages => [...prevMessages, newUserMessage]);
+        setCurrentValidationInput(''); // Clear input field
+
+        setIsValidationChatLoading(true);
 
         try {
-            // Construct the message for the AI agent for name validation
-            const message = `VALIDATE_NAME_ADVANCED: Original Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}", Suggested Name to Validate: "${suggestedName}".`;
+            // Prepare the payload for the backend
+            const payload = {
+                type: 'validation_chat',
+                original_profile: {
+                    fullName: fullName,
+                    birthDate: birthDate,
+                    desiredOutcome: desiredOutcome,
+                    currentExpressionNumber: calculateNameNumber(fullName),
+                    currentLifePathNumber: calculateLifePathNumber(birthDate),
+                    currentBirthNumber: calculateBirthNumber(birthDate),
+                },
+                suggested_name: suggestedNameForChat.trim(), // Always send the suggested name for context
+                chat_history: [...validationChatMessages, newUserMessage] // Send the entire history
+            };
 
-            const res = await fetch(`${BACKEND_BASE_URL}/chat`, { // Call /chat endpoint
+            const res = await fetch(`${BACKEND_BASE_URL}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message }),
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) {
@@ -273,15 +320,29 @@ const App = () => {
             }
 
             const data = await res.json();
-            setValidationResult(data.response);
+            const aiResponseText = data.response;
+
+            // Add AI's response to chat history
+            setValidationChatMessages(prevMessages => [...prevMessages, { sender: 'ai', text: aiResponseText }]);
 
         } catch (err) {
-            console.error('Error validating name:', err);
-            setValidationError(`Failed to validate name with AI: ${err.message}.`);
+            console.error('Error in validation chat:', err);
+            setValidationChatError(`Failed to get a response from the AI: ${err.message}.`);
+            // If error, remove the last user message to allow retry
+            setValidationChatMessages(prevMessages => prevMessages.slice(0, -1));
         } finally {
-            setIsValidationLoading(false);
+            setIsValidationChatLoading(false);
         }
     };
+
+    // Function to reset the validation chat
+    const resetValidationChat = () => {
+        setSuggestedNameForChat('');
+        setValidationChatMessages([]);
+        setCurrentValidationInput('');
+        setValidationChatError('');
+    };
+
 
     return (
         <div className="app-container">
@@ -421,68 +482,102 @@ const App = () => {
                     </button>
                 )}
 
-                {/* Separator and Name Validation Section - ONLY DISPLAYED IF reportContent IS AVAILABLE */}
-                {reportContent && (
+                {/* Separator and Name Validation Section - NOW A CHAT INTERFACE */}
+                {reportContent && ( // Only show validation if a report has been generated
                     <>
                         <hr style={{ margin: '60px auto', width: '80%', border: '0', borderTop: '1px dashed #4a627a' }} />
 
                         <h2 className="profile-heading">
-                            <span role="img" aria-label="validate icon">✅</span>Validate Your Own Name Idea
+                            <span role="img" aria-label="validate icon">💬</span> Conversational Name Validation
                         </h2>
                         <p className="sub-heading">
-                            Enter a name you're considering (first, last, middle, or full name) to see if its numerology aligns with your goals.
+                            Engage with the AI to explore and validate potential name changes. Provide a name to start, and the AI will guide you with questions.
                         </p>
-                        <form onSubmit={handleValidateName}>
-                            <div className="form-group">
-                                <label htmlFor="suggestedName" className="form-label">
-                                    Suggested Name to Validate
-                                </label>
-                                <input
-                                    type="text"
-                                    id="suggestedName"
-                                    className="input-field"
-                                    placeholder="e.g., Emily Rose, Thompson, or a new first name"
-                                    value={suggestedName}
-                                    onChange={(e) => setSuggestedName(e.target.value)}
-                                    required
-                                />
-                            </div>
 
-                            <button
-                                type="submit"
-                                className="submit-button"
-                                disabled={isValidationLoading}
-                                style={{ backgroundColor: '#3498db' }} // Blue color for validation button
-                            >
-                                {isValidationLoading ? (
-                                    <span className="flex-center">
-                                        <div className="spinner"></div>
-                                        Validating Name...
-                                    </span>
-                                ) : (
-                                    <span className="flex-center">
-                                        <span role="img" aria-label="check mark" className="emoji-icon">✔️</span>
-                                        Validate Name
-                                    </span>
+                        <div className="validation-chat-container">
+                            {/* Input for the suggested name (only visible if chat hasn't started) */}
+                            {validationChatMessages.length === 0 && (
+                                <div className="form-group">
+                                    <label htmlFor="suggestedNameForChat" className="form-label">
+                                        Suggested Name to Validate (e.g., Emily Rose)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="suggestedNameForChat"
+                                        className="input-field"
+                                        placeholder="Enter the name you want to validate"
+                                        value={suggestedNameForChat}
+                                        onChange={(e) => setSuggestedNameForChat(e.target.value)}
+                                        required
+                                        disabled={isValidationChatLoading}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Chat display area */}
+                            <div className="chat-messages-display">
+                                {validationChatMessages.length === 0 && (
+                                    <div className="chat-welcome-message">
+                                        Enter a name above and click "Start Validation Chat" to begin.
+                                    </div>
                                 )}
-                            </button>
-                        </form>
-
-                        {validationError && (
-                            <div className="error-message" role="alert">
-                                <p><strong>Error:</strong></p>
-                                <p>{validationError}</p>
+                                {validationChatMessages.map((msg, index) => (
+                                    <div key={index} className={`chat-message ${msg.sender}`}>
+                                        <div className="message-bubble" dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }} />
+                                    </div>
+                                ))}
+                                {isValidationChatLoading && (
+                                    <div className="chat-message ai">
+                                        <div className="message-bubble">
+                                            <div className="spinner small"></div> AI is typing...
+                                        </div>
+                                    </div>
+                                )}
+                                <div ref={validationChatEndRef} /> {/* Scroll target */}
                             </div>
-                        )}
 
-                        {validationResult && (
-                            <div className="numerology-profile" style={{marginTop: '40px'}}>
-                                <h3 className="suggestions-heading">
-                                    <span role="img" aria-label="result icon">✨</span>Validation Result:
-                                </h3>
-                                <div className="markdown-content" dangerouslySetInnerHTML={{ __html: marked.parse(validationResult) }} />
-                            </div>
-                        )}
+                            {validationChatError && (
+                                <div className="error-message" role="alert" style={{marginTop: '15px'}}>
+                                    <p><strong>Error:</strong></p>
+                                    <p>{validationChatError}</p>
+                                </div>
+                            )}
+
+                            {/* Chat input form */}
+                            <form onSubmit={handleValidationChatSubmit} className="chat-input-form">
+                                <textarea
+                                    className="textarea-field chat-input"
+                                    placeholder={validationChatMessages.length === 0 ? "Type your initial message or just click 'Start Validation Chat'" : "Type your reply..."}
+                                    value={currentValidationInput}
+                                    onChange={(e) => setCurrentValidationInput(e.target.value)}
+                                    rows="2"
+                                    disabled={isValidationChatLoading || (!suggestedNameForChat.trim() && validationChatMessages.length === 0)}
+                                />
+                                <button
+                                    type="submit"
+                                    className="submit-button chat-send-button"
+                                    disabled={isValidationChatLoading || (!suggestedNameForChat.trim() && validationChatMessages.length === 0 && !currentValidationInput.trim())}
+                                    style={{ backgroundColor: '#3498db' }}
+                                >
+                                    {isValidationChatLoading ? (
+                                        <div className="spinner small"></div>
+                                    ) : (
+                                        validationChatMessages.length === 0 ? "Start Validation Chat" : "Send"
+                                    )}
+                                </button>
+                                {validationChatMessages.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={resetValidationChat}
+                                        className="submit-button reset-chat-button"
+                                        disabled={isValidationChatLoading}
+                                        style={{ backgroundColor: '#dc3545', marginLeft: '10px' }}
+                                    >
+                                        Reset Chat
+                                    </button>
+                                )}
+                            </form>
+                        </div>
                     </>
                 )}
             </div>
