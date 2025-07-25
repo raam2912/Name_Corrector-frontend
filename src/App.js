@@ -404,81 +404,85 @@ const App = () => {
 
     return (
         <div className="app-container">
-            <div className="content-box">
-                <h1 className="main-heading">
-                    <span role="img" aria-label="sparkles">✨</span>Unlock Your Destiny
-                </h1>
-                <p className="sub-heading">
-                    Discover the profound influence of your name and birth date. Get AI-powered corrections and validate your own name ideas.
-                </p>
+            <div className="content-area"> {/* New wrapper for content */}
+                <header className="header-section">
+                    <h1 className="main-heading">
+                        <span role="img" aria-label="sparkles">✨</span>Unlock Your Destiny
+                    </h1>
+                    <p className="sub-heading">
+                        Discover the profound influence of your name and birth date. Get AI-powered corrections and validate your own name ideas.
+                    </p>
+                </header>
 
                 {/* Section for Initial Report Generation */}
-                <h2 className="profile-heading" style={{marginTop: '0'}}>
-                    <span role="img" aria-label="form icon">📝</span>Generate Personalized Report
-                </h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="fullName" className="form-label">
-                            Your Full Name (as currently used)
-                        </label>
-                        <input
-                            type="text"
-                            id="fullName"
-                            className="input-field"
-                            placeholder="e.g., Emily Rose Thompson"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            required
-                        />
-                    </div>
+                <section className="card-section">
+                    <h2 className="section-heading">
+                        <span role="img" aria-label="form icon">📝</span>Generate Personalized Report
+                    </h2>
+                    <form onSubmit={handleSubmit} className="form-layout">
+                        <div className="form-group">
+                            <label htmlFor="fullName" className="form-label">
+                                Your Full Name (as currently used)
+                            </label>
+                            <input
+                                type="text"
+                                id="fullName"
+                                className="input-field"
+                                placeholder="e.g., Emily Rose Thompson"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                required
+                            />
+                        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="birthDate" className="form-label">
-                            Your Birth Date
-                        </label>
-                        <input
-                            type="date"
-                            id="birthDate"
-                            className="input-field"
-                            value={birthDate}
-                            onChange={(e) => setBirthDate(e.target.value)}
-                            required
-                        />
-                    </div>
+                        <div className="form-group">
+                            <label htmlFor="birthDate" className="form-label">
+                                Your Birth Date
+                            </label>
+                            <input
+                                type="date"
+                                id="birthDate"
+                                className="input-field"
+                                value={birthDate}
+                                onChange={(e) => setBirthDate(e.target.value)}
+                                required
+                            />
+                        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="desiredOutcome" className="form-label">
-                            What positive outcome do you desire in your life? <br/><span className="sub-heading-small">(e.g., more success, better relationships, inner peace)</span>
-                        </label>
-                        <textarea
-                            id="desiredOutcome"
-                            rows="4"
-                            className="textarea-field"
-                            placeholder="I wish for greater financial abundance and a harmonious family life."
-                            value={desiredOutcome}
-                            onChange={(e) => setDesiredOutcome(e.target.value)}
-                            required
-                        ></textarea>
-                    </div>
+                        <div className="form-group">
+                            <label htmlFor="desiredOutcome" className="form-label">
+                                What positive outcome do you desire in your life? <br/><span className="sub-heading-small">(e.g., more success, better relationships, inner peace)</span>
+                            </label>
+                            <textarea
+                                id="desiredOutcome"
+                                rows="4"
+                                className="textarea-field"
+                                placeholder="I wish for greater financial abundance and a harmonious family life."
+                                value={desiredOutcome}
+                                onChange={(e) => setDesiredOutcome(e.target.value)}
+                                required
+                            ></textarea>
+                        </div>
 
-                    <button
-                        type="submit"
-                        className="submit-button"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <span className="flex-center">
-                                <div className="spinner"></div>
-                                Generating Insights...
-                            </span>
-                        ) : (
-                            <span className="flex-center">
-                                <span role="img" aria-label="magic wand" className="emoji-icon">🪄</span>
-                                Get My Personalized Numerology
-                            </span>
-                        )}
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            className="primary-button"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <span className="flex-center">
+                                    <div className="spinner"></div>
+                                    Generating Insights...
+                                </span>
+                            ) : (
+                                <span className="flex-center">
+                                    <span role="img" aria-label="magic wand" className="emoji-icon">🪄</span>
+                                    Get My Personalized Numerology
+                                </span>
+                            )}
+                        </button>
+                    </form>
+                </section>
 
                 {error && (
                     <div className="error-message" role="alert">
@@ -489,10 +493,10 @@ const App = () => {
 
                 {/* The numerology report content, now with an ID for PDF generation */}
                 {currentNumerology && (
-                    <div id="numerology-report-content" className="numerology-profile" style={{marginTop: '40px'}}>
-                        <h2 className="profile-heading">Your Numerology Profile</h2>
+                    <section className="card-section">
+                        <h2 className="section-heading">Your Numerology Profile</h2>
 
-                        <div className="current-numerology-box">
+                        <div className="numerology-summary-box">
                             <h3>
                                 <span role="img" aria-label="current numbers">🔢</span> Your Current Numerology:
                             </h3>
@@ -511,7 +515,7 @@ const App = () => {
 
                         {reportContent && (
                             <>
-                                <h3 className="suggestions-heading">
+                                <h3 className="sub-section-heading">
                                     <span role="img" aria-label="lightbulb">💡</span> Personalized Name Corrections (Initial AI Suggestions):
                                 </h3>
                                 {/* Display the initial AI-generated report content in an editable textarea */}
@@ -526,7 +530,7 @@ const App = () => {
                                         value={editableMainReportContent}
                                         onChange={(e) => setEditableMainReportContent(e.target.value)}
                                     ></textarea>
-                                    <p className="sub-heading-small" style={{textAlign: 'left', marginTop: '5px'}}>
+                                    <p className="hint-text">
                                         This content will be included in the PDF. You can edit it as needed.
                                     </p>
                                 </div>
@@ -536,15 +540,13 @@ const App = () => {
                             These suggestions are generated by AI based on numerological principles and your desired outcomes.
                             Remember, the power to choose your path lies within you.
                         </p>
-                    </div>
+                    </section>
                 )}
 
                 {/* Separator and Name Validation Section - NOW A CHAT INTERFACE */}
                 {reportContent && ( // Only show validation if a report has been generated
-                    <>
-                        <hr style={{ margin: '60px auto', width: '80%', border: '0', borderTop: '1px dashed #4a627a' }} />
-
-                        <h2 className="profile-heading">
+                    <section className="card-section">
+                        <h2 className="section-heading">
                             <span role="img" aria-label="validate icon">💬</span> Conversational Name Validation
                         </h2>
                         <p className="sub-heading">
@@ -612,9 +614,8 @@ const App = () => {
                                 />
                                 <button
                                     type="submit"
-                                    className="submit-button chat-send-button"
+                                    className="primary-button chat-send-button"
                                     disabled={isValidationChatLoading || (!suggestedNameForChat.trim() && validationChatMessages.length === 0 && !currentValidationInput.trim())}
-                                    style={{ backgroundColor: '#3498db' }}
                                 >
                                     {isValidationChatLoading ? (
                                         <div className="spinner small"></div>
@@ -626,24 +627,21 @@ const App = () => {
                                     <button
                                         type="button"
                                         onClick={resetValidationChat}
-                                        className="submit-button reset-chat-button"
+                                        className="secondary-button reset-chat-button"
                                         disabled={isValidationChatLoading}
-                                        style={{ backgroundColor: '#dc3545', marginLeft: '10px' }}
                                     >
                                         Reset Chat
                                     </button>
                                 )}
                             </form>
                         </div>
-                    </>
+                    </section>
                 )}
 
                 {/* Practitioner Customization Section (Editable Suggested Names, Validation Summary, Notes) */}
                 {reportContent && ( // Only show this section if a report has been generated
-                    <>
-                        <hr style={{ margin: '60px auto', width: '80%', border: '0', borderTop: '1px dashed #4a627a' }} />
-
-                        <h2 className="profile-heading">
+                    <section className="card-section">
+                        <h2 className="section-heading">
                             <span role="img" aria-label="customize icon">🛠️</span> Final Report Customization
                         </h2>
                         <p className="sub-heading">
@@ -651,17 +649,17 @@ const App = () => {
                         </p>
 
                         {/* Editable Suggested Names List */}
-                        <div className="numerology-profile">
-                            <h3 className="suggestions-heading">
+                        <div className="customization-group">
+                            <h3 className="sub-section-heading">
                                 <span role="img" aria-label="name tag">🏷️</span> Final Suggested Names for PDF:
                             </h3>
                             {finalSuggestedNamesList.length === 0 && (
-                                <p className="sub-heading-small" style={{textAlign: 'left'}}>
+                                <p className="hint-text">
                                     No names added yet. Click "Add Name" to include suggestions in the PDF.
                                 </p>
                             )}
                             {finalSuggestedNamesList.map((suggestion, index) => (
-                                <div key={index} style={{ marginBottom: '20px', padding: '15px', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#fdfdfd' }}>
+                                <div key={index} className="name-suggestion-item">
                                     <div className="form-group">
                                         <label className="form-label">Name:</label>
                                         <input
@@ -695,8 +693,7 @@ const App = () => {
                                     <button
                                         type="button"
                                         onClick={() => removeFinalSuggestedName(index)}
-                                        className="submit-button reset-chat-button" // Reusing style
-                                        style={{ backgroundColor: '#dc3545', width: 'auto', padding: '8px 15px', fontSize: '0.9em' }}
+                                        className="secondary-button remove-button"
                                     >
                                         Remove Name
                                     </button>
@@ -705,16 +702,15 @@ const App = () => {
                             <button
                                 type="button"
                                 onClick={addFinalSuggestedName}
-                                className="submit-button chat-send-button" // Reusing style
-                                style={{ backgroundColor: '#28a745', width: 'auto', padding: '8px 15px', fontSize: '0.9em', marginTop: '10px' }}
+                                className="secondary-button add-button"
                             >
                                 Add New Suggested Name
                             </button>
                         </div>
 
                         {/* Editable Validation Summary */}
-                        <div className="numerology-profile" style={{marginTop: '30px'}}>
-                            <h3 className="suggestions-heading">
+                        <div className="customization-group">
+                            <h3 className="sub-section-heading">
                                 <span role="img" aria-label="summary icon">📋</span> Validation Chat Summary (for PDF):
                             </h3>
                             <div className="form-group">
@@ -725,15 +721,15 @@ const App = () => {
                                     onChange={(e) => setEditableValidationSummary(e.target.value)}
                                     placeholder="Summarize the key conclusions from the validation chat here. This will be included in the PDF."
                                 ></textarea>
-                                <p className="sub-heading-small" style={{textAlign: 'left', marginTop: '5px'}}>
+                                <p className="hint-text">
                                     You can copy and paste the final validation report from the chat above, or write your own summary.
                                 </p>
                             </div>
                         </div>
 
                         {/* Editable Practitioner Notes */}
-                        <div className="numerology-profile" style={{marginTop: '30px'}}>
-                            <h3 className="suggestions-heading">
+                        <div className="customization-group">
+                            <h3 className="sub-section-heading">
                                 <span role="img" aria-label="notes icon">✍️</span> Practitioner's Private Notes (for PDF):
                             </h3>
                             <div className="form-group">
@@ -744,7 +740,7 @@ const App = () => {
                                     onChange={(e) => setEditablePractitionerNotes(e.target.value)}
                                     placeholder="Add any additional private notes, observations, or specific guidance for the client that you want included in the PDF report."
                                 ></textarea>
-                                <p className="sub-heading-small" style={{textAlign: 'left', marginTop: '5px'}}>
+                                <p className="hint-text">
                                     This section is for any extra details you want to include in the final client report.
                                 </p>
                             </div>
@@ -753,8 +749,7 @@ const App = () => {
                         {/* Download PDF Button - now located after all customization options */}
                         <button
                             onClick={handleDownloadPdf}
-                            className="submit-button download-button"
-                            style={{ marginTop: '40px' }}
+                            className="primary-button download-button"
                             disabled={isLoading || !fullReportDataForPdf}
                         >
                             <span className="flex-center">
@@ -762,7 +757,7 @@ const App = () => {
                                 Generate & Download Final PDF Report
                             </span>
                         </button>
-                    </>
+                    </section>
                 )}
             </div>
         </div>
