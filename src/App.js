@@ -10,21 +10,23 @@ const App = () => {
     // State variables for main report form inputs and display
     const [fullName, setFullName] = useState('');
     const [birthDate, setBirthDate] = useState('');
+    const [birthTime, setBirthTime] = useState(''); // NEW: Birth Time
+    const [birthPlace, setBirthPlace] = useState(''); // NEW: Birth Place
     const [desiredOutcome, setDesiredOutcome] = useState('');
     const [reportContent, setReportContent] = useState(''); // Stores the Markdown response from backend
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
     
-    // NEW: State to hold the full report data for PDF generation, allowing modifications
+    // State to hold the full report data for PDF generation, allowing modifications
     const [fullReportDataForPdf, setFullReportDataForPdf] = useState(null); 
-    // NEW: Editable content for the main report (for practitioner tailoring)
+    // Editable content for the main report (for practitioner tailoring)
     const [editableMainReportContent, setEditableMainReportContent] = useState('');
-    // NEW: Editable list of final suggested names (for practitioner tailoring)
+    // Editable list of final suggested names (for practitioner tailoring)
     const [finalSuggestedNamesList, setFinalSuggestedNamesList] = useState([]);
-    // NEW: Editable validation summary (for practitioner tailoring)
+    // Editable validation summary (for practitioner tailoring)
     const [editableValidationSummary, setEditableValidationSummary] = useState('');
-    // NEW: Editable practitioner notes (for practitioner tailoring)
+    // Editable practitioner notes (for practitioner tailoring)
     const [editablePractitionerNotes, setEditablePractitionerNotes] = useState('');
 
 
@@ -43,10 +45,16 @@ const App = () => {
     // --- Numerology Core Logic (duplicated in frontend for immediate display) ---
     // This client-side calculation is for immediate display of current numbers,
     // the backend will perform its own comprehensive calculations.
-    const NUMEROLOGY_MAP = {
-        'A': 1, 'J': 1, 'S': 1, 'B': 2, 'K': 2, 'T': 2, 'C': 3, 'L': 3, 'U': 3,
-        'D': 4, 'M': 4, 'V': 4, 'E': 5, 'N': 5, 'W': 5, 'F': 6, 'O': 6, 'X': 6,
-        'G': 7, 'P': 7, 'Y': 7, 'H': 8, 'Q': 8, 'Z': 8, 'I': 9, 'R': 9
+    const CHALDEAN_NUMEROLOGY_MAP = {
+        'A': 1, 'J': 1, 'S': 1,
+        'B': 2, 'K': 2, 'T': 2,
+        'C': 3, 'G': 3, 'L': 3, 'U': 3,
+        'D': 4, 'M': 4, 'V': 4,
+        'E': 5, 'H': 5, 'N': 5, 'X': 5,
+        'F': 6, 'O': 6, 'W': 6,
+        'P': 7, 'Z': 7,
+        'I': 8, 'R': 8
+        // Note: 9 is NEVER used in Chaldean letter assignments
     };
 
     const NUMEROLOGY_INTERPRETATIONS = {
@@ -64,7 +72,7 @@ const App = () => {
         33: "The Master Healer/Teacher, embodying compassionate service and universal love (a Master Number for 6)."
     };
 
-    // Helper to reduce numbers for numerology
+    // Helper to reduce numbers for numerology, preserving Master Numbers 11, 22, 33
     const reduceNumber = (num, allowMasterNumbers = false) => {
         if (allowMasterNumbers && (num === 11 || num === 22 || num === 33)) {
             return num;
@@ -78,20 +86,20 @@ const App = () => {
         return num;
     };
 
-    // Helper to calculate name number
+    // Helper to calculate Chaldean Name Number (Expression Number)
     const calculateNameNumber = (name) => {
         let total = 0;
         const cleanedName = name.toUpperCase().replace(/[^A-Z]/g, '');
         for (let i = 0; i < cleanedName.length; i++) {
             const letter = cleanedName[i];
-            if (NUMEROLOGY_MAP[letter]) {
-                total += NUMEROLOGY_MAP[letter];
+            if (CHALDEAN_NUMEROLOGY_MAP[letter]) {
+                total += CHALDEAN_NUMEROLOGY_MAP[letter];
             }
         }
-        return reduceNumber(total, false); // Changed to false as Expression is usually reduced
+        return reduceNumber(total, false); // Expression is usually reduced to single digit unless it's a Master Number
     };
 
-    // Helper to calculate life path number
+    // Helper to calculate Life Path Number (preserves Master Numbers)
     const calculateLifePathNumber = (birthDateStr) => {
         if (!birthDateStr) return 0;
         try {
@@ -99,31 +107,33 @@ const App = () => {
             if (parts.length !== 3) throw new Error("Invalid date format.");
             let year = parseInt(parts[0]);
             let month = parseInt(parts[1]);
-            let day = parseInt(parts[2]); // Keep original day for birth number
+            let day = parseInt(parts[2]);
             if (isNaN(year) || isNaN(month) || isNaN(day)) return 0;
 
+            // Reduce month, day, and year components, preserving master numbers
             month = reduceNumber(month, true);
-            day = reduceNumber(day, true); // Reduce day for life path calculation
+            day = reduceNumber(day, true);
             year = reduceNumber(year, true);
+            
             let total = month + day + year;
-            return reduceNumber(total, true);
+            return reduceNumber(total, true); // Final reduction for Life Path, preserving master numbers
         } catch (e) {
             console.error("Error in calculateLifePathNumber:", e);
             return 0;
         }
     };
 
-    // Helper to calculate birth number (day of birth only)
-    const calculateBirthNumber = (birthDateStr) => {
+    // Helper to calculate Birth Day Number (day of birth only, preserves Master Numbers)
+    const calculateBirthDayNumber = (birthDateStr) => {
         if (!birthDateStr) return 0;
         try {
             const parts = birthDateStr.split('-');
             if (parts.length !== 3) throw new Error("Invalid date format.");
             let day = parseInt(parts[2]);
             if (isNaN(day)) return 0;
-            return reduceNumber(day, true); // Birth number can also be master number if day is 11, 22, 33
+            return reduceNumber(day, true); // Birth Day Number can also be a Master Number
         } catch (e) {
-            console.error("Error in calculateBirthNumber:", e);
+            console.error("Error in calculateBirthDayNumber:", e);
             return 0;
         }
     };
@@ -230,7 +240,7 @@ const App = () => {
 
 
         if (!fullName || !birthDate || !desiredOutcome) {
-            setError('Please fill in all fields: Full Name, Birth Date, and Desired Outcome.');
+            setError('Please fill in all required fields: Full Name, Birth Date, and Desired Outcome.');
             return;
         }
 
@@ -240,9 +250,9 @@ const App = () => {
             // Calculate current numerology on frontend for immediate display
             const currentExpNum = calculateNameNumber(fullName);
             const currentLifePathNum = calculateLifePathNumber(birthDate);
-            const currentBirthNum = calculateBirthNumber(birthDate); // Calculate Birth Number
+            const currentBirthDayNum = calculateBirthDayNumber(birthDate); // Calculate Birth Day Number
 
-            if (currentExpNum === 0 || currentLifePathNum === 0 || currentBirthNum === 0) {
+            if (currentExpNum === 0 || currentLifePathNum === 0 || currentBirthDayNum === 0) {
                 setError('Could not calculate initial numerology. Please check your inputs, especially the name (letters only) and date (YYYY-MM-DD).');
                 setIsLoading(false);
                 return;
@@ -252,14 +262,15 @@ const App = () => {
             setCurrentNumerology({
                 expression: currentExpNum,
                 lifePath: currentLifePathNum,
-                birthNumber: currentBirthNum, // Include Birth Number
+                birthDayNumber: currentBirthDayNum, // Use Birth Day Number
                 explanation: `Your current name's energy (${currentExpNum}) resonates with ${NUMEROLOGY_INTERPRETATIONS[currentExpNum] || "a unique path."}. ` +
                                      `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}. ` +
-                                     `Your birth number (${currentBirthNum}) influences your daily characteristics and talents.`
+                                     `Your birth day number (${currentBirthDayNum}) influences your daily characteristics and talents.`
             });
 
             // Construct the message for the AI agent on the backend for initial report
-            const message = `GENERATE_ADVANCED_REPORT: My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. I desire the following positive outcome in my life: "${desiredOutcome}".`;
+            // Include birthTime and birthPlace
+            const message = `GENERATE_ADVANCED_REPORT: My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. My birth time is "${birthTime}" and my birth place is "${birthPlace}". I desire the following positive outcome in my life: "${desiredOutcome}".`;
 
             // Make API call to your Flask backend's /chat endpoint
             const res = await fetch(`${BACKEND_BASE_URL}/chat`, {
@@ -315,7 +326,8 @@ const App = () => {
                 return;
             }
             // For the initial message, include the suggested name and full profile context
-            userMessageContent = `INITIATE_VALIDATION_CHAT: Suggested Name: "${suggestedNameForChat.trim()}". My original profile: Full Name: "${fullName}", Birth Date: "${birthDate}", Desired Outcome: "${desiredOutcome}". My current Expression Number is ${calculateNameNumber(fullName)} and Life Path Number is ${calculateLifePathNumber(birthDate)}. My Birth Number is ${calculateBirthNumber(birthDate)}.`;
+            // Include birthTime and birthPlace in the initial chat message profile
+            userMessageContent = `INITIATE_VALIDATION_CHAT: Suggested Name: "${suggestedNameForChat.trim()}". My original profile: Full Name: "${fullName}", Birth Date: "${birthDate}", Birth Time: "${birthTime}", Birth Place: "${birthPlace}", Desired Outcome: "${desiredOutcome}". My current Expression Number is ${calculateNameNumber(fullName)} and Life Path Number is ${calculateLifePathNumber(birthDate)}. My Birth Number is ${calculateBirthDayNumber(birthDate)}.`;
         } else {
             if (!userMessageContent) {
                 setValidationChatError('Please type a message.');
@@ -337,10 +349,12 @@ const App = () => {
                 original_profile: {
                     fullName: fullName,
                     birthDate: birthDate,
+                    birthTime: birthTime, // NEW
+                    birthPlace: birthPlace, // NEW
                     desiredOutcome: desiredOutcome,
                     currentExpressionNumber: calculateNameNumber(fullName),
                     currentLifePathNumber: calculateLifePathNumber(birthDate),
-                    currentBirthNumber: calculateBirthNumber(birthDate),
+                    currentBirthNumber: calculateBirthDayNumber(birthDate), // Use Birth Day Number
                 },
                 suggested_name: suggestedNameForChat.trim(), // Always send the suggested name for context
                 chat_history: [...validationChatMessages, newUserMessage], // Send the entire history
@@ -422,7 +436,7 @@ const App = () => {
                     <form onSubmit={handleSubmit} className="form-layout">
                         <div className="form-group">
                             <label htmlFor="fullName" className="form-label">
-                                Your Full Name (as currently used)
+                                Your Full Name (as currently used) <span className="required-star">*</span>
                             </label>
                             <input
                                 type="text"
@@ -435,23 +449,51 @@ const App = () => {
                             />
                         </div>
 
+                        <div className="form-group-row"> {/* New Flex Container for Date and Time */}
+                            <div className="form-group flex-item">
+                                <label htmlFor="birthDate" className="form-label">
+                                    Your Birth Date <span className="required-star">*</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    id="birthDate"
+                                    className="input-field"
+                                    value={birthDate}
+                                    onChange={(e) => setBirthDate(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group flex-item">
+                                <label htmlFor="birthTime" className="form-label">
+                                    Your Birth Time (Optional, for deeper insights)
+                                </label>
+                                <input
+                                    type="time"
+                                    id="birthTime"
+                                    className="input-field"
+                                    value={birthTime}
+                                    onChange={(e) => setBirthTime(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
                         <div className="form-group">
-                            <label htmlFor="birthDate" className="form-label">
-                                Your Birth Date
+                            <label htmlFor="birthPlace" className="form-label">
+                                Your Birth Place (City, Country - Optional, for deeper insights)
                             </label>
                             <input
-                                type="date"
-                                id="birthDate"
+                                type="text"
+                                id="birthPlace"
                                 className="input-field"
-                                value={birthDate}
-                                onChange={(e) => setBirthDate(e.target.value)}
-                                required
+                                placeholder="e.g., London, UK"
+                                value={birthPlace}
+                                onChange={(e) => setBirthPlace(e.target.value)}
                             />
                         </div>
 
                         <div className="form-group">
                             <label htmlFor="desiredOutcome" className="form-label">
-                                What positive outcome do you desire in your life? <br/><span className="sub-heading-small">(e.g., more success, better relationships, inner peace)</span>
+                                What positive outcome do you desire in your life? <span className="required-star">*</span> <br/><span className="sub-heading-small">(e.g., more success, better relationships, inner peace)</span>
                             </label>
                             <textarea
                                 id="desiredOutcome"
@@ -506,9 +548,9 @@ const App = () => {
                             <p>
                                 <span className="numerology-number-label">Life Path Number:</span> <span className="numerology-number-value">{currentNumerology.lifePath}</span>
                             </p>
-                            {/* NEW: Display Birth Number */}
+                            {/* Display Birth Day Number */}
                             <p>
-                                <span className="numerology-number-label">Birth Number (Day of Birth):</span> <span className="numerology-number-value">{currentNumerology.birthNumber}</span>
+                                <span className="numerology-number-label">Birth Day Number (Day of Birth):</span> <span className="numerology-number-value">{currentNumerology.birthDayNumber}</span>
                             </p>
                             <p className="numerology-explanation">{currentNumerology.explanation}</p>
                         </div>
@@ -523,15 +565,22 @@ const App = () => {
                                     <label htmlFor="editableMainReportContent" className="form-label">
                                         Edit Main Report Content:
                                     </label>
+                                    {/* Render the report content fully using dangerouslySetInnerHTML */}
+                                    <div 
+                                        className="full-report-display" 
+                                        dangerouslySetInnerHTML={{ __html: marked.parse(editableMainReportContent) }} 
+                                    />
+                                    {/* The textarea is still available for editing, but now it's below the rendered view */}
                                     <textarea
                                         id="editableMainReportContent"
                                         className="textarea-field"
                                         rows="15"
                                         value={editableMainReportContent}
                                         onChange={(e) => setEditableMainReportContent(e.target.value)}
+                                        style={{marginTop: '20px'}} /* Add space between display and editor */
                                     ></textarea>
                                     <p className="hint-text">
-                                        This content will be included in the PDF. You can edit it as needed.
+                                        This content will be included in the PDF. You can edit it as needed. The view above is how it will appear.
                                     </p>
                                 </div>
                             </>
@@ -558,7 +607,7 @@ const App = () => {
                             {validationChatMessages.length === 0 && (
                                 <div className="form-group">
                                     <label htmlFor="suggestedNameForChat" className="form-label">
-                                        Suggested Name to Validate (e.g., Emily Rose)
+                                        Suggested Name to Validate (e.g., Emily Rose) <span className="required-star">*</span>
                                     </label>
                                     <input
                                         type="text"
@@ -708,7 +757,6 @@ const App = () => {
                             </button>
                         </div>
 
-                        {/* Editable Validation Summary */}
                         <div className="customization-group">
                             <h3 className="sub-section-heading">
                                 <span role="img" aria-label="summary icon">📋</span> Validation Chat Summary (for PDF):
@@ -727,7 +775,6 @@ const App = () => {
                             </div>
                         </div>
 
-                        {/* Editable Practitioner Notes */}
                         <div className="customization-group">
                             <h3 className="sub-section-heading">
                                 <span role="img" aria-label="notes icon">✍️</span> Practitioner's Private Notes (for PDF):
@@ -746,7 +793,6 @@ const App = () => {
                             </div>
                         </div>
 
-                        {/* Download PDF Button - now located after all customization options */}
                         <button
                             onClick={handleDownloadPdf}
                             className="primary-button download-button"

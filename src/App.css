@@ -112,6 +112,20 @@ body {
     margin-bottom: 0.8rem;
 }
 
+/* NEW: For side-by-side inputs like Date and Time */
+.form-group-row {
+    display: flex;
+    gap: 1.2rem; /* Space between items in the row */
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.form-group-row .flex-item {
+    flex: 1; /* Each item takes equal space */
+    min-width: 150px; /* Minimum width before wrapping */
+}
+
+
 .form-label {
     display: block;
     margin-bottom: 0.6rem;
@@ -142,6 +156,11 @@ body {
 .textarea-field {
     resize: vertical; /* Allow vertical resizing */
     min-height: 80px;
+}
+
+.required-star {
+    color: #e74c3c; /* Red star for required fields */
+    margin-left: 5px;
 }
 
 /* Buttons */
@@ -321,6 +340,49 @@ body {
     font-size: 0.95em;
 }
 
+/* NEW: Full Report Display */
+.full-report-display {
+    background-color: #ffffff;
+    border: 1px solid #e0e7ed;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px; /* Space before the editable textarea */
+    line-height: 1.7;
+    font-size: 1em;
+    color: #333;
+    overflow-x: auto; /* Allow horizontal scroll for code blocks */
+}
+
+/* Basic styling for Markdown elements within the displayed report */
+.full-report-display h1, .full-report-display h2, .full-report-display h3, .full-report-display h4 {
+    color: #2c3e50;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+    font-weight: 600;
+}
+.full-report-display h1 { font-size: 1.8em; }
+.full-report-display h2 { font-size: 1.5em; }
+.full-report-display h3 { font-size: 1.3em; }
+.full-report-display h4 { font-size: 1.1em; }
+
+.full-report-display p {
+    margin-bottom: 1em;
+}
+
+.full-report-display ul, .full-report-display ol {
+    margin-left: 20px;
+    margin-bottom: 1em;
+}
+
+.full-report-display li {
+    margin-bottom: 0.5em;
+}
+
+.full-report-display strong, .full-report-display b {
+    font-weight: 700;
+    color: #444;
+}
+
 /* Chat Specific Styles */
 .validation-chat-container {
     background-color: #f0f4f8; /* Lighter background for chat area */
@@ -466,6 +528,15 @@ body {
 
     .chat-input {
         width: 100%;
+    }
+
+    .form-group-row {
+        flex-direction: column; /* Stack date/time vertically on small screens */
+        gap: 0; /* Remove gap when stacked */
+    }
+
+    .form-group-row .flex-item {
+        min-width: 100%; /* Ensure full width when stacked */
     }
 }
 
