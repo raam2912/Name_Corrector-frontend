@@ -15,6 +15,8 @@ const App = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
+    // NEW STATE: To store the full structured data received from the backend for PDF generation
+    const [fullReportDataForPdf, setFullReportDataForPdf] = useState(null);
 
     // State variables for name validation feature
     const [suggestedName, setSuggestedName] = useState('');
@@ -41,7 +43,7 @@ const App = () => {
         4: "Stability, diligent hard work, and building strong foundations for lasting security.",
         5: "Freedom, dynamic change, and adventure, embracing versatility and new experiences.",
         6: "Responsibility, nurturing, harmony, and selfless service, fostering love in family and community.",
-        7: "Spirituality, deep introspection, analytical thought, and profound wisdom.",
+        7: "Spirituality, deep introspection, and analytical thought, and profound wisdom.",
         8: "Abundance, power, and material success, especially in material and leadership endeavors.",
         9: "Humanitarianism, compassion, and completion, signifying a wise, selfless, and universally loving nature.",
         11: "Heightened intuition, spiritual insight, and illumination (a Master Number for 2), inspiring others.",
@@ -73,7 +75,7 @@ const App = () => {
                 total += NUMEROLOGY_MAP[letter];
             }
         }
-        return reduceNumber(total, false);
+        return reduceNumber(total, false); // Changed to false as Expression is usually reduced
     };
 
     // Helper to calculate life path number
@@ -102,36 +104,21 @@ const App = () => {
         setIsLoading(true); // Use main loading indicator for PDF generation
         setError('');
 
-        if (!fullName || !birthDate || !desiredOutcome || !reportContent) {
-            setError('Please generate a report first before attempting to download the PDF.');
+        // Ensure fullReportDataForPdf is available
+        if (!fullReportDataForPdf) {
+            setError('No report data available to download. Please generate a report first.');
             setIsLoading(false);
             return;
         }
 
         try {
-            // We need current numerology numbers to send to the backend for PDF generation
-            const currentExpNum = calculateNameNumber(fullName);
-            const currentLifePathNum = calculateLifePathNumber(birthDate);
-
-            if (currentExpNum === 0 || currentLifePathNum === 0) {
-                setError('Could not calculate initial numerology for PDF. Please check your inputs.');
-                setIsLoading(false);
-                return;
-            }
-
             const response = await fetch(`${BACKEND_BASE_URL}/generate_pdf_report`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    full_name: fullName,
-                    birth_date: birthDate,
-                    desired_outcome: desiredOutcome,
-                    current_expression_number: currentExpNum,
-                    current_life_path_number: currentLifePathNum,
-                    intro_response: reportContent // Pass the generated Markdown report content
-                }),
+                // Send the stored fullReportDataForPdf directly
+                body: JSON.stringify(fullReportDataForPdf),
             });
 
             if (!response.ok) {
@@ -176,6 +163,7 @@ const App = () => {
         setValidationResult(''); // Clear validation result when generating new report
         setSuggestedName(''); // Clear suggested name input
         setCurrentNumerology(null); // Clear previous numerology display
+        setFullReportDataForPdf(null); // Clear previous PDF data
 
         if (!fullName || !birthDate || !desiredOutcome) {
             setError('Please fill in all fields: Full Name, Birth Date, and Desired Outcome.');
@@ -200,7 +188,7 @@ const App = () => {
                 expression: currentExpNum,
                 lifePath: currentLifePathNum,
                 explanation: `Your current name's energy (${currentExpNum}) resonates with ${NUMEROLOGY_INTERPRETATIONS[currentExpNum] || "a unique path."}. ` +
-                                 `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}.`
+                                     `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}.`
             });
 
             // Construct the message for the AI agent on the backend for initial report
@@ -222,6 +210,8 @@ const App = () => {
 
             const data = await res.json();
             setReportContent(data.response); // Store the raw Markdown response
+            // NEW: Store the full structured data for PDF generation
+            setFullReportDataForPdf(data.full_report_data_for_pdf);
 
         } catch (err) {
             console.error('Error fetching data:', err);
