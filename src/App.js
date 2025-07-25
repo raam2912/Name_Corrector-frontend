@@ -43,7 +43,7 @@ const App = () => {
         4: "Stability, diligent hard work, and building strong foundations for lasting security.",
         5: "Freedom, dynamic change, and adventure, embracing versatility and new experiences.",
         6: "Responsibility, nurturing, harmony, and selfless service, fostering love in family and community.",
-        7: "Spirituality, deep introspection, and analytical thought, and profound wisdom.",
+        7: "Spirituality, deep introspection, analytical thought, and profound wisdom.",
         8: "Abundance, power, and material success, especially in material and leadership endeavors.",
         9: "Humanitarianism, compassion, and completion, signifying a wise, selfless, and universally loving nature.",
         11: "Heightened intuition, spiritual insight, and illumination (a Master Number for 2), inspiring others.",
@@ -86,10 +86,11 @@ const App = () => {
             if (parts.length !== 3) throw new Error("Invalid date format.");
             let year = parseInt(parts[0]);
             let month = parseInt(parts[1]);
-            let day = parseInt(parts[2]);
+            let day = parseInt(parts[2]); // Keep original day for birth number
             if (isNaN(year) || isNaN(month) || isNaN(day)) return 0;
+
             month = reduceNumber(month, true);
-            day = reduceNumber(day, true);
+            day = reduceNumber(day, true); // Reduce day for life path calculation
             year = reduceNumber(year, true);
             let total = month + day + year;
             return reduceNumber(total, true);
@@ -98,6 +99,22 @@ const App = () => {
             return 0;
         }
     };
+
+    // Helper to calculate birth number (day of birth only)
+    const calculateBirthNumber = (birthDateStr) => {
+        if (!birthDateStr) return 0;
+        try {
+            const parts = birthDateStr.split('-');
+            if (parts.length !== 3) throw new Error("Invalid date format.");
+            let day = parseInt(parts[2]);
+            if (isNaN(day)) return 0;
+            return reduceNumber(day, true); // Birth number can also be master number if day is 11, 22, 33
+        } catch (e) {
+            console.error("Error in calculateBirthNumber:", e);
+            return 0;
+        }
+    };
+
 
     // Function to handle PDF download (calls backend endpoint)
     const handleDownloadPdf = async () => {
@@ -176,8 +193,9 @@ const App = () => {
             // Calculate current numerology on frontend for immediate display
             const currentExpNum = calculateNameNumber(fullName);
             const currentLifePathNum = calculateLifePathNumber(birthDate);
+            const currentBirthNum = calculateBirthNumber(birthDate); // Calculate Birth Number
 
-            if (currentExpNum === 0 || currentLifePathNum === 0) {
+            if (currentExpNum === 0 || currentLifePathNum === 0 || currentBirthNum === 0) {
                 setError('Could not calculate initial numerology. Please check your inputs, especially the name (letters only) and date (YYYY-MM-DD).');
                 setIsLoading(false);
                 return;
@@ -187,8 +205,10 @@ const App = () => {
             setCurrentNumerology({
                 expression: currentExpNum,
                 lifePath: currentLifePathNum,
+                birthNumber: currentBirthNum, // Include Birth Number
                 explanation: `Your current name's energy (${currentExpNum}) resonates with ${NUMEROLOGY_INTERPRETATIONS[currentExpNum] || "a unique path."}. ` +
-                                     `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}.`
+                                     `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}. ` +
+                                     `Your birth number (${currentBirthNum}) influences your daily characteristics and talents.`
             });
 
             // Construct the message for the AI agent on the backend for initial report
@@ -361,7 +381,11 @@ const App = () => {
                                 <span className="numerology-number-label">Name (Expression/Destiny) Number:</span> <span className="numerology-number-value">{currentNumerology.expression}</span>
                             </p>
                             <p>
-                                <span className="numerology-number-label">Birth Date (Life Path) Number:</span> <span className="numerology-number-value">{currentNumerology.lifePath}</span>
+                                <span className="numerology-number-label">Life Path Number:</span> <span className="numerology-number-value">{currentNumerology.lifePath}</span>
+                            </p>
+                            {/* NEW: Display Birth Number */}
+                            <p>
+                                <span className="numerology-number-label">Birth Number (Day of Birth):</span> <span className="numerology-number-value">{currentNumerology.birthNumber}</span>
                             </p>
                             <p className="numerology-explanation">{currentNumerology.explanation}</p>
                         </div>
