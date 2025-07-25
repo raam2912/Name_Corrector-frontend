@@ -3,7 +3,7 @@ import { marked } from 'marked'; // Import marked for Markdown parsing
 
 // Assuming your CSS files are correctly linked in public/index.html or imported here
 import './index.css';
-import './App.css';
+import './App.css'; // Make sure this is imported to apply the new styles
 
 // Main App component
 const App = () => {
@@ -265,7 +265,7 @@ const App = () => {
             return;
         }
 
-        // If it's the very first message for this validation session
+        // Determine if it's the very first message for this validation session
         const isInitialMessage = validationChatMessages.length === 0;
         let userMessageContent = currentValidationInput.trim();
 
@@ -303,7 +303,8 @@ const App = () => {
                     currentBirthNumber: calculateBirthNumber(birthDate),
                 },
                 suggested_name: suggestedNameForChat.trim(), // Always send the suggested name for context
-                chat_history: [...validationChatMessages, newUserMessage] // Send the entire history
+                chat_history: [...validationChatMessages, newUserMessage], // Send the entire history
+                current_message: userMessageContent // Send the latest message separately for backend parsing
             };
 
             const res = await fetch(`${BACKEND_BASE_URL}/chat`, {

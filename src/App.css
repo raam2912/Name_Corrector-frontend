@@ -1,105 +1,107 @@
-/* Name_Corrector/frontend/src/App.css */
-
-/* Basic styling for the main container to center content */
-.app-container {
+/* General Body and Container Styles */
+body {
+    font-family: 'Inter', sans-serif; /* Using Inter font */
+    background-color: #f0f2f5; /* Light gray background */
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Align items to the start (top) */
+    align-items: flex-start; /* Align to top */
     min-height: 100vh;
-    padding: 20px;
-    background-color: #f0f2f5; /* Light background */
-    font-family: 'Inter', sans-serif; /* Use Inter font */
-    color: #333;
+    padding: 20px; /* Add some padding around the whole app */
+    box-sizing: border-box;
 }
 
-/* Styling for the main content box that holds all forms and reports */
-.content-box {
-    background-color: #ffffff;
-    border-radius: 1rem; /* Rounded corners */
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); /* Stronger shadow */
-    padding: 2.5rem; /* More padding */
+.app-container {
+    background-color: #ffffff; /* White background for the main content box */
+    border-radius: 12px; /* More rounded corners */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Softer, larger shadow */
+    padding: 40px; /* Increased padding */
+    max-width: 850px; /* Wider container */
     width: 100%;
-    max-width: 900px; /* Max width for readability */
-    box-sizing: border-box; /* Include padding in width */
+    margin: 20px 0; /* Vertical margin */
+    box-sizing: border-box;
 }
 
 /* Headings */
 .main-heading {
-    font-size: 2.5rem; /* Larger main heading */
-    font-weight: 700;
+    font-size: 2.5em; /* Larger main heading */
+    color: #2c3e50; /* Darker blue-gray */
     text-align: center;
-    color: #6a0dad; /* Deep purple */
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+    margin-bottom: 15px;
+    font-weight: 700; /* Bold */
 }
 
 .sub-heading {
-    font-size: 1.1rem;
+    font-size: 1.1em;
+    color: #7f8c8d; /* Muted gray */
     text-align: center;
-    color: #555;
-    margin-bottom: 2rem;
+    margin-bottom: 30px;
     line-height: 1.5;
 }
 
+.sub-heading-small {
+    font-size: 0.9em;
+    color: #95a5a6;
+}
+
 .profile-heading {
-    font-size: 1.8rem;
+    font-size: 1.8em;
+    color: #34495e; /* Slightly lighter dark blue-gray */
+    margin-top: 40px;
+    margin-bottom: 25px;
+    text-align: center;
     font-weight: 600;
-    color: #4a627a; /* Dark blue-grey */
-    margin-top: 3rem; /* More space above sections */
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #e0e0e0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    border-bottom: 2px solid #ecf0f1; /* Subtle underline */
+    padding-bottom: 10px;
 }
 
 .suggestions-heading {
-    font-size: 1.5rem;
+    font-size: 1.5em;
+    color: #34495e;
+    margin-top: 30px;
+    margin-bottom: 20px;
     font-weight: 600;
-    color: #2c3e50; /* Darker grey */
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
-/* Form Styling */
+/* Form Elements */
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 25px;
 }
 
 .form-label {
     display: block;
+    margin-bottom: 8px;
     font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #444;
+    color: #555;
+    font-size: 1em;
 }
 
 .input-field,
 .textarea-field {
     width: 100%;
-    padding: 0.8rem 1rem;
-    border: 1px solid #ccc;
-    border-radius: 0.5rem; /* Slightly more rounded */
-    font-size: 1rem;
-    box-sizing: border-box;
-    transition: border-color 0.3s, box-shadow 0.3s;
+    padding: 12px 15px;
+    border: 1px solid #dcdcdc; /* Lighter border */
+    border-radius: 8px; /* Rounded input fields */
+    font-size: 1em;
+    color: #333;
+    background-color: #fdfdfd;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); /* Subtle inner shadow */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box; /* Ensure padding doesn't increase width */
 }
 
 .input-field:focus,
 .textarea-field:focus {
-    border-color: #6a0dad; /* Focus color */
-    box-shadow: 0 0 0 3px rgba(106, 0, 173, 0.2); /* Light purple glow */
+    border-color: #3498db; /* Blue focus border */
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2); /* Soft blue glow */
     outline: none;
 }
 
 .textarea-field {
-    resize: vertical;
+    resize: vertical; /* Allow vertical resizing */
     min-height: 80px;
 }
 
@@ -109,44 +111,71 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 1rem 1.5rem;
-    background-color: #8e44ad; /* Purple button */
+    padding: 14px 25px;
+    background-color: #f39c12; /* Orange-yellow primary button */
     color: white;
     border: none;
-    border-radius: 0.75rem; /* Rounded corners */
-    font-size: 1.1rem;
+    border-radius: 8px;
+    font-size: 1.1em;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    gap: 10px; /* Space between emoji and text */
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3); /* Matching shadow */
 }
 
-.submit-button:hover {
-    background-color: #9b59b6; /* Lighter purple on hover */
+.submit-button:hover:not(:disabled) {
+    background-color: #e67e22; /* Darker orange on hover */
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4);
 }
 
 .submit-button:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
-    transform: none;
     box-shadow: none;
 }
 
 .download-button {
-    background-color: #27ae60 !important; /* Green for download */
+    background-color: #28a745; /* Green for download */
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
 }
 
-.download-button:hover {
-    background-color: #2ecc71 !important; /* Lighter green on hover */
+.download-button:hover:not(:disabled) {
+    background-color: #218838; /* Darker green on hover */
+    box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
 }
 
-/* Loading Spinner */
+.chat-send-button {
+    background-color: #3498db; /* Blue for chat send */
+    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+    width: auto; /* Allow button to size based on content */
+    padding: 10px 20px; /* Smaller padding for chat button */
+    font-size: 1em;
+}
+
+.chat-send-button:hover:not(:disabled) {
+    background-color: #217dbb; /* Darker blue on hover */
+    box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+}
+
+.reset-chat-button {
+    background-color: #dc3545; /* Red for reset */
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+    width: auto;
+    padding: 10px 20px;
+    font-size: 1em;
+}
+
+.reset-chat-button:hover:not(:disabled) {
+    background-color: #c82333; /* Darker red on hover */
+    box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+}
+
+
+/* Spinners */
 .spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid #fff;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #fff;
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -154,207 +183,255 @@
     margin-right: 10px;
 }
 
+.spinner.small {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    border-width: 2px;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
+/* Utility Classes */
 .flex-center {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Error Message */
-.error-message {
-    background-color: #ffe0e0;
-    border: 1px solid #ff0000;
-    color: #ff0000;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    margin-top: 1.5rem;
-    text-align: center;
+.emoji-icon {
+    margin-right: 8px;
+    font-size: 1.2em;
 }
 
 /* Numerology Profile Display */
 .numerology-profile {
-    background-color: #f9f9f9;
-    border: 1px solid #eee;
-    border-radius: 1rem;
-    padding: 2rem;
-    margin-top: 2rem;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+    background-color: #f8f8f8; /* Light gray background for report sections */
+    border-radius: 10px;
+    padding: 30px;
+    margin-top: 30px;
+    border: 1px solid #eee; /* Subtle border */
 }
 
 .current-numerology-box {
-    background-color: #e0f7fa; /* Light blue background */
-    border: 1px solid #b2ebf2;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
+    background-color: #eaf6ff; /* Very light blue */
+    border: 1px solid #cce5ff; /* Light blue border */
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
 }
 
 .current-numerology-box h3 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #00796b; /* Dark teal */
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    color: #2c3e50;
+    font-size: 1.3em;
+    margin-top: 0;
+    margin-bottom: 15px;
 }
 
 .numerology-number-label {
     font-weight: 600;
-    color: #333;
+    color: #444;
 }
 
 .numerology-number-value {
-    font-size: 1.2rem;
     font-weight: 700;
-    color: #d35400; /* Orange */
+    color: #3498db; /* Blue for numbers */
+    font-size: 1.1em;
 }
 
 .numerology-explanation {
     font-style: italic;
-    color: #555;
-    margin-top: 1rem;
-    line-height: 1.4;
+    color: #666;
+    margin-top: 15px;
+    border-top: 1px dashed #e0e0e0;
+    padding-top: 10px;
 }
 
-.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6 {
-    font-weight: 600;
-    color: #2c3e50;
+/* Markdown Content Styling */
+.markdown-content {
+    background-color: #fdfdfd;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+    line-height: 1.7;
+    color: #333;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    color: #34495e;
     margin-top: 1.5em;
-    margin-bottom: 0.5em;
+    margin-bottom: 0.8em;
+    font-weight: 600;
 }
 
-.markdown-content h1 { font-size: 2em; }
-.markdown-content h2 { font-size: 1.75em; }
-.markdown-content h3 { font-size: 1.5em; }
-.markdown-content h4 { font-size: 1.25em; }
-.markdown-content h5 { font-size: 1.1em; }
-.markdown-content h6 { font-size: 1em; }
-
-.markdown-content p {
-    margin-bottom: 1em;
-    line-height: 1.6;
-}
-
+.markdown-content h1 { font-size: 1.8em; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+.markdown-content h2 { font-size: 1.5em; }
+.markdown-content h3 { font-size: 1.3em; }
 .markdown-content ul {
     list-style-type: disc;
-    margin-left: 20px;
-    margin-bottom: 1em;
+    margin-left: 25px;
+    padding-left: 0;
 }
 
 .markdown-content ol {
     list-style-type: decimal;
-    margin-left: 20px;
-    margin-bottom: 1em;
+    margin-left: 25px;
+    padding-left: 0;
 }
 
 .markdown-content li {
     margin-bottom: 0.5em;
 }
 
-.markdown-content strong, .markdown-content b {
-    font-weight: 700;
-    color: #8e44ad; /* Highlight bold text */
+.markdown-content p {
+    margin-bottom: 1em;
 }
 
-.markdown-content em, .markdown-content i {
-    font-style: italic;
-}
-
-.markdown-content hr {
-    border: 0;
-    border-top: 1px dashed #ccc;
-    margin: 2em 0;
+.markdown-content b,
+.markdown-content strong {
+    color: #2c3e50;
 }
 
 .footer-text {
     text-align: center;
     font-size: 0.9em;
-    color: #777;
-    margin-top: 2rem;
-    font-style: italic;
+    color: #888;
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid #ececec;
 }
 
-/* Chat specific styles */
-.chat-container {
-    background-color: #ffffff;
-    border-radius: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    height: 450px; /* Fixed height for chat */
-    margin-bottom: 2rem;
+.error-message {
+    background-color: #ffe0e0; /* Light red */
+    border: 1px solid #ff9999; /* Red border */
+    color: #cc0000; /* Darker red text */
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 25px;
+    text-align: center;
+    font-weight: 500;
 }
 
-.chat-messages {
-    flex-grow: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
+/* Chat Interface Specific Styles */
+.validation-chat-container {
+    background-color: #fdfdfd;
     border: 1px solid #e0e0e0;
-    border-radius: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.message {
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 0.75rem;
-    max-width: 80%;
-    word-wrap: break-word; /* Ensure long words wrap */
-}
-
-.message.user {
-    background-color: #e0f2fe; /* Light blue */
-    align-self: flex-end;
-    margin-left: auto;
-}
-
-.message.bot {
-    background-color: #f3e8ff; /* Light purple */
-    align-self: flex-start;
-    margin-right: auto;
-}
-
-.chat-input-area {
+    border-radius: 10px;
+    padding: 20px;
     display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.chat-messages-display {
+    height: 350px; /* Fixed height for chat window */
+    overflow-y: auto; /* Scrollable */
+    border: 1px solid #e9ecef; /* Lighter border for chat window */
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f8f9fa; /* Very light gray background */
+    display: flex;
+    flex-direction: column;
     gap: 10px;
 }
 
-.chat-input-field {
-    flex-grow: 1;
+.chat-welcome-message {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 20px;
 }
 
-.chat-send-button {
-    width: auto; /* Allow button to size content */
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
+.chat-message {
+    display: flex;
+    max-width: 80%; /* Limit bubble width */
 }
 
-/* Responsive adjustments */
+.chat-message.user {
+    justify-content: flex-end; /* Align user messages to the right */
+    margin-left: auto; /* Push to right */
+}
+
+.chat-message.ai {
+    justify-content: flex-start; /* Align AI messages to the left */
+    margin-right: auto; /* Push to left */
+}
+
+.message-bubble {
+    padding: 12px 18px;
+    border-radius: 20px; /* Pill-shaped bubbles */
+    line-height: 1.5;
+    word-wrap: break-word; /* Ensure long words wrap */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); /* Subtle shadow for bubbles */
+}
+
+.chat-message.user .message-bubble {
+    background-color: #3498db; /* Blue for user messages */
+    color: white;
+    border-bottom-right-radius: 5px; /* Pointed corner */
+}
+
+.chat-message.ai .message-bubble {
+    background-color: #e9ecef; /* Light gray for AI messages */
+    color: #333;
+    border-bottom-left-radius: 5px; /* Pointed corner */
+}
+
+.chat-input-form {
+    display: flex;
+    gap: 10px; /* Space between input and button */
+    align-items: center;
+}
+
+.chat-input {
+    flex-grow: 1; /* Take up available space */
+    min-height: 45px; /* Ensure it's not too small */
+    padding: 10px 15px;
+    border-radius: 8px;
+}
+
+/* Responsive Adjustments */
 @media (max-width: 768px) {
     .app-container {
-        flex-direction: column;
-        align-items: center;
+        padding: 25px;
+        margin: 10px;
     }
-    .content-box {
-        padding: 1.5rem;
-        max-width: 100%;
-    }
+
     .main-heading {
-        font-size: 2rem;
+        font-size: 2em;
     }
-    .profile-heading, .suggestions-heading {
-        font-size: 1.5rem;
+
+    .profile-heading {
+        font-size: 1.5em;
     }
-    .chat-container {
-        height: 400px; /* Slightly smaller on mobile */
+
+    .suggestions-heading {
+        font-size: 1.3em;
+    }
+
+    .submit-button {
+        font-size: 1em;
+        padding: 12px 20px;
+    }
+
+    .chat-input-form {
+        flex-direction: column; /* Stack input and buttons on small screens */
+        align-items: stretch;
+    }
+
+    .chat-send-button,
+    .reset-chat-button {
+        width: 100%; /* Full width for stacked buttons */
+        margin-left: 0 !important; /* Override inline style */
+        margin-top: 10px; /* Space between stacked buttons */
     }
 }
