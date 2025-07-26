@@ -41,7 +41,8 @@ function App() {
     };
 
     const closeModal = () => {
-        setModal({ isOpen: false, message: '' });
+        setModal({ isOpen: true, message: '' }); // Keep modal open with empty message to prevent immediate re-opening issues
+        setTimeout(() => setModal({ isOpen: false, message: '' }), 100); // Close after a short delay
     };
 
     // Debounce function to limit how often a function is called
@@ -579,11 +580,26 @@ function App() {
                     {/* Input Form */}
                     <div className="section-card input-form-card">
                         <h2>Client Information</h2>
-                        <input type="text" placeholder="Full Name (e.g., Rama Narayanan V)" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                        <input type="date" className="input-field" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
-                        <input type="time" placeholder="Birth Time (HH:MM, optional)" className="input-field" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
-                        <input type="text" placeholder="Birth Place (optional)" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
-                        <input type="text" placeholder="Desired Outcome (e.g., Success, Love, Career)" className="input-field" value={desiredOutcome} onChange={(e) => setDesiredOutcome(e.target.value)} />
+                        <div className="input-group">
+                            <label htmlFor="fullName" className="input-label">Full Name:</label>
+                            <input type="text" id="fullName" placeholder="e.g., John Doe" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="birthDate" className="input-label">Birth Date:</label>
+                            <input type="date" id="birthDate" className="input-field" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="birthTime" className="input-label">Birth Time (optional):</label>
+                            <input type="time" id="birthTime" placeholder="HH:MM" className="input-field" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="birthPlace" className="input-label">Birth Place (optional):</label>
+                            <input type="text" id="birthPlace" placeholder="City, Country" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="desiredOutcome" className="input-label">Desired Outcome:</label>
+                            <input type="text" id="desiredOutcome" placeholder="e.g., Success, Love, Career" className="input-field" value={desiredOutcome} onChange={(e) => setDesiredOutcome(e.target.value)} />
+                        </div>
                         <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
                     </div>
 
@@ -600,13 +616,17 @@ function App() {
                     {clientProfile && (
                         <div className="section-card custom-validation-card">
                             <h2>Validate Custom Name</h2>
-                            <input
-                                type="text"
-                                placeholder="Enter a name to validate..."
-                                className="input-field"
-                                value={customNameInput}
-                                onChange={(e) => setCustomNameInput(e.target.value)}
-                            />
+                            <div className="input-group">
+                                <label htmlFor="customNameInput" className="input-label">Name to Validate:</label>
+                                <input
+                                    type="text"
+                                    id="customNameInput"
+                                    placeholder="Enter a name to validate..."
+                                    className="input-field"
+                                    value={customNameInput}
+                                    onChange={(e) => setCustomNameInput(e.target.value)}
+                                />
+                            </div>
                             {liveValidationOutput && (
                                 <div className="live-validation-output section-card" style={{backgroundColor: '#ffffff', border: '1px solid #e9eceb', boxShadow: 'none'}}>
                                     <p className="font-bold">Live Calculated Values:</p>
@@ -645,12 +665,16 @@ function App() {
                                     <div key={index} className="suggestions-list-item">
                                         {s.isEditing ? (
                                             <>
-                                                <input
-                                                    type="text"
-                                                    className="input-field editable-name-input"
-                                                    value={s.editedName}
-                                                    onChange={(e) => handleEditedNameChange(index, e.target.value)}
-                                                />
+                                                <div className="input-group">
+                                                    <label htmlFor={`editedName-${index}`} className="input-label">Edit Name:</label>
+                                                    <input
+                                                        type="text"
+                                                        id={`editedName-${index}`}
+                                                        className="input-field editable-name-input"
+                                                        value={s.editedName}
+                                                        onChange={(e) => handleEditedNameChange(index, e.target.value)}
+                                                    />
+                                                </div>
                                                 <p className="expression-display">
                                                     Expression: {calculateExpressionNumber(s.editedName)}
                                                 </p>
@@ -735,7 +759,7 @@ function App() {
                                 </button>
                                 {isValidationChatMode && !validationChatSuggestedName && (
                                     <p className="text-red-500 text-sm mt-1">Please confirm a name or enter one in the custom validation section to use validation chat.</p>
-                                )}
+                                )}\
                                 {isValidationChatMode && validationChatSuggestedName && (
                                     <p className="text-green-600 text-sm mt-1">Validation Chat active for: <b>{validationChatSuggestedName}</b></p>
                                 )}

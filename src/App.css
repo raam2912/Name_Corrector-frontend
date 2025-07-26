@@ -13,7 +13,7 @@ body {
 #root, .app-container {
     min-height: 100vh; /* Ensure it takes full viewport height */
     display: flex;
-    align-items: center; /* Vertically center content */
+    align-items: flex-start; /* Align items to the start for better mobile flow */
     justify-content: center; /* Horizontally center content */
     padding: 20px; /* Padding around the main content wrapper */
     box-sizing: border-box; /* Include padding in element's total width and height */
@@ -22,7 +22,7 @@ body {
 /* Main Content Wrapper (The big white card) */
 .main-content-wrapper {
     background-color: #ffffff;
-    padding: 40px; /* Generous padding inside the wrapper */
+    padding: 30px; /* Slightly less padding for better mobile fit */
     border-radius: 15px; /* Rounded corners for the main card */
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
     width: 100%;
@@ -36,11 +36,12 @@ body {
     .main-content-wrapper {
         flex-direction: row; /* Switch to row layout */
         gap: 40px; /* More space between columns */
+        padding: 40px; /* Restore generous padding for desktop */
     }
 }
 
 /* Column Styles (Left and Right sections) */
-.content-column {
+.column { /* Renamed from .content-column for consistency, but kept existing usage of .column */
     flex: 1; /* Each column takes equal available space */
     display: flex;
     flex-direction: column;
@@ -89,10 +90,21 @@ body {
 .chat-interface-card h2 { color: #607d8b; } /* Medium gray-blue */
 
 /* Input Field Styles */
+.input-group {
+    margin-bottom: 15px; /* Space between input groups */
+}
+
+.input-label {
+    display: block; /* Make label appear above input */
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px; /* Space between label and input */
+}
+
 .input-field {
     width: 100%;
     padding: 14px 18px;
-    margin-bottom: 15px;
     border: 1px solid #ced4da; /* Soft gray border */
     border-radius: 9px;
     font-size: 16px;
@@ -119,6 +131,7 @@ body {
     transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     text-align: center;
     border: none;
+    margin-top: 15px; /* Add some space above buttons */
 }
 
 .primary-btn {
@@ -443,4 +456,110 @@ body {
 /* Ensure consistent button styling across the app */
 .primary-btn, .secondary-btn {
     margin-top: 15px; /* Add some space above buttons */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) { /* Adjust breakpoint for tablets/larger phones */
+    #root, .app-container {
+        padding: 10px; /* Reduce overall padding */
+        align-items: stretch; /* Stretch to fill width */
+    }
+
+    .main-content-wrapper {
+        padding: 20px; /* Smaller padding inside the main card */
+        gap: 20px; /* Reduce gap between sections */
+    }
+
+    .section-card {
+        padding: 20px; /* Smaller padding inside each card */
+    }
+
+    .section-card h2 {
+        font-size: 20px; /* Slightly smaller headings */
+        margin-bottom: 15px;
+    }
+
+    .input-field {
+        padding: 12px 15px; /* Smaller input fields */
+        font-size: 15px;
+    }
+
+    .primary-btn, .secondary-btn {
+        padding: 12px 18px; /* Smaller buttons */
+        font-size: 16px;
+        margin-top: 10px; /* Reduce button top margin */
+    }
+
+    .primary-btn.small-btn, .secondary-btn.small-btn {
+        padding: 6px 12px; /* Even smaller buttons */
+        font-size: 13px;
+        margin-right: 8px; /* Adjust spacing */
+    }
+
+    .suggestions-list-item h3 {
+        font-size: 17px; /* Smaller suggestion names */
+    }
+
+    .suggestions-list-item p {
+        font-size: 14px; /* Smaller suggestion rationale */
+    }
+
+    .chat-messages {
+        height: 200px; /* Shorter chat window on mobile */
+        padding: 10px;
+    }
+
+    .chat-message {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .main-title {
+        font-size: 28px; /* Smaller main title */
+        margin-bottom: 20px;
+    }
+
+    .modal-content {
+        width: 90%; /* Make modal responsive */
+        padding: 20px;
+    }
+
+    .modal-message {
+        font-size: 17px;
+    }
+}
+
+@media (max-width: 480px) { /* Extra small screens / very narrow phones */
+    .main-content-wrapper {
+        padding: 15px;
+    }
+
+    .section-card {
+        padding: 15px;
+    }
+
+    .input-field {
+        font-size: 14px;
+    }
+
+    .primary-btn, .secondary-btn {
+        font-size: 15px;
+    }
+
+    .primary-btn.small-btn, .secondary-btn.small-btn {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+
+    .suggestions-list-item h3 {
+        font-size: 16px;
+    }
+
+    .suggestions-list-item p {
+        font-size: 13px;
+    }
+
+    .chat-messages {
+        height: 180px;
+    }
 }
