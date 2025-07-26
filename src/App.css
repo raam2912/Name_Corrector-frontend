@@ -153,6 +153,24 @@ body {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
 }
 
+/* Specific styling for smaller buttons (e.g., Edit/Save/Cancel) */
+.primary-btn.small-btn, .secondary-btn.small-btn {
+    width: auto; /* Allow buttons to size based on content */
+    display: inline-block; /* Display side-by-side */
+    padding: 8px 15px; /* Smaller padding */
+    font-size: 14px; /* Smaller font size */
+    margin-top: 10px; /* Adjust margin */
+    margin-right: 10px; /* Space between buttons */
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    gap: 10px; /* Space between buttons */
+    margin-top: 10px;
+}
+
+
 /* Text Content Areas */
 .profile-details-content, .live-validation-output, .suggestions-list-content, .report-preview-area {
     font-size: 15px;
@@ -204,6 +222,43 @@ body {
     color: #555;
     margin-top: 5px;
 }
+
+/* NEW: Styles for editable name input within suggestions */
+.editable-name-input {
+    margin-bottom: 5px; /* Reduce margin to fit better */
+    font-size: 18px; /* Slightly larger font for prominence */
+    font-weight: 600;
+    color: #8a2be2; /* Match suggestion heading color */
+    padding: 10px 12px;
+    border: 1px solid #a0d9ef; /* Softer border */
+    border-radius: 8px;
+}
+
+/* NEW: Styles for validation display within suggestions */
+.validation-result-display {
+    background-color: #f9f9f9; /* Light background for the validation box */
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.validation-status {
+    margin-bottom: 5px;
+}
+
+.validation-rationale {
+    color: #555;
+}
+
+.expression-display {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
 
 /* Chat Interface Specifics */
 .chat-messages {

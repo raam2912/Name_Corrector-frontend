@@ -15,12 +15,13 @@ function App() {
     const [desiredOutcome, setDesiredOutcome] = useState('');
 
     const [clientProfile, setClientProfile] = useState(null);
-    const [suggestions, setSuggestions] = useState([]);
+    const [suggestions, setSuggestions] = useState([]); // Original suggestions from backend
+    const [editableSuggestions, setEditableSuggestions] = useState([]); // Suggestions with edit state and validation
     const [confirmedSuggestions, setConfirmedSuggestions] = useState([]);
 
     const [customNameInput, setCustomNameInput] = useState('');
     const [liveValidationOutput, setLiveValidationOutput] = useState(null); // For live client-side calcs
-    const [backendValidationResult, setBackendValidationResult] = useState(null); // For backend validation
+    const [backendValidationResult, setBackendValidationResult] = useState(null); // For custom validation section
 
     const [reportPreviewContent, setReportPreviewContent] = useState('');
     const [chatInput, setChatInput] = useState('');
@@ -220,7 +221,7 @@ function App() {
         `;
     };
 
-    // Debounced function for live validation display and backend call
+    // Debounced function for live validation display and backend call (for custom name input)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const updateLiveValidationDisplay = useCallback(
         debounce((name) => {
@@ -251,6 +252,7 @@ function App() {
             });
 
             // Trigger backend validation for comprehensive rules
+            // This is for the *custom name input* section only
             validateCustomNameBackend(name);
         }, 300),
         [clientProfile] // Dependency array: recreate debounce if clientProfile changes
@@ -283,6 +285,15 @@ function App() {
 
             setClientProfile(response.data.profile_data);
             setSuggestions(response.data.suggestions);
+            // Initialize editableSuggestions with a flag and editedName
+            setEditableSuggestions(response.data.suggestions.map(s => ({
+                ...s,
+                isEditing: false,
+                editedName: s.name, // Initialize editedName with the original name
+                validationResult: null // To store validation result for this specific suggestion
+            })));
+
+
             // Reset confirmed suggestions, report preview, and chat history for a new profile
             setConfirmedSuggestions([]);
             setReportPreviewContent('');
@@ -297,6 +308,39 @@ function App() {
         }
     };
 
+    // Function to validate a name against the backend for a specific suggestion item
+    const validateSuggestionNameBackend = async (name, suggestionIndex) => {
+        if (!clientProfile) {
+            // Update validationResult for this specific suggestion
+            setEditableSuggestions(prev => prev.map((s, idx) => 
+                idx === suggestionIndex ? { ...s, validationResult: { is_valid: false, rationale: "No client profile loaded." } } : s
+            ));
+            return;
+        }
+        if (!name.trim()) {
+            setEditableSuggestions(prev => prev.map((s, idx) => 
+                idx === suggestionIndex ? { ...s, validationResult: null } : s
+            ));
+            return;
+        }
+
+        try {
+            const response = await axios.post(`${BACKEND_URL}/validate_name`, {
+                suggested_name: name,
+                client_profile: clientProfile
+            });
+            setEditableSuggestions(prev => prev.map((s, idx) => 
+                idx === suggestionIndex ? { ...s, validationResult: response.data } : s
+            ));
+        } catch (error) {
+            console.error('Error validating suggestion name backend:', error);
+            setEditableSuggestions(prev => prev.map((s, idx) => 
+                idx === suggestionIndex ? { ...s, validationResult: { is_valid: false, rationale: `Backend validation failed: ${error.response?.data?.error || error.message}` } } : s
+            ));
+        }
+    };
+
+    // This is for the *custom name input* section only
     const validateCustomNameBackend = async (name) => {
         if (!clientProfile) {
             setBackendValidationResult({ is_valid: false, rationale: "No client profile loaded." });
@@ -415,19 +459,31 @@ function App() {
         }
     };
 
-    const handleConfirmSuggestion = (suggestion) => {
+    const handleConfirmSuggestion = (suggestionToConfirm) => {
+        // Use the editedName if available, otherwise the original name
+        const nameToConfirm = suggestionToConfirm.isEditing ? suggestionToConfirm.editedName : suggestionToConfirm.name;
+        const expressionToConfirm = suggestionToConfirm.isEditing ? calculateExpressionNumber(nameToConfirm) : suggestionToConfirm.expression_number;
+        const rationaleToConfirm = suggestionToConfirm.isEditing && suggestionToConfirm.validationResult ? suggestionToConfirm.validationResult.rationale : suggestionToConfirm.rationale;
+        
+        const confirmedItem = {
+            name: nameToConfirm,
+            expression_number: expressionToConfirm,
+            rationale: rationaleToConfirm,
+            is_valid: suggestionToConfirm.isEditing && suggestionToConfirm.validationResult ? suggestionToConfirm.validationResult.is_valid : true // Assume original is valid if no edit validation
+        };
+
         // Prevent adding duplicates to confirmed suggestions
-        if (!confirmedSuggestions.some(s => s.name === suggestion.name)) {
-            setConfirmedSuggestions(prev => [...prev, suggestion]);
-            showAlert(`"${suggestion.name}" confirmed for report generation!`);
+        if (!confirmedSuggestions.some(s => s.name === confirmedItem.name)) {
+            setConfirmedSuggestions(prev => [...prev, confirmedItem]);
+            showAlert(`"${confirmedItem.name}" confirmed for report generation!`);
         } else {
-            showAlert(`"${suggestion.name}" is already confirmed.`);
+            showAlert(`"${confirmedItem.name}" is already confirmed.`);
         }
         // Set this name as the context for validation chat and switch mode
-        setValidationChatSuggestedName(suggestion.name);
+        setValidationChatSuggestedName(confirmedItem.name);
         setIsValidationChatMode(true);
-        setChatInput(`Tell me more about the numerological implications of "${suggestion.name}".`);
-        setChatHistory(prev => [...prev, { message: `Switched to Validation Chat for "${suggestion.name}".`, sender: 'system' }]);
+        setChatInput(`Tell me more about the numerological implications of "${confirmedItem.name}".`);
+        setChatHistory(prev => [...prev, { message: `Switched to Validation Chat for "${confirmedItem.name}".`, sender: 'system' }]);
     };
 
     const toggleChatMode = () => {
@@ -457,6 +513,60 @@ function App() {
             return newMode;
         });
     };
+
+    // --- New Handlers for Editable Suggestions ---
+    const handleEditSuggestion = (index) => {
+        setEditableSuggestions(prev => prev.map((s, idx) => 
+            idx === index ? { ...s, isEditing: true, editedName: s.name, validationResult: null } : { ...s, isEditing: false } // Only one can be edited at a time
+        ));
+    };
+
+    // Debounced function for live validation display and backend call (for editable suggestions)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const debouncedValidateSuggestionNameBackend = useCallback(
+        debounce((name, index) => {
+            validateSuggestionNameBackend(name, index);
+        }, 300),
+        [clientProfile] // Recreate if clientProfile changes
+    );
+
+    const handleEditedNameChange = (index, newName) => {
+        setEditableSuggestions(prev => prev.map((s, idx) => {
+            if (idx === index) {
+                // Update the edited name
+                const updatedSuggestion = { ...s, editedName: newName };
+                // Trigger validation for the updated name
+                debouncedValidateSuggestionNameBackend(newName, index);
+                return updatedSuggestion;
+            }
+            return s;
+        }));
+    };
+
+    const handleSaveEdit = (index) => {
+        setEditableSuggestions(prev => prev.map((s, idx) => {
+            if (idx === index) {
+                // Update the original name and expression number with the edited values
+                const newExpressionNumber = calculateExpressionNumber(s.editedName);
+                return {
+                    ...s,
+                    name: s.editedName,
+                    expression_number: newExpressionNumber,
+                    rationale: s.validationResult ? s.validationResult.rationale : s.rationale, // Use validation rationale if available
+                    isEditing: false,
+                };
+            }
+            return s;
+        }));
+        showAlert("Name updated successfully!");
+    };
+
+    const handleCancelEdit = (index) => {
+        setEditableSuggestions(prev => prev.map((s, idx) => 
+            idx === index ? { ...s, isEditing: false, editedName: s.name, validationResult: null } : s
+        ));
+    };
+
 
     return (
         <div className="app-container">
@@ -524,24 +634,57 @@ function App() {
                 {/* Right Column: Suggestions, Reports, Chat */}
                 <div className="column">
                     {/* Initial Suggestions Display */}
-                    {suggestions.length > 0 && (
+                    {editableSuggestions.length > 0 && (
                         <div className="section-card suggestions-display-card">
                             <h2>Suggested Name Variations</h2>
                             <p className="text-sm text-gray-700 mb-3">
                                 {suggestions[0]?.reasoning || 'Overall reasoning for suggestions.'}
                             </p>
                             <div className="suggestions-list-content">
-                                {suggestions.map((s, index) => (
+                                {editableSuggestions.map((s, index) => (
                                     <div key={index} className="suggestions-list-item">
-                                        <h3>{s.name} (Expression: {s.expression_number})</h3>
-                                        <p>{s.rationale}</p>
-                                        <button
-                                            onClick={() => handleConfirmSuggestion(s)}
-                                            className={`primary-btn mt-3 ${confirmedSuggestions.some(cs => cs.name === s.name) ? 'disabled-btn' : ''}`}
-                                            disabled={confirmedSuggestions.some(cs => cs.name === s.name)}
-                                        >
-                                            {confirmedSuggestions.some(cs => cs.name === s.name) ? 'Confirmed!' : 'Confirm This Name'}
-                                        </button>
+                                        {s.isEditing ? (
+                                            <>
+                                                <input
+                                                    type="text"
+                                                    className="input-field editable-name-input"
+                                                    value={s.editedName}
+                                                    onChange={(e) => handleEditedNameChange(index, e.target.value)}
+                                                />
+                                                <p className="expression-display">
+                                                    Expression: {calculateExpressionNumber(s.editedName)}
+                                                </p>
+                                                {s.validationResult && (
+                                                    <div className="validation-result-display">
+                                                        <p className="validation-status">
+                                                            <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
+                                                        </p>
+                                                        <p className="validation-rationale">
+                                                            <b>Rationale:</b> {s.validationResult.rationale}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                <div className="button-group">
+                                                    <button onClick={() => handleSaveEdit(index)} className="primary-btn small-btn">Save</button>
+                                                    <button onClick={() => handleCancelEdit(index)} className="secondary-btn small-btn">Cancel</button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <h3>{s.name} (Expression: {s.expression_number})</h3>
+                                                <p>{s.rationale}</p>
+                                                <div className="button-group">
+                                                    <button onClick={() => handleEditSuggestion(index)} className="secondary-btn small-btn">Edit Name</button>
+                                                    <button
+                                                        onClick={() => handleConfirmSuggestion(s)}
+                                                        className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.name) ? 'disabled-btn' : ''}`}
+                                                        disabled={confirmedSuggestions.some(cs => cs.name === s.name)}
+                                                    >
+                                                        {confirmedSuggestions.some(cs => cs.name === s.name) ? 'Confirmed!' : 'Confirm This Name'}
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 ))}
                             </div>
