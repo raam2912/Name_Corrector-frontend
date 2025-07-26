@@ -1,279 +1,81 @@
 /* General Body and Container Styles */
 body {
-    font-family: 'Inter', sans-serif; /* Using Inter font */
-    background: linear-gradient(135deg, #f0f4f8, #e0e7ed); /* Soft gradient background */
-    color: #333;
-    line-height: 1.6;
     margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* Align to top */
-    min-height: 100vh;
-    box-sizing: border-box;
-}
-
-.app-container {
-    width: 100%;
-    max-width: 900px; /* Increased max-width for better content display */
-    padding: 2rem;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem; /* Space between main sections */
-}
-
-.content-area {
-    background-color: #ffffff;
-    border-radius: 12px; /* More rounded corners */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Softer, larger shadow */
-    padding: 2.5rem; /* Increased padding */
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem; /* Space between internal sections */
-}
-
-/* Header Section */
-.header-section {
-    text-align: center;
-    margin-bottom: 1.5rem;
-}
-
-.main-heading {
-    font-size: 2.8rem; /* Larger heading */
-    font-weight: 700;
-    color: #2c3e50; /* Darker, professional color */
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.03em;
-}
-
-.sub-heading {
-    font-size: 1.1rem;
-    color: #555;
-    margin-bottom: 1.5rem;
-    line-height: 1.5;
-}
-
-.sub-heading-small {
-    font-size: 0.9em;
-    color: #777;
-    margin-top: 0.5rem;
-    text-align: center;
-}
-
-.hint-text {
-    font-size: 0.9em;
-    color: #777;
-    margin-top: 0.5rem;
-    text-align: left;
-    padding-left: 5px; /* Indent slightly */
-}
-
-/* Section Cards */
-.card-section {
-    background-color: #f8faff; /* Lighter background for sections */
-    border: 1px solid #e0e7ed; /* Subtle border */
-    border-radius: 10px;
-    padding: 2rem;
-    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.03); /* Inner shadow for depth */
-}
-
-.section-heading {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: #34495e;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.sub-section-heading {
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: #4a627a;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Form Layout */
-.form-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem; /* Space between form groups */
-}
-
-.form-group {
-    margin-bottom: 0.8rem;
-}
-
-/* NEW: For side-by-side inputs like Date and Time */
-.form-group-row {
-    display: flex;
-    gap: 1.2rem; /* Space between items in the row */
-    margin-bottom: 0.8rem;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-}
-
-.form-group-row .flex-item {
-    flex: 1; /* Each item takes equal space */
-    min-width: 150px; /* Minimum width before wrapping */
-}
-
-
-.form-label {
-    display: block;
-    margin-bottom: 0.6rem;
-    font-weight: 500;
-    color: #444;
-    font-size: 1em;
-}
-
-.input-field,
-.textarea-field {
-    width: calc(100% - 24px); /* Account for padding */
-    padding: 12px;
-    border: 1px solid #cdd9e5;
-    border-radius: 8px;
-    font-size: 1em;
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f2f5; /* Light grey background */
     color: #333;
-    background-color: #fcfdff;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.input-field:focus,
-.textarea-field:focus {
-    border-color: #6a8cff; /* Highlight on focus */
-    box-shadow: 0 0 0 3px rgba(106, 140, 255, 0.2);
-    outline: none;
+.container {
+    max-width: 960px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    min-height: 100vh;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    border-radius: 10px;
 }
 
-.textarea-field {
-    resize: vertical; /* Allow vertical resizing */
-    min-height: 80px;
-}
-
-.required-star {
-    color: #e74c3c; /* Red star for required fields */
-    margin-left: 5px;
-}
-
-/* Buttons */
-.primary-button,
-.secondary-button {
-    padding: 14px 25px;
-    border: none;
+/* Header Styles */
+.header-style {
+    font-size: 2.5em;
+    font-weight: bold;
+    text-align: center;
+    color: #4a0e98; /* A deep purple */
+    margin-bottom: 40px;
+    padding: 15px;
+    background-color: #ffffff;
     border-radius: 8px;
-    font-size: 1.1em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Card Styles (for sections) */
+.card {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.card-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #4c1d95; /* A slightly lighter purple */
+    margin-bottom: 15px;
+}
+
+.card-description {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Error and Loading Styles */
+.error-message {
+    background-color: #fef2f2;
+    border: 1px solid #f87171;
+    color: #b91c1c;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.loading-indicator {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    color: #4c1d95;
 }
 
-.primary-button {
-    background: linear-gradient(45deg, #6a8cff, #3498db); /* Blue gradient */
-    color: white;
-}
-
-.primary-button:hover:not(:disabled) {
-    background: linear-gradient(45deg, #3498db, #6a8cff); /* Reverse gradient on hover */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
-}
-
-.secondary-button {
-    background-color: #e9ecef; /* Light grey */
-    color: #555;
-    border: 1px solid #cdd9e5;
-}
-
-.secondary-button:hover:not(:disabled) {
-    background-color: #dbe4eb;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
-}
-
-.primary-button:disabled,
-.secondary-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-}
-
-/* Specific Button Styles */
-.chat-send-button {
-    width: auto;
-    padding: 10px 20px;
-    font-size: 1em;
-    margin-top: 10px;
-}
-
-.reset-chat-button,
-.remove-button,
-.add-button {
-    width: auto;
-    padding: 8px 15px;
-    font-size: 0.9em;
-    margin-top: 10px;
-    background-color: #f4f7f9; /* Lighter background for these actions */
-    color: #666;
-    border: 1px solid #dbe4eb;
-}
-
-.remove-button {
-    background-color: #ffcccc; /* Light red for remove */
-    color: #cc0000;
-    border-color: #ff9999;
-}
-.remove-button:hover:not(:disabled) {
-    background-color: #ffaaaa;
-    transform: translateY(-1px);
-}
-
-.add-button {
-    background-color: #ccffcc; /* Light green for add */
-    color: #008000;
-    border-color: #99ff99;
-}
-.add-button:hover:not(:disabled) {
-    background-color: #aaffaa;
-    transform: translateY(-1px);
-}
-
-.download-button {
-    margin-top: 3rem; /* More space before download button */
-    width: 100%;
-}
-
-
-/* Loading Spinner */
 .spinner {
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top: 3px solid #fff;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #4c1d95;
     border-radius: 50%;
-    width: 18px;
-    height: 18px;
+    width: 30px;
+    height: 30px;
     animation: spin 1s linear infinite;
-    margin-right: 8px;
-}
-
-.spinner.small {
-    width: 14px;
-    height: 14px;
-    border-width: 2px;
-    border-top-color: #3498db; /* Blue for chat spinner */
-    border-color: rgba(52, 152, 219, 0.3);
 }
 
 @keyframes spin {
@@ -281,283 +83,384 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-.flex-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Error Message */
-.error-message {
-    background-color: #ffe0e0;
-    border: 1px solid #ff9999;
-    color: #cc0000;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 20px;
-    font-size: 0.95em;
-    line-height: 1.4;
-}
-
-.error-message p {
-    margin: 0;
-}
-
-/* Numerology Profile Display */
-.numerology-summary-box {
-    background-color: #e6f2ff; /* Light blue background */
-    border: 1px solid #b3d9ff;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 25px;
-}
-
-.numerology-summary-box h3 {
-    font-size: 1.3em;
-    color: #2c5a8d;
-    margin-top: 0;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.numerology-number-label {
-    font-weight: 600;
-    color: #4a627a;
-}
-
-.numerology-number-value {
-    font-size: 1.1em;
-    font-weight: 700;
-    color: #007bff; /* Bright blue for numbers */
-}
-
-.numerology-explanation {
-    font-style: italic;
-    color: #666;
-    margin-top: 15px;
-    font-size: 0.95em;
-}
-
-/* NEW: Full Report Display */
-.full-report-display {
+/* Form Styles */
+.form-card {
     background-color: #ffffff;
-    border: 1px solid #e0e7ed;
+    padding: 25px;
     border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px; /* Space before the editable textarea */
-    line-height: 1.7;
-    font-size: 1em;
-    color: #333;
-    overflow-x: auto; /* Allow horizontal scroll for code blocks */
-}
-
-/* Basic styling for Markdown elements within the displayed report */
-.full-report-display h1, .full-report-display h2, .full-report-display h3, .full-report-display h4 {
-    color: #2c3e50;
-    margin-top: 1.5em;
-    margin-bottom: 0.8em;
-    font-weight: 600;
-}
-.full-report-display h1 { font-size: 1.8em; }
-.full-report-display h2 { font-size: 1.5em; }
-.full-report-display h3 { font-size: 1.3em; }
-.full-report-display h4 { font-size: 1.1em; }
-
-.full-report-display p {
-    margin-bottom: 1em;
-}
-
-.full-report-display ul, .full-report-display ol {
-    margin-left: 20px;
-    margin-bottom: 1em;
-}
-
-.full-report-display li {
-    margin-bottom: 0.5em;
-}
-
-.full-report-display strong, .full-report-display b {
-    font-weight: 700;
-    color: #444;
-}
-
-/* Chat Specific Styles */
-.validation-chat-container {
-    background-color: #f0f4f8; /* Lighter background for chat area */
-    border-radius: 10px;
-    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.chat-messages-display {
-    height: 350px; /* Fixed height for chat scroll */
-    overflow-y: auto;
-    border: 1px solid #cdd9e5;
-    border-radius: 8px;
-    padding: 15px;
-    background-color: #ffffff;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    scroll-behavior: smooth;
+.form-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #4c1d95;
+    margin-bottom: 15px;
 }
 
-.chat-welcome-message {
-    text-align: center;
-    color: #888;
-    font-style: italic;
-    padding: 20px;
+.form-group {
+    margin-bottom: 15px;
 }
 
-.chat-message {
-    display: flex;
-}
-
-.chat-message.user {
-    justify-content: flex-end;
-}
-
-.chat-message.ai {
-    justify-content: flex-start;
-}
-
-.message-bubble {
-    max-width: 80%;
-    padding: 12px 18px;
-    border-radius: 20px;
-    line-height: 1.5;
-    word-wrap: break-word; /* Ensure long words wrap */
-}
-
-.chat-message.user .message-bubble {
-    background-color: #6a8cff; /* User bubble color */
-    color: white;
-    border-bottom-right-radius: 5px; /* Pointy corner */
-}
-
-.chat-message.ai .message-bubble {
-    background-color: #e0e7ed; /* AI bubble color */
+.form-label {
+    display: block;
     color: #333;
-    border-bottom-left-radius: 5px; /* Pointy corner */
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-bottom: 8px;
 }
 
-.chat-input-form {
+.text-input {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box; /* Ensures padding doesn't increase width */
+    font-size: 1em;
+}
+
+textarea.text-input {
+    resize: vertical; /* Allow vertical resizing for textareas */
+    min-height: 80px;
+}
+
+/* Button Styles */
+.primary-button {
+    background-color: #6b21a8; /* Deep purple */
+    color: white;
+    font-weight: bold;
+    padding: 12px 24px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    width: 100%;
+    font-size: 1.1em;
+}
+
+.primary-button:hover:not(:disabled) {
+    background-color: #581c87; /* Darker purple on hover */
+    transform: scale(1.02);
+}
+
+.primary-button:disabled {
+    background-color: #a78bfa; /* Lighter purple when disabled */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.validate-button {
+    background-color: #4c1d95; /* Purple */
+    color: white;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    white-space: nowrap; /* Prevent button text from wrapping */
+}
+
+.validate-button:hover:not(:disabled) {
+    background-color: #3b0764; /* Darker purple on hover */
+}
+
+.validate-button:disabled {
+    background-color: #a78bfa;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.add-custom-button {
+    background-color: #16a34a; /* Green */
+    color: white;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+.add-custom-button:hover:not(:disabled) {
+    background-color: #15803d; /* Darker green on hover */
+}
+
+.add-custom-button:disabled {
+    background-color: #86efac; /* Lighter green when disabled */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.preview-button {
+    background-color: #059669; /* Emerald green */
+    color: white;
+    font-weight: bold;
+    padding: 12px 24px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    width: 100%;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+}
+
+.preview-button:hover:not(:disabled) {
+    background-color: #047857; /* Darker emerald on hover */
+    transform: scale(1.02);
+}
+
+.preview-button:disabled {
+    background-color: #6ee7b7; /* Lighter emerald when disabled */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+
+/* Suggestion Card Styles */
+.suggestion-card {
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background-color: #f0f8ff; /* Light blue background */
+    box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+}
+
+.suggestion-input-group {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap */
-    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.expression-number-text {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.validation-status {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.validation-status.status-yes {
+    color: #28a745; /* Green for YES */
+}
+
+.validation-status.status-no {
+    color: #dc3545; /* Red for NO */
+}
+
+.validation-rationale {
+    color: #444;
+    font-size: 0.9em;
+    font-style: italic;
+    border-left: 4px solid #a7d9ef; /* Light blue border */
+    padding-left: 10px;
+    background-color: #e8f7ff; /* Lighter blue background */
+    border-radius: 0 4px 4px 0;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.checkbox-input {
+    height: 20px;
+    width: 20px;
+    margin-right: 8px;
+    cursor: pointer;
+    /* Basic styling for checkbox, can be enhanced */
+}
+
+.checkbox-text {
+    color: #333;
+    font-weight: bold;
+}
+
+.checkbox-disabled-note {
+    margin-left: 10px;
+    color: #999;
+    font-size: 0.8em;
+}
+
+.custom-name-input-container {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px dashed #cccccc;
+    border-radius: 8px;
+    background-color: #fdfdfd;
+}
+
+.custom-name-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.custom-name-input-group {
+    display: flex;
     align-items: center;
 }
 
-.chat-input {
-    flex-grow: 1; /* Take available space */
-    min-width: 200px; /* Ensure it doesn't get too small */
-    margin-bottom: 0; /* Remove default margin */
-}
-
-/* Customization Section */
-.customization-group {
-    background-color: #f0f8ff; /* Lightest blue for customization areas */
-    border: 1px solid #d0e0f0;
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 25px;
-}
-
-.name-suggestion-item {
-    background-color: #ffffff;
-    border: 1px solid #e0e7ed;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-/* Footer Text */
-.footer-text {
-    font-size: 0.85em;
-    color: #888;
+.no-suggestions-message {
+    color: #999;
+    font-style: italic;
     text-align: center;
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
+    padding: 20px;
 }
+
+.confirmed-names-list {
+    list-style-type: disc;
+    margin-left: 20px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.confirmed-names-list li {
+    margin-bottom: 5px;
+}
+
+/* Report Preview Area */
+.report-preview-container {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    max-height: 700px; /* Limit height for scrolling */
+    overflow-y: auto; /* Enable scrolling */
+    border: 1px solid #ddd;
+}
+
+.report-preview-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #4c1d95;
+    margin-bottom: 20px;
+}
+
+/* Markdown Content Styling (for react-markdown output) */
+.markdown-content {
+    font-family: 'Georgia', serif; /* A more readable font for long text */
+    line-height: 1.6;
+    color: #333;
+}
+
+.markdown-content h1 {
+    font-size: 2em;
+    margin-bottom: 0.8em;
+    color: #4a0e98;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+}
+
+.markdown-content h2 {
+    font-size: 1.8em;
+    margin-bottom: 0.7em;
+    color: #4a0e98;
+    border-bottom: 1px dashed #eee;
+    padding-bottom: 3px;
+}
+
+.markdown-content h3 {
+    font-size: 1.5em;
+    margin-bottom: 0.6em;
+    color: #4a0e98;
+}
+
+.markdown-content p {
+    margin-bottom: 1em;
+}
+
+.markdown-content ul {
+    list-style-type: disc;
+    margin-left: 25px;
+    margin-bottom: 1em;
+}
+
+.markdown-content ol {
+    list-style-type: decimal;
+    margin-left: 25px;
+    margin-bottom: 1em;
+}
+
+.markdown-content li {
+    margin-bottom: 0.5em;
+}
+
+.markdown-content strong,
+.markdown-content b {
+    font-weight: bold;
+}
+
+.markdown-content em,
+.markdown-content i {
+    font-style: italic;
+}
+
+/* Specific styles for highlighted text from LLM */
+.markdown-content b strong,
+.markdown-content strong b { /* For nested bold */
+    font-weight: bolder;
+}
+
+/* Example of how to style specific LLM highlights if they output HTML tags */
+/* If LLM outputs <b>Crucial Takeaway:</b>, you'd style the <b> tag itself or its parent */
+/* For more control, you might need to use custom renderers with react-markdown */
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-    .app-container {
-        padding: 1rem;
+    .header-style {
+        font-size: 2em;
+        margin-bottom: 30px;
     }
-
-    .content-area {
-        padding: 1.5rem;
+    .container {
+        margin: 10px;
+        padding: 15px;
     }
-
-    .main-heading {
-        font-size: 2.2rem;
+    .card {
+        padding: 20px;
+        margin-bottom: 20px;
     }
-
-    .section-heading {
-        font-size: 1.5rem;
-    }
-
-    .sub-heading {
+    .primary-button, .preview-button {
+        padding: 10px 15px;
         font-size: 1em;
     }
-
-    .primary-button,
-    .secondary-button {
-        font-size: 1em;
-        padding: 12px 20px;
+    .validate-button, .add-custom-button {
+        padding: 6px 12px;
+        font-size: 0.9em;
     }
-
-    .chat-input-form {
+    .suggestion-input-group, .custom-name-input-group {
         flex-direction: column;
         align-items: stretch;
     }
-
-    .chat-send-button,
-    .reset-chat-button {
+    .suggestion-input-group input, .custom-name-input-group input {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    .validate-button, .add-custom-button {
         width: 100%;
-        margin-left: 0 !important; /* Override inline style */
-    }
-
-    .chat-input {
-        width: 100%;
-    }
-
-    .form-group-row {
-        flex-direction: column; /* Stack date/time vertically on small screens */
-        gap: 0; /* Remove gap when stacked */
-    }
-
-    .form-group-row .flex-item {
-        min-width: 100%; /* Ensure full width when stacked */
-    }
-}
-
-@media (max-width: 480px) {
-    .content-area {
-        padding: 1rem;
-    }
-
-    .main-heading {
-        font-size: 1.8rem;
-    }
-
-    .section-heading {
-        font-size: 1.3rem;
-    }
-
-    .sub-section-heading {
-        font-size: 1.2rem;
-    }
-
-    .message-bubble {
-        max-width: 90%;
+        margin-left: 0;
     }
 }

@@ -1,812 +1,497 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { marked } from 'marked'; // Import marked for Markdown parsing
+import React, { useState } from 'react';
+import axios from 'axios';
+import Markdown from 'react-markdown';
+import './App.css'; // Make sure this line is present to import the CSS
 
-// Assuming your CSS files are correctly linked in public/index.html or imported here
-import './index.css';
-import './App.css'; // Make sure this is imported to apply the new styles
-
-// Main App component
-const App = () => {
-    // State variables for main report form inputs and display
-    const [fullName, setFullName] = useState('');
-    const [birthDate, setBirthDate] = useState('');
-    const [birthTime, setBirthTime] = useState(''); // NEW: Birth Time
-    const [birthPlace, setBirthPlace] = useState(''); // NEW: Birth Place
-    const [desiredOutcome, setDesiredOutcome] = useState('');
-    const [reportContent, setReportContent] = useState(''); // Stores the Markdown response from backend
+// Main App Component
+function App() {
+    // State variables for application data and UI control
+    const [clientProfile, setClientProfile] = useState(null);
+    // const [initialSuggestions, setInitialSuggestions] = useState([]); // REMOVED: This state was unused
+    const [validatedNames, setValidatedNames] = useState([]);
+    const [confirmedSuggestionsForReport, setConfirmedSuggestionsForReport] = useState([]);
+    const [reportPreviewContent, setReportPreviewContent] = useState(''); // State for report preview Markdown
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [currentNumerology, setCurrentNumerology] = useState(null); // Stores client-side calculated numerology
-    
-    // State to hold the full report data for PDF generation, allowing modifications
-    const [fullReportDataForPdf, setFullReportDataForPdf] = useState(null); 
-    // Editable content for the main report (for practitioner tailoring)
-    const [editableMainReportContent, setEditableMainReportContent] = useState('');
-    // Editable list of final suggested names (for practitioner tailoring)
-    const [finalSuggestedNamesList, setFinalSuggestedNamesList] = useState([]);
-    // Editable validation summary (for practitioner tailoring)
-    const [editableValidationSummary, setEditableValidationSummary] = useState('');
-    // Editable practitioner notes (for practitioner tailoring)
-    const [editablePractitionerNotes, setEditablePractitionerNotes] = useState('');
+    const [customNameInput, setCustomNameInput] = useState('');
 
+    // IMPORTANT: Replace with your actual Render backend URL
+    const API_BASE_URL = 'https://name-corrector-backend.onrender.com';
 
-    // State variables for NEW conversational name validation feature
-    const [suggestedNameForChat, setSuggestedNameForChat] = useState(''); // Input for the name to validate in chat
-    const [validationChatMessages, setValidationChatMessages] = useState([]); // Stores chat history: [{ sender: 'user'/'ai', text: '...' }]
-    const [currentValidationInput, setCurrentValidationInput] = useState(''); // Current message in validation chat input
-    const [isValidationChatLoading, setIsValidationChatLoading] = useState(false);
-    const [validationChatError, setValidationChatError] = useState('');
-
-    const validationChatEndRef = useRef(null); // Ref for auto-scrolling chat
-
-    // IMPORTANT: This is the base URL for your deployed Render Flask backend.
-    const BACKEND_BASE_URL = "https://name-corrector-backend.onrender.com"; // <<<--- VERIFY THIS IS YOUR ACTUAL RENDER URL!
-
-    // --- Numerology Core Logic (duplicated in frontend for immediate display) ---
-    // This client-side calculation is for immediate display of current numbers,
-    // the backend will perform its own comprehensive calculations.
-    const CHALDEAN_NUMEROLOGY_MAP = {
-        'A': 1, 'J': 1, 'S': 1,
-        'B': 2, 'K': 2, 'T': 2,
-        'C': 3, 'G': 3, 'L': 3, 'U': 3,
-        'D': 4, 'M': 4, 'V': 4,
-        'E': 5, 'H': 5, 'N': 5, 'X': 5,
-        'F': 6, 'O': 6, 'W': 6,
-        'P': 7, 'Z': 7,
-        'I': 8, 'R': 8
-        // Note: 9 is NEVER used in Chaldean letter assignments
-    };
-
-    const NUMEROLOGY_INTERPRETATIONS = {
-        1: "Leadership, independence, and new beginnings, empowering you to forge your own path.",
-        2: "Cooperation, balance, and diplomacy, fostering harmonious relationships and partnerships.",
-        3: "Creativity, self-expression, and optimism, enhancing communication and joyful interactions.",
-        4: "Stability, diligent hard work, and building strong foundations for lasting security.",
-        5: "Freedom, dynamic change, and adventure, embracing versatility and new experiences.",
-        6: "Responsibility, nurturing, harmony, and selfless service, fostering love in family and community.",
-        7: "Spirituality, deep introspection, analytical thought, and profound wisdom.",
-        8: "Abundance, power, and material success, especially in material and leadership endeavors.",
-        9: "Humanitarianism, compassion, and completion, signifying a wise, selfless, and universally loving nature.",
-        11: "Heightened intuition, spiritual insight, and illumination (a Master Number for 2), inspiring others.",
-        22: "The Master Builder, signifying large-scale achievement and practical idealism (a Master Number for 4).",
-        33: "The Master Healer/Teacher, embodying compassionate service and universal love (a Master Number for 6)."
-    };
-
-    // Helper to reduce numbers for numerology, preserving Master Numbers 11, 22, 33
-    const reduceNumber = (num, allowMasterNumbers = false) => {
-        if (allowMasterNumbers && (num === 11 || num === 22 || num === 33)) {
-            return num;
-        }
-        while (num > 9) {
-            if (allowMasterNumbers && (num === 11 || num === 22 || num === 33)) {
-                break;
-            }
-            num = String(num).split('').reduce((sum, digit) => sum + parseInt(digit), 0);
-        }
-        return num;
-    };
-
-    // Helper to calculate Chaldean Name Number (Expression Number)
-    const calculateNameNumber = (name) => {
-        let total = 0;
-        const cleanedName = name.toUpperCase().replace(/[^A-Z]/g, '');
-        for (let i = 0; i < cleanedName.length; i++) {
-            const letter = cleanedName[i];
-            if (CHALDEAN_NUMEROLOGY_MAP[letter]) {
-                total += CHALDEAN_NUMEROLOGY_MAP[letter];
-            }
-        }
-        return reduceNumber(total, false); // Expression is usually reduced to single digit unless it's a Master Number
-    };
-
-    // Helper to calculate Life Path Number (preserves Master Numbers)
-    const calculateLifePathNumber = (birthDateStr) => {
-        if (!birthDateStr) return 0;
+    // --- Step 1: Handle Initial Profile Submission & Get Suggestions ---
+    const handleGetInitialSuggestions = async (formData) => {
+        setIsLoading(true);
+        setError(''); // Clear previous errors
         try {
-            const parts = birthDateStr.split('-');
-            if (parts.length !== 3) throw new Error("Invalid date format.");
-            let year = parseInt(parts[0]);
-            let month = parseInt(parts[1]);
-            let day = parseInt(parts[2]);
-            if (isNaN(year) || isNaN(month) || isNaN(day)) return 0;
-
-            // Reduce month, day, and year components, preserving master numbers
-            month = reduceNumber(month, true);
-            day = reduceNumber(day, true);
-            year = reduceNumber(year, true);
+            const response = await axios.post(`${API_BASE_URL}/initial_suggestions`, formData);
             
-            let total = month + day + year;
-            return reduceNumber(total, true); // Final reduction for Life Path, preserving master numbers
-        } catch (e) {
-            console.error("Error in calculateLifePathNumber:", e);
-            return 0;
-        }
-    };
-
-    // Helper to calculate Birth Day Number (day of birth only, preserves Master Numbers)
-    const calculateBirthDayNumber = (birthDateStr) => {
-        if (!birthDateStr) return 0;
-        try {
-            const parts = birthDateStr.split('-');
-            if (parts.length !== 3) throw new Error("Invalid date format.");
-            let day = parseInt(parts[2]);
-            if (isNaN(day)) return 0;
-            return reduceNumber(day, true); // Birth Day Number can also be a Master Number
-        } catch (e) {
-            console.error("Error in calculateBirthDayNumber:", e);
-            return 0;
-        }
-    };
-
-    // Effect to scroll to the bottom of the chat when messages update
-    useEffect(() => {
-        if (validationChatEndRef.current) {
-            validationChatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [validationChatMessages]);
-
-
-    // Function to handle PDF download (calls backend endpoint)
-    const handleDownloadPdf = async () => {
-        setIsLoading(true); // Use main loading indicator for PDF generation
-        setError('');
-
-        // Ensure fullReportDataForPdf is available from initial report generation
-        if (!fullReportDataForPdf) {
-            setError('No base report data available to download. Please generate an initial report first.');
-            setIsLoading(false);
-            return;
-        }
-
-        // Create a mutable copy of the base report data
-        const payloadForPdf = { ...fullReportDataForPdf };
-
-        // Overwrite the main report content with the editable version
-        payloadForPdf.intro_response = editableMainReportContent;
-
-        // Overwrite the suggested names with the final, practitioner-selected/edited list
-        payloadForPdf.suggested_names = {
-            suggestions: finalSuggestedNamesList,
-            reasoning: "These suggested names have been refined and validated through a detailed consultation." // Or a dynamic reasoning
-        };
-
-        // Add optional validation summary and practitioner notes
-        if (editableValidationSummary.trim()) {
-            payloadForPdf.validation_summary = editableValidationSummary;
-        }
-        if (editablePractitionerNotes.trim()) {
-            payloadForPdf.practitioner_notes = editablePractitionerNotes;
-        }
-
-        try {
-            const response = await fetch(`${BACKEND_BASE_URL}/generate_pdf_report`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payloadForPdf),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate PDF.');
-            }
-
-            // Get the filename from the Content-Disposition header
-            const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `Numerology_Report_${fullName.replace(/\s+/g, '_') || 'report'}.pdf`;
-            if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
-                const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = filenameMatch[1];
-                }
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            alert('PDF report downloaded successfully!');
+            // Store the full profile data returned by the backend
+            setClientProfile(response.data.profile_data); 
+            
+            // Initialize validatedNames with the initial suggestions, adding validation state
+            const initialValidated = response.data.suggestions.map(s => ({
+                name: s.name,
+                expression_number: s.expression_number,
+                original_llm_rationale: s.rationale, // Store the LLM's initial rationale
+                is_valid: null, // No validation yet (null means pending/not yet validated)
+                validation_rationale: '' // No validation rationale yet
+            }));
+            setValidatedNames(initialValidated);
+            // setInitialSuggestions(response.data.suggestions); // REMOVED: No longer setting this state
 
         } catch (err) {
-            console.error('Error downloading PDF:', err);
-            setError(`Failed to download PDF: ${err.message}`);
+            console.error("Error getting initial suggestions:", err);
+            // Display a user-friendly error message
+            setError('Failed to get initial suggestions: ' + (err.response?.data?.error || err.message));
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // End loading
         }
     };
 
-    // Main form submission handler (for initial report generation)
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setReportContent(''); // Clear previous report
-        // Clear all validation/PDF related states when generating a new main report
-        setValidationChatMessages([]);
-        setCurrentValidationInput('');
-        setSuggestedNameForChat('');
-        setValidationChatError('');
-        setCurrentNumerology(null); 
-        setFullReportDataForPdf(null); 
-        setEditableMainReportContent('');
-        setFinalSuggestedNamesList([]);
-        setEditableValidationSummary('');
-        setEditablePractitionerNotes('');
-
-
-        if (!fullName || !birthDate || !desiredOutcome) {
-            setError('Please fill in all required fields: Full Name, Birth Date, and Desired Outcome.');
-            return;
-        }
-
+    // --- Step 2: Validate a Single Name (from suggestions or custom input) ---
+    const handleValidateName = async (nameToValidate, index) => {
         setIsLoading(true);
-
+        setError(''); // Clear previous errors
         try {
-            // Calculate current numerology on frontend for immediate display
-            const currentExpNum = calculateNameNumber(fullName);
-            const currentLifePathNum = calculateLifePathNumber(birthDate);
-            const currentBirthDayNum = calculateBirthDayNumber(birthDate); // Calculate Birth Day Number
-
-            if (currentExpNum === 0 || currentLifePathNum === 0 || currentBirthDayNum === 0) {
-                setError('Could not calculate initial numerology. Please check your inputs, especially the name (letters only) and date (YYYY-MM-DD).');
+            // Ensure clientProfile is available before validating
+            if (!clientProfile) {
+                setError("Client profile not loaded. Please get initial suggestions first.");
                 setIsLoading(false);
                 return;
             }
 
-            // Set current numerology state for display
-            setCurrentNumerology({
-                expression: currentExpNum,
-                lifePath: currentLifePathNum,
-                birthDayNumber: currentBirthDayNum, // Use Birth Day Number
-                explanation: `Your current name's energy (${currentExpNum}) resonates with ${NUMEROLOGY_INTERPRETATIONS[currentExpNum] || "a unique path."}. ` +
-                                     `Your life path (${currentLifePathNum}) indicates ${NUMEROLOGY_INTERPRETATIONS[currentLifePathNum] || "a unique life journey."}. ` +
-                                     `Your birth day number (${currentBirthDayNum}) influences your daily characteristics and talents.`
+            const response = await axios.post(`${API_BASE_URL}/validate_name`, {
+                suggested_name: nameToValidate,
+                client_profile: clientProfile // Send the comprehensive client profile for validation
             });
+            const { is_valid, rationale, expression_number } = response.data;
 
-            // Construct the message for the AI agent on the backend for initial report
-            // Include birthTime and birthPlace
-            const message = `GENERATE_ADVANCED_REPORT: My full name is "${fullName}" and my birth date is "${birthDate}". My current Name (Expression) Number is ${currentExpNum} and Life Path Number is ${currentLifePathNum}. My birth time is "${birthTime}" and my birth place is "${birthPlace}". I desire the following positive outcome in my life: "${desiredOutcome}".`;
-
-            // Make API call to your Flask backend's /chat endpoint
-            const res = await fetch(`${BACKEND_BASE_URL}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message }),
+            setValidatedNames(prevNames => {
+                const updatedNames = [...prevNames];
+                if (index !== -1 && updatedNames[index]) { // If validating an existing suggestion/custom name
+                    updatedNames[index] = {
+                        ...updatedNames[index], // Keep existing properties (like original_llm_rationale)
+                        name: nameToValidate, // Update name if user edited it in the input field
+                        expression_number: expression_number,
+                        is_valid: is_valid,
+                        validation_rationale: rationale // This is the rule-based YES/NO rationale
+                    };
+                } else { // This path is primarily for new custom names if they were added without an index
+                    updatedNames.push({
+                        name: nameToValidate,
+                        expression_number: expression_number,
+                        original_llm_rationale: "Custom name, rationale will be generated with report if confirmed.", // Placeholder
+                        is_valid: is_valid,
+                        validation_rationale: rationale
+                    });
+                }
+                return updatedNames;
             });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-            }
-
-            const data = await res.json();
-            setReportContent(data.response); // Store the raw Markdown response for display
-            setEditableMainReportContent(data.response); // Initialize editable content
-            setFullReportDataForPdf(data.full_report_data_for_pdf); // Store the full structured data for PDF generation
-            
-            // Initialize final suggested names from the initial report's suggestions
-            if (data.full_report_data_for_pdf && data.full_report_data_for_pdf.suggested_names && data.full_report_data_for_pdf.suggested_names.suggestions) {
-                setFinalSuggestedNamesList(data.full_report_data_for_pdf.suggested_names.suggestions);
-            }
-
+            setCustomNameInput(''); // Clear custom input after validating
 
         } catch (err) {
-            console.error('Error fetching data:', err);
-            setError(`Failed to get a response from the AI: ${err.message}. Please ensure your backend is running and its URL is correct.`);
+            console.error("Error validating name:", err);
+            setError('Failed to validate name: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setIsLoading(false); // End loading
+        }
+    };
+
+    // --- Add a custom name input field to the list of names to validate ---
+    const handleAddCustomName = () => {
+        if (customNameInput.trim()) {
+            const newIndex = validatedNames.length; // Get the index where the new name will be
+            const newNameObject = {
+                name: customNameInput.trim(),
+                expression_number: null, // Will be filled after validation
+                original_llm_rationale: "Custom name, rationale will be generated with report if confirmed.",
+                is_valid: null,
+                validation_rationale: ''
+            };
+            setValidatedNames(prev => [...prev, newNameObject]);
+            // Use a timeout to ensure state update for validatedNames is processed
+            // before handleValidateName attempts to read it.
+            setTimeout(() => handleValidateName(customNameInput.trim(), newIndex), 0);
+        }
+    };
+
+
+    // --- Step 3: Toggle Confirmation for Report ---
+    const handleToggleConfirmSuggestion = (index) => {
+        setConfirmedSuggestionsForReport(prevConfirmed => {
+            const suggestion = validatedNames[index];
+            if (suggestion.is_valid === false) {
+                setError("Cannot confirm an invalid name for the report.");
+                return prevConfirmed;
+            }
+
+            const isAlreadyConfirmed = prevConfirmed.some(
+                cs => cs.name === suggestion.name && cs.expression_number === suggestion.expression_number
+            );
+
+            let updatedConfirmed;
+            if (isAlreadyConfirmed) {
+                // If confirmed, remove it
+                updatedConfirmed = prevConfirmed.filter(
+                    cs => !(cs.name === suggestion.name && cs.expression_number === suggestion.expression_number)
+                );
+            } else {
+                // If not confirmed, add it.
+                // Use the original_llm_rationale if available, otherwise fallback to validation_rationale.
+                // This ensures the LLM's more elaborate rationale is used for initial suggestions.
+                updatedConfirmed = [...prevConfirmed, {
+                    name: suggestion.name,
+                    rationale: suggestion.original_llm_rationale || suggestion.validation_rationale, 
+                    expression_number: suggestion.expression_number
+                }];
+            }
+            // IMPORTANT: Clear report preview if confirmed names change, forcing a refresh
+            setReportPreviewContent(''); 
+            return updatedConfirmed;
+        });
+    };
+
+    // --- New Step: Generate Report Preview (Markdown content) ---
+    const handleGenerateReportPreview = async () => {
+        setIsLoading(true);
+        setError('');
+        try {
+            if (!clientProfile || confirmedSuggestionsForReport.length === 0) {
+                setError("Please load client profile and confirm at least one valid name suggestion for the report to generate preview.");
+                setIsLoading(false);
+                return;
+            }
+
+            const reportRequestData = {
+                ...clientProfile,
+                confirmed_suggestions: confirmedSuggestionsForReport
+            };
+
+            // Call the new backend endpoint that returns Markdown
+            const response = await axios.post(`${API_BASE_URL}/generate_text_report`, reportRequestData);
+            setReportPreviewContent(response.data.report_content);
+
+        } catch (err) {
+            console.error("Error generating report preview:", err);
+            setError('Failed to generate report preview: ' + (err.response?.data?.error || err.message));
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Function to handle starting or continuing the validation chat
-    const handleValidationChatSubmit = async (e) => {
-        e.preventDefault();
-        setValidationChatError('');
 
-        // Ensure original profile data is available from the main form
-        if (!fullName || !birthDate || !desiredOutcome) {
-            setValidationChatError('Please fill in your Full Name, Birth Date, and Desired Outcome in the top form before starting name validation.');
-            return;
-        }
-
-        // Determine if it's the very first message for this validation session
-        const isInitialMessage = validationChatMessages.length === 0;
-        let userMessageContent = currentValidationInput.trim();
-
-        if (isInitialMessage) {
-            if (!suggestedNameForChat.trim()) {
-                setValidationChatError('Please enter a Suggested Name to Validate to start the chat.');
-                return;
-            }
-            // For the initial message, include the suggested name and full profile context
-            // Include birthTime and birthPlace in the initial chat message profile
-            userMessageContent = `INITIATE_VALIDATION_CHAT: Suggested Name: "${suggestedNameForChat.trim()}". My original profile: Full Name: "${fullName}", Birth Date: "${birthDate}", Birth Time: "${birthTime}", Birth Place: "${birthPlace}", Desired Outcome: "${desiredOutcome}". My current Expression Number is ${calculateNameNumber(fullName)} and Life Path Number is ${calculateLifePathNumber(birthDate)}. My Birth Number is ${calculateBirthDayNumber(birthDate)}.`;
-        } else {
-            if (!userMessageContent) {
-                setValidationChatError('Please type a message.');
-                return;
-            }
-        }
-
-        // Add user's message to chat history
-        const newUserMessage = { sender: 'user', text: userMessageContent };
-        setValidationChatMessages(prevMessages => [...prevMessages, newUserMessage]);
-        setCurrentValidationInput(''); // Clear input field
-
-        setIsValidationChatLoading(true);
-
+    // --- Step 4 & 5: Generate Final Report (LLM part) & Download PDF ---
+    const handleGenerateAndDownloadReport = async () => {
+        setIsLoading(true);
+        setError('');
         try {
-            // Prepare the payload for the backend
-            const payload = {
-                type: 'validation_chat',
-                original_profile: {
-                    fullName: fullName,
-                    birthDate: birthDate,
-                    birthTime: birthTime, // NEW
-                    birthPlace: birthPlace, // NEW
-                    desiredOutcome: desiredOutcome,
-                    currentExpressionNumber: calculateNameNumber(fullName),
-                    currentLifePathNumber: calculateLifePathNumber(birthDate),
-                    currentBirthNumber: calculateBirthDayNumber(birthDate), // Use Birth Day Number
-                },
-                suggested_name: suggestedNameForChat.trim(), // Always send the suggested name for context
-                chat_history: [...validationChatMessages, newUserMessage], // Send the entire history
-                current_message: userMessageContent // Send the latest message separately for backend parsing
+            if (!clientProfile || confirmedSuggestionsForReport.length === 0) {
+                setError("Please load client profile and confirm at least one valid name suggestion for the report.");
+                setIsLoading(false);
+                return;
+            }
+
+            // You must have generated the preview first before generating PDF
+            if (!reportPreviewContent) {
+                setError("Please generate the report preview first before downloading the PDF.");
+                setIsLoading(false);
+                return;
+            }
+
+            const pdfReportData = {
+                ...clientProfile,
+                confirmed_suggestions: confirmedSuggestionsForReport
             };
 
-            const res = await fetch(`${BACKEND_BASE_URL}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
+            const pdfResponse = await axios.post(`${API_BASE_URL}/generate_pdf_report`, pdfReportData, {
+                responseType: 'blob' // Important: tells axios to expect binary data (PDF)
             });
 
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-            }
-
-            const data = await res.json();
-            const aiResponseText = data.response;
-
-            // Add AI's response to chat history
-            setValidationChatMessages(prevMessages => [...prevMessages, { sender: 'ai', text: aiResponseText }]);
+            // Trigger download of the PDF file
+            const url = window.URL.createObjectURL(new Blob([pdfResponse.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            // Create a user-friendly filename
+            link.setAttribute('download', `Numerology_Report_${clientProfile.full_name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+            document.body.appendChild(link);
+            link.click(); // Programmatically click the link to start download
+            link.remove(); // Clean up the temporary link
+            window.URL.revokeObjectURL(url); // Release the object URL
 
         } catch (err) {
-            console.error('Error in validation chat:', err);
-            setValidationChatError(`Failed to get a response from the AI: ${err.message}.`);
-            // If error, remove the last user message to allow retry
-            setValidationChatMessages(prevMessages => prevMessages.slice(0, -1));
+            console.error("Error generating/downloading report:", err);
+            setError('Failed to generate or download report: ' + (err.response?.data?.error || err.message));
         } finally {
-            setIsValidationChatLoading(false);
+            setIsLoading(false); // End loading
         }
     };
 
-    // Function to reset the validation chat
-    const resetValidationChat = () => {
-        setSuggestedNameForChat('');
-        setValidationChatMessages([]);
-        setCurrentValidationInput('');
-        setValidationChatError('');
-        setEditableValidationSummary(''); // Clear summary when chat resets
-    };
-
-    // Function to handle adding/removing/editing suggested names in the final list
-    const handleFinalSuggestedNameChange = (index, field, value) => {
-        const updatedList = [...finalSuggestedNamesList];
-        updatedList[index][field] = value;
-        setFinalSuggestedNamesList(updatedList);
-    };
-
-    const addFinalSuggestedName = () => {
-        setFinalSuggestedNamesList([...finalSuggestedNamesList, { name: '', rationale: '', expression_number: 0 }]);
-    };
-
-    const removeFinalSuggestedName = (index) => {
-        const updatedList = finalSuggestedNamesList.filter((_, i) => i !== index);
-        setFinalSuggestedNamesList(updatedList);
-    };
-
-
+    // --- Rendered JSX ---
     return (
-        <div className="app-container">
-            <div className="content-area"> {/* New wrapper for content */}
-                <header className="header-section">
-                    <h1 className="main-heading">
-                        <span role="img" aria-label="sparkles">✨</span>Unlock Your Destiny
-                    </h1>
-                    <p className="sub-heading">
-                        Discover the profound influence of your name and birth date. Get AI-powered corrections and validate your own name ideas.
-                    </p>
-                </header>
+        <div className="container">
+            <h1 className="header-style">Sheelaa's Numerology Name Corrector</h1>
 
-                {/* Section for Initial Report Generation */}
-                <section className="card-section">
-                    <h2 className="section-heading">
-                        <span role="img" aria-label="form icon">📝</span>Generate Personalized Report
-                    </h2>
-                    <form onSubmit={handleSubmit} className="form-layout">
-                        <div className="form-group">
-                            <label htmlFor="fullName" className="form-label">
-                                Your Full Name (as currently used) <span className="required-star">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="fullName"
-                                className="input-field"
-                                placeholder="e.g., Emily Rose Thompson"
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
-                                required
-                            />
-                        </div>
+            {/* Error Display */}
+            {error && (
+                <div className="error-message" role="alert">
+                    <strong>Error!</strong> {error}
+                </div>
+            )}
+            {/* Loading Indicator */}
+            {isLoading && (
+                <div className="loading-indicator">
+                    <div className="spinner"></div>
+                    <span>Loading...</span>
+                </div>
+            )}
 
-                        <div className="form-group-row"> {/* New Flex Container for Date and Time */}
-                            <div className="form-group flex-item">
-                                <label htmlFor="birthDate" className="form-label">
-                                    Your Birth Date <span className="required-star">*</span>
-                                </label>
-                                <input
-                                    type="date"
-                                    id="birthDate"
-                                    className="input-field"
-                                    value={birthDate}
-                                    onChange={(e) => setBirthDate(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group flex-item">
-                                <label htmlFor="birthTime" className="form-label">
-                                    Your Birth Time (Optional, for deeper insights)
-                                </label>
-                                <input
-                                    type="time"
-                                    id="birthTime"
-                                    className="input-field"
-                                    value={birthTime}
-                                    onChange={(e) => setBirthTime(e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="birthPlace" className="form-label">
-                                Your Birth Place (City, Country - Optional, for deeper insights)
-                            </label>
-                            <input
-                                type="text"
-                                id="birthPlace"
-                                className="input-field"
-                                placeholder="e.g., London, UK"
-                                value={birthPlace}
-                                onChange={(e) => setBirthPlace(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="desiredOutcome" className="form-label">
-                                What positive outcome do you desire in your life? <span className="required-star">*</span> <br/><span className="sub-heading-small">(e.g., more success, better relationships, inner peace)</span>
-                            </label>
-                            <textarea
-                                id="desiredOutcome"
-                                rows="4"
-                                className="textarea-field"
-                                placeholder="I wish for greater financial abundance and a harmonious family life."
-                                value={desiredOutcome}
-                                onChange={(e) => setDesiredOutcome(e.target.value)}
-                                required
-                            ></textarea>
-                        </div>
-
-                        <button
-                            type="submit"
-                            className="primary-button"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <span className="flex-center">
-                                    <div className="spinner"></div>
-                                    Generating Insights...
-                                </span>
-                            ) : (
-                                <span className="flex-center">
-                                    <span role="img" aria-label="magic wand" className="emoji-icon">🪄</span>
-                                    Get My Personalized Numerology
-                                </span>
-                            )}
-                        </button>
-                    </form>
-                </section>
-
-                {error && (
-                    <div className="error-message" role="alert">
-                        <p><strong>Error:</strong></p>
-                        <p>{error}</p>
+            {!clientProfile ? (
+                // Initial Profile Input Form
+                <InitialProfileForm onSubmit={handleGetInitialSuggestions} isLoading={isLoading} />
+            ) : (
+                <>
+                    {/* Display Client Profile Summary */}
+                    <div className="card">
+                        <h2 className="card-title">Your Profile: {clientProfile.full_name}</h2>
+                        <p><strong>Birth Date:</strong> {clientProfile.birth_date}</p>
+                        {clientProfile.birth_time && <p><strong>Birth Time:</strong> {clientProfile.birth_time}</p>}
+                        {clientProfile.birth_place && <p><strong>Birth Place:</strong> {clientProfile.birth_place}</p>}
+                        <p><strong>Desired Outcome:</strong> {clientProfile.desired_outcome}</p>
                     </div>
-                )}
 
-                {/* The numerology report content, now with an ID for PDF generation */}
-                {currentNumerology && (
-                    <section className="card-section">
-                        <h2 className="section-heading">Your Numerology Profile</h2>
-
-                        <div className="numerology-summary-box">
-                            <h3>
-                                <span role="img" aria-label="current numbers">🔢</span> Your Current Numerology:
-                            </h3>
-                            <p>
-                                <span className="numerology-number-label">Name (Expression/Destiny) Number:</span> <span className="numerology-number-value">{currentNumerology.expression}</span>
-                            </p>
-                            <p>
-                                <span className="numerology-number-label">Life Path Number:</span> <span className="numerology-number-value">{currentNumerology.lifePath}</span>
-                            </p>
-                            {/* Display Birth Day Number */}
-                            <p>
-                                <span className="numerology-number-label">Birth Day Number (Day of Birth):</span> <span className="numerology-number-value">{currentNumerology.birthDayNumber}</span>
-                            </p>
-                            <p className="numerology-explanation">{currentNumerology.explanation}</p>
-                        </div>
-
-                        {reportContent && (
-                            <>
-                                <h3 className="sub-section-heading">
-                                    <span role="img" aria-label="lightbulb">💡</span> Personalized Name Corrections (Initial AI Suggestions):
-                                </h3>
-                                {/* Display the initial AI-generated report content in an editable textarea */}
-                                <div className="form-group">
-                                    <label htmlFor="editableMainReportContent" className="form-label">
-                                        Edit Main Report Content:
-                                    </label>
-                                    {/* Render the report content fully using dangerouslySetInnerHTML */}
-                                    <div 
-                                        className="full-report-display" 
-                                        dangerouslySetInnerHTML={{ __html: marked.parse(editableMainReportContent) }} 
-                                    />
-                                    {/* The textarea is still available for editing, but now it's below the rendered view */}
-                                    <textarea
-                                        id="editableMainReportContent"
-                                        className="textarea-field"
-                                        rows="15"
-                                        value={editableMainReportContent}
-                                        onChange={(e) => setEditableMainReportContent(e.target.value)}
-                                        style={{marginTop: '20px'}} /* Add space between display and editor */
-                                    ></textarea>
-                                    <p className="hint-text">
-                                        This content will be included in the PDF. You can edit it as needed. The view above is how it will appear.
-                                    </p>
-                                </div>
-                            </>
+                    {/* Initial Suggestions and Interactive Validation Area */}
+                    <div className="card">
+                        <h3 className="card-title">Initial Name Suggestions & Validation</h3>
+                        <p className="card-description">Review and validate the suggested names. You can edit them or add your own for validation. Select the ones you want to include in the final report.</p>
+                        
+                        {validatedNames.length === 0 && !isLoading && (
+                            <p className="no-suggestions-message">No suggestions generated yet. Please ensure your profile is complete.</p>
                         )}
-                        <p className="footer-text">
-                            These suggestions are generated by AI based on numerological principles and your desired outcomes.
-                            Remember, the power to choose your path lies within you.
-                        </p>
-                    </section>
-                )}
 
-                {/* Separator and Name Validation Section - NOW A CHAT INTERFACE */}
-                {reportContent && ( // Only show validation if a report has been generated
-                    <section className="card-section">
-                        <h2 className="section-heading">
-                            <span role="img" aria-label="validate icon">💬</span> Conversational Name Validation
-                        </h2>
-                        <p className="sub-heading">
-                            Engage with the AI to explore and validate potential name changes. Provide a name to start, and the AI will guide you with questions.
-                        </p>
-
-                        <div className="validation-chat-container">
-                            {/* Input for the suggested name (only visible if chat hasn't started) */}
-                            {validationChatMessages.length === 0 && (
-                                <div className="form-group">
-                                    <label htmlFor="suggestedNameForChat" className="form-label">
-                                        Suggested Name to Validate (e.g., Emily Rose) <span className="required-star">*</span>
-                                    </label>
+                        {validatedNames.map((s, index) => (
+                            <div key={index} className="suggestion-card">
+                                <div className="suggestion-input-group">
                                     <input
                                         type="text"
-                                        id="suggestedNameForChat"
-                                        className="input-field"
-                                        placeholder="Enter the name you want to validate"
-                                        value={suggestedNameForChat}
-                                        onChange={(e) => setSuggestedNameForChat(e.target.value)}
-                                        required
-                                        disabled={isValidationChatLoading}
+                                        value={s.name}
+                                        onChange={(e) => {
+                                            const newValidatedNames = [...validatedNames];
+                                            newValidatedNames[index].name = e.target.value;
+                                            newValidatedNames[index].is_valid = null; // Reset validation status
+                                            newValidatedNames[index].validation_rationale = ''; // Clear rationale
+                                            setValidatedNames(newValidatedNames);
+                                        }}
+                                        className="text-input"
                                     />
+                                    <button
+                                        onClick={() => handleValidateName(s.name, index)}
+                                        className="validate-button"
+                                        disabled={isLoading}
+                                    >
+                                        Validate
+                                    </button>
                                 </div>
-                            )}
-
-                            {/* Chat display area */}
-                            <div className="chat-messages-display">
-                                {validationChatMessages.length === 0 && (
-                                    <div className="chat-welcome-message">
-                                        Enter a name above and click "Start Validation Chat" to begin.
-                                    </div>
+                                <p className="expression-number-text">
+                                    <strong>Expression Number:</strong> {s.expression_number || 'N/A'}
+                                </p>
+                                {s.is_valid !== null && ( // Only show validation status if it's been run
+                                    <p className={`validation-status ${s.is_valid ? 'status-yes' : 'status-no'}`}>
+                                        Validation:{' '}
+                                        <span>
+                                            {s.is_valid ? 'YES' : 'NO'}
+                                        </span>
+                                    </p>
                                 )}
-                                {validationChatMessages.map((msg, index) => (
-                                    <div key={index} className={`chat-message ${msg.sender}`}>
-                                        <div className="message-bubble" dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }} />
-                                    </div>
-                                ))}
-                                {isValidationChatLoading && (
-                                    <div className="chat-message ai">
-                                        <div className="message-bubble">
-                                            <div className="spinner small"></div> AI is typing...
-                                        </div>
-                                    </div>
+                                {s.validation_rationale && ( // Only show rationale if available
+                                    <p className="validation-rationale">
+                                        {s.validation_rationale}
+                                    </p>
                                 )}
-                                <div ref={validationChatEndRef} /> {/* Scroll target */}
+                                <div className="checkbox-container">
+                                    <label className="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            className="checkbox-input"
+                                            checked={confirmedSuggestionsForReport.some(cs => cs.name === s.name && cs.expression_number === s.expression_number)}
+                                            onChange={() => handleToggleConfirmSuggestion(index)}
+                                            disabled={s.is_valid === false || s.is_valid === null} // Disable if validation is NO or not yet run
+                                        />
+                                        <span className="checkbox-text">Confirm for Final Report</span>
+                                    </label>
+                                    {(s.is_valid === false || s.is_valid === null) && (
+                                        <span className="checkbox-disabled-note">
+                                            {s.is_valid === false ? '(Cannot confirm invalid names)' : '(Validate first to confirm)'}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
+                        ))}
 
-                            {validationChatError && (
-                                <div className="error-message" role="alert" style={{marginTop: '15px'}}>
-                                    <p><strong>Error:</strong></p>
-                                    <p>{validationChatError}</p>
-                                </div>
-                            )}
-
-                            {/* Chat input form */}
-                            <form onSubmit={handleValidationChatSubmit} className="chat-input-form">
-                                <textarea
-                                    className="textarea-field chat-input"
-                                    placeholder={validationChatMessages.length === 0 ? "Type your initial message or just click 'Start Validation Chat'" : "Type your reply (e.g., 'Final validation report for Emily Rose')..."}
-                                    value={currentValidationInput}
-                                    onChange={(e) => setCurrentValidationInput(e.target.value)}
-                                    rows="2"
-                                    disabled={isValidationChatLoading || (!suggestedNameForChat.trim() && validationChatMessages.length === 0)}
+                        {/* Add Custom Name Input */}
+                        <div className="custom-name-input-container">
+                            <h4 className="custom-name-title">Add Your Own Name to Validate</h4>
+                            <div className="custom-name-input-group">
+                                <input
+                                    type="text"
+                                    placeholder="Enter a name to test..."
+                                    value={customNameInput}
+                                    onChange={(e) => setCustomNameInput(e.target.value)}
+                                    className="text-input"
                                 />
                                 <button
-                                    type="submit"
-                                    className="primary-button chat-send-button"
-                                    disabled={isValidationChatLoading || (!suggestedNameForChat.trim() && validationChatMessages.length === 0 && !currentValidationInput.trim())}
+                                    onClick={handleAddCustomName}
+                                    className="add-custom-button"
+                                    disabled={isLoading || !customNameInput.trim()} // Disable if loading or input is empty
                                 >
-                                    {isValidationChatLoading ? (
-                                        <div className="spinner small"></div>
-                                    ) : (
-                                        validationChatMessages.length === 0 ? "Start Validation Chat" : "Send"
-                                    )}
+                                    Add & Validate Custom Name
                                 </button>
-                                {validationChatMessages.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={resetValidationChat}
-                                        className="secondary-button reset-chat-button"
-                                        disabled={isValidationChatLoading}
-                                    >
-                                        Reset Chat
-                                    </button>
-                                )}
-                            </form>
-                        </div>
-                    </section>
-                )}
-
-                {/* Practitioner Customization Section (Editable Suggested Names, Validation Summary, Notes) */}
-                {reportContent && ( // Only show this section if a report has been generated
-                    <section className="card-section">
-                        <h2 className="section-heading">
-                            <span role="img" aria-label="customize icon">🛠️</span> Final Report Customization
-                        </h2>
-                        <p className="sub-heading">
-                            Review and refine the suggested names, add validation conclusions, and include any personal notes before generating the final PDF.
-                        </p>
-
-                        {/* Editable Suggested Names List */}
-                        <div className="customization-group">
-                            <h3 className="sub-section-heading">
-                                <span role="img" aria-label="name tag">🏷️</span> Final Suggested Names for PDF:
-                            </h3>
-                            {finalSuggestedNamesList.length === 0 && (
-                                <p className="hint-text">
-                                    No names added yet. Click "Add Name" to include suggestions in the PDF.
-                                </p>
-                            )}
-                            {finalSuggestedNamesList.map((suggestion, index) => (
-                                <div key={index} className="name-suggestion-item">
-                                    <div className="form-group">
-                                        <label className="form-label">Name:</label>
-                                        <input
-                                            type="text"
-                                            className="input-field"
-                                            value={suggestion.name}
-                                            onChange={(e) => handleFinalSuggestedNameChange(index, 'name', e.target.value)}
-                                            placeholder="e.g., Emily Rose"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Expression Number:</label>
-                                        <input
-                                            type="number"
-                                            className="input-field"
-                                            value={suggestion.expression_number}
-                                            onChange={(e) => handleFinalSuggestedNameChange(index, 'expression_number', parseInt(e.target.value) || 0)}
-                                            placeholder="e.g., 5"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Rationale:</label>
-                                        <textarea
-                                            className="textarea-field"
-                                            rows="3"
-                                            value={suggestion.rationale}
-                                            onChange={(e) => handleFinalSuggestedNameChange(index, 'rationale', e.target.value)}
-                                            placeholder="Explain the numerological benefits of this name."
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeFinalSuggestedName(index)}
-                                        className="secondary-button remove-button"
-                                    >
-                                        Remove Name
-                                    </button>
-                                </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={addFinalSuggestedName}
-                                className="secondary-button add-button"
-                            >
-                                Add New Suggested Name
-                            </button>
-                        </div>
-
-                        <div className="customization-group">
-                            <h3 className="sub-section-heading">
-                                <span role="img" aria-label="summary icon">📋</span> Validation Chat Summary (for PDF):
-                            </h3>
-                            <div className="form-group">
-                                <textarea
-                                    className="textarea-field"
-                                    rows="8"
-                                    value={editableValidationSummary}
-                                    onChange={(e) => setEditableValidationSummary(e.target.value)}
-                                    placeholder="Summarize the key conclusions from the validation chat here. This will be included in the PDF."
-                                ></textarea>
-                                <p className="hint-text">
-                                    You can copy and paste the final validation report from the chat above, or write your own summary.
-                                </p>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="customization-group">
-                            <h3 className="sub-section-heading">
-                                <span role="img" aria-label="notes icon">✍️</span> Practitioner's Private Notes (for PDF):
-                            </h3>
-                            <div className="form-group">
-                                <textarea
-                                    className="textarea-field"
-                                    rows="8"
-                                    value={editablePractitionerNotes}
-                                    onChange={(e) => setEditablePractitionerNotes(e.target.value)}
-                                    placeholder="Add any additional private notes, observations, or specific guidance for the client that you want included in the PDF report."
-                                ></textarea>
-                                <p className="hint-text">
-                                    This section is for any extra details you want to include in the final client report.
-                                </p>
-                            </div>
-                        </div>
-
+                    {/* Confirmed Names Summary and Generate Report Preview Button */}
+                    <div className="card">
+                        <h3 className="card-title">Confirmed Names for Report ({confirmedSuggestionsForReport.length})</h3>
+                        {confirmedSuggestionsForReport.length === 0 ? (
+                            <p className="no-suggestions-message">No names confirmed yet. Select names above to include them in the final report.</p>
+                        ) : (
+                            <ul className="confirmed-names-list">
+                                {confirmedSuggestionsForReport.map((s, idx) => (
+                                    <li key={idx}>
+                                        <strong>{s.name}</strong> (Expression: {s.expression_number})
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                         <button
-                            onClick={handleDownloadPdf}
-                            className="primary-button download-button"
-                            disabled={isLoading || !fullReportDataForPdf}
+                            onClick={handleGenerateReportPreview}
+                            className="preview-button"
+                            disabled={isLoading || confirmedSuggestionsForReport.length === 0}
                         >
-                            <span className="flex-center">
-                                <span role="img" aria-label="download icon" className="emoji-icon">⬇️</span>
-                                Generate & Download Final PDF Report
-                            </span>
+                            {isLoading && !reportPreviewContent ? "Generating Preview..." : "Generate Report Preview"}
                         </button>
-                    </section>
-                )}
-            </div>
+                    </div>
+
+                    {/* Full Report Preview Area - NOW ACTIVE */}
+                    {reportPreviewContent && (
+                        <div className="report-preview-container">
+                            <h2 className="report-preview-title">Full Numerology Report Preview</h2>
+                            {/* The Markdown component will render the HTML based on the Markdown string */}
+                            <div className="markdown-content">
+                                <Markdown>{reportPreviewContent}</Markdown>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Generate PDF Report Button */}
+                    <div className="card">
+                        <button
+                            onClick={handleGenerateAndDownloadReport}
+                            className="primary-button"
+                            // Disable if loading, no names confirmed, OR no preview generated yet
+                            disabled={isLoading || confirmedSuggestionsForReport.length === 0 || !reportPreviewContent} 
+                        >
+                            {isLoading ? "Generating PDF..." : "Generate & Download Final PDF Report"}
+                        </button>
+                    </div>
+                </>
+            )}
         </div>
+    );
+}
+
+// Separate Component for Initial Profile Input Form
+const InitialProfileForm = ({ onSubmit, isLoading }) => {
+    const [formData, setFormData] = useState({
+        full_name: '',
+        birth_date: '',
+        birth_time: '',
+        birth_place: '',
+        desired_outcome: ''
+    });
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSubmit(formData);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="form-card">
+            <h2 className="form-title">Enter Client Profile</h2>
+            <div className="form-group">
+                <label htmlFor="full_name" className="form-label">Full Name:</label>
+                <input
+                    type="text"
+                    name="full_name"
+                    id="full_name"
+                    placeholder="Client's Full Name"
+                    value={formData.full_name}
+                    onChange={handleChange}
+                    required
+                    className="text-input"
+                />
+            </div>
+            <div className="form-group">
+                <label htmlFor="birth_date" className="form-label">Birth Date:</label>
+                <input
+                    type="date"
+                    name="birth_date"
+                    id="birth_date"
+                    value={formData.birth_date}
+                    onChange={handleChange}
+                    required
+                    className="text-input"
+                />
+            </div>
+            <div className="form-group">
+                <label htmlFor="birth_time" className="form-label">Birth Time (HH:MM - Optional):</label>
+                <input
+                    type="time"
+                    name="birth_time"
+                    id="birth_time"
+                    placeholder="e.g., 14:30"
+                    value={formData.birth_time}
+                    onChange={handleChange}
+                    className="text-input"
+                />
+            </div>
+            <div className="form-group">
+                <label htmlFor="birth_place" className="form-label">Birth Place (Optional):</label>
+                <input
+                    type="text"
+                    name="birth_place"
+                    id="birth_place"
+                    placeholder="City, Country"
+                    value={formData.birth_place}
+                    onChange={handleChange}
+                    className="text-input"
+                />
+            </div>
+            <div className="form-group">
+                <label htmlFor="desired_outcome" className="form-label">Desired Outcome (e.g., success, love, career growth):</label>
+                <textarea
+                    name="desired_outcome"
+                    id="desired_outcome"
+                    placeholder="What is the client's primary desired outcome?"
+                    value={formData.desired_outcome}
+                    onChange={handleChange}
+                    required
+                    rows="3"
+                    className="text-input"
+                ></textarea>
+            </div>
+            <button
+                type="submit"
+                className="primary-button"
+                disabled={isLoading}
+            >
+                {isLoading ? "Getting Suggestions..." : "Get Initial Name Suggestions"}
+            </button>
+        </form>
     );
 };
 
