@@ -4,7 +4,7 @@ import { marked } from 'marked'; // For rendering Markdown in report preview
 import './App.css'; // Import the CSS file for styling
 
 // Configure your backend URL
-const BACKEND_URL = 'YOUR_RENDER_BACKEND_URL'; // <<< IMPORTANT: REPLACE THIS WITH YOUR RENDER BACKEND URL
+const BACKEND_URL = 'https://name-corrector-backend.onrender.com'; // <<< IMPORTANT: REPLACE THIS WITH YOUR RENDER BACKEND URL
 
 function App() {
     // --- State Management ---
@@ -498,7 +498,7 @@ function App() {
                                 onChange={(e) => setCustomNameInput(e.target.value)}
                             />
                             {liveValidationOutput && (
-                                <div className="live-validation-output section-card" style={{backgroundColor: '#ffffff', border: '1px solid #e5e7eb', boxShadow: 'none'}}>
+                                <div className="live-validation-output section-card" style={{backgroundColor: '#ffffff', border: '1px solid #e9eceb', boxShadow: 'none'}}>
                                     <p className="font-bold">Live Calculated Values:</p>
                                     <p><b>Name:</b> {liveValidationOutput.name}</p>
                                     <p><b>Expression Number:</b> {liveValidationOutput.expression_number}</p>
