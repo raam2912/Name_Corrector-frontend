@@ -14,9 +14,8 @@ body {
     min-height: 100vh; /* Ensure it takes full viewport height */
     width: 100%; /* Ensure it takes full viewport width */
     display: flex;
-    /* On smaller screens, align to start for better vertical flow */
-    align-items: flex-start; 
-    justify-content: center; /* Horizontally center content */
+    align-items: flex-start; /* Align content to the top */
+    justify-content: center; /* Horizontally center the main content wrapper */
     padding: 20px; /* Padding around the main content wrapper */
     box-sizing: border-box; /* Include padding in element's total width and height */
 }
@@ -24,31 +23,33 @@ body {
 /* Main Content Wrapper (The big white card) */
 .main-content-wrapper {
     background-color: #ffffff;
-    padding: 30px; /* Slightly less padding for better mobile fit */
+    padding: 30px; /* Default padding for smaller screens */
     border-radius: 15px; /* Rounded corners for the main card */
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
-    width: 100%; /* Always take 100% of parent's width */
-    /* Removed max-width to allow it to adapt to ANY screen size */
-    display: flex; /* Use flexbox for column layout */
-    flex-direction: column; /* Default to column layout for small screens */
-    gap: 30px; /* Space between columns/sections */
+    width: 100%; /* Always take 100% of parent's width (minus padding) */
+    display: flex;
+    flex-direction: column; /* Always a single column */
+    gap: 30px; /* Space between sections/cards */
+
+    /* NEW: Max-width for laptop/desktop screens to create 'landscaped' feel */
+    /* This prevents the content from becoming too wide on very large monitors */
+    max-width: 850px; /* Adjusted for a comfortable reading width on laptops */
 }
 
-/* Laptop and larger screens */
-@media (min-width: 769px) { /* Two-column layout starts from typical laptop screens */
+/* No specific media query for flex-direction: row, as it's always a column */
+/* The previous media query for (min-width: 769px) is now redundant for flex-direction */
+/* We will keep it for padding adjustments if needed, but remove flex-direction change */
+@media (min-width: 769px) { /* Adjust padding for laptop and larger screens */
     .main-content-wrapper {
-        flex-direction: row; /* Switch to row layout for two columns */
-        gap: 40px; /* More space between columns */
-        padding: 40px; /* Restore generous padding for desktop */
-        align-items: flex-start; /* Align columns to the top */
-        /* No max-width here, let it expand */
+        padding: 40px; /* More generous padding for larger screens */
     }
 }
 
-/* Column Styles (Left and Right sections) */
+
+/* Column Styles (These will now effectively be just containers for sections) */
 .column {
-    flex: 1; /* Each column takes equal available space (flex-grow: 1, flex-shrink: 1, flex-basis: 0%) */
-    min-width: 0; /* Allow content to shrink within the column if needed */
+    flex: none; /* Remove flex-grow/shrink to prevent horizontal stretching of internal columns */
+    width: 100%; /* Ensure it takes full width within the main-content-wrapper */
     display: flex;
     flex-direction: column;
     gap: 25px; /* Space between cards within a column */
@@ -465,7 +466,7 @@ body {
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 768px) { /* Small screens (phones) */
+@media (max-width: 768px) { /* Small screens (phones and smaller tablets) */
     #root, .app-container {
         padding: 10px; /* Reduce overall padding */
         align-items: stretch; /* Stretch to fill width */
