@@ -464,7 +464,7 @@ function App() {
 
                 {/* Left Column: Input Form & Profile Display */}
                 <div className="column">
-                    <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Sheelaa's Numerology Portal</h1>
+                    <h1 className="main-title">Sheelaa's Numerology Portal</h1>
 
                     {/* Input Form */}
                     <div className="section-card input-form-card">
