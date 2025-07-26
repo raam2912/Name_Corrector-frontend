@@ -1,498 +1,626 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
-import Markdown from 'react-markdown';
-import './App.css'; // Make sure this line is present to import the CSS
+import { marked } from 'marked'; // For rendering Markdown in report preview
+import './App.css'; // Import the CSS file for styling
 
-// Main App Component
+// Configure your backend URL
+const BACKEND_URL = 'YOUR_RENDER_BACKEND_URL'; // <<< IMPORTANT: REPLACE THIS WITH YOUR RENDER BACKEND URL
+
 function App() {
-    // State variables for application data and UI control
+    // --- State Management ---
+    const [fullName, setFullName] = useState('');
+    const [birthDate, setBirthDate] = useState('');
+    const [birthTime, setBirthTime] = useState('');
+    const [birthPlace, setBirthPlace] = useState('');
+    const [desiredOutcome, setDesiredOutcome] = useState('');
+
     const [clientProfile, setClientProfile] = useState(null);
-    // const [initialSuggestions, setInitialSuggestions] = useState([]); // REMOVED: This state was unused
-    const [validatedNames, setValidatedNames] = useState([]);
-    const [confirmedSuggestionsForReport, setConfirmedSuggestionsForReport] = useState([]);
-    const [reportPreviewContent, setReportPreviewContent] = useState(''); // State for report preview Markdown
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [suggestions, setSuggestions] = useState([]);
+    const [confirmedSuggestions, setConfirmedSuggestions] = useState([]);
+
     const [customNameInput, setCustomNameInput] = useState('');
+    const [liveValidationOutput, setLiveValidationOutput] = useState(null); // For live client-side calcs
+    const [backendValidationResult, setBackendValidationResult] = useState(null); // For backend validation
 
-    // IMPORTANT: Replace with your actual Render backend URL
-    const API_BASE_URL = 'https://name-corrector-backend.onrender.com';
+    const [reportPreviewContent, setReportPreviewContent] = useState('');
+    const [chatInput, setChatInput] = useState('');
+    const [chatHistory, setChatHistory] = useState([]); // Stores messages for chat context
+    const [isValidationChatMode, setIsValidationChatMode] = useState(false);
+    const [validationChatSuggestedName, setValidationChatSuggestedName] = useState('');
 
-    // --- Step 1: Handle Initial Profile Submission & Get Suggestions ---
-    const handleGetInitialSuggestions = async (formData) => {
-        setIsLoading(true);
-        setError(''); // Clear previous errors
+    const [isLoading, setIsLoading] = useState(false);
+    const [modal, setModal] = useState({ isOpen: false, message: '' });
+
+    // Refs for auto-scrolling chat messages
+    const chatMessagesRef = useRef(null);
+
+    // --- Utility Functions ---
+    const showAlert = (message) => {
+        setModal({ isOpen: true, message });
+    };
+
+    const closeModal = () => {
+        setModal({ isOpen: false, message: '' });
+    };
+
+    // Debounce function to limit how often a function is called
+    const debounce = (func, delay) => {
+        let timeout;
+        return function(...args) {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), delay);
+        };
+    };
+
+    // Effect to auto-scroll chat messages to the bottom when new messages arrive
+    useEffect(() => {
+        if (chatMessagesRef.current) {
+            chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+        }
+    }, [chatHistory]);
+
+    // --- Frontend Numerology Calculation Functions (for live display) ---
+    // These functions mirror the backend's core numerology calculations for client-side feedback.
+    const cleanName = (name) => {
+        return name.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
+    };
+
+    const getChaldeanValue = (char) => {
+        const chaldeanMap = {
+            'A': 1, 'I': 1, 'J': 1, 'Q': 1, 'Y': 1,
+            'B': 2, 'K': 2, 'R': 2,
+            'C': 3, 'G': 3, 'L': 3, 'S': 3,
+            'D': 4, 'M': 4, 'T': 4,
+            'E': 5, 'H': 5, 'N': 5, 'X': 5,
+            'U': 6, 'V': 6, 'W': 6,
+            'O': 7, 'Z': 7,
+            'F': 8, 'P': 8
+        };
+        return chaldeanMap[char.toUpperCase()] || 0;
+    };
+
+    const calculateSingleDigit = (number, allowMasterNumbers = true) => {
+        if (allowMasterNumbers && [11, 22, 33].includes(number)) {
+            return number;
+        }
+        while (number > 9) {
+            number = String(number).split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+        }
+        return number;
+    };
+
+    const calculateExpressionNumber = (name) => {
+        let total = 0;
+        const cleaned = cleanName(name);
+        for (const char of cleaned) {
+            total += getChaldeanValue(char);
+        }
+        return calculateSingleDigit(total, true);
+    };
+
+    const calculateBirthDayNumber = (birthDateStr) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/initial_suggestions`, formData);
-            
-            // Store the full profile data returned by the backend
-            setClientProfile(response.data.profile_data); 
-            
-            // Initialize validatedNames with the initial suggestions, adding validation state
-            const initialValidated = response.data.suggestions.map(s => ({
-                name: s.name,
-                expression_number: s.expression_number,
-                original_llm_rationale: s.rationale, // Store the LLM's initial rationale
-                is_valid: null, // No validation yet (null means pending/not yet validated)
-                validation_rationale: '' // No validation rationale yet
-            }));
-            setValidatedNames(initialValidated);
-            // setInitialSuggestions(response.data.suggestions); // REMOVED: No longer setting this state
-
-        } catch (err) {
-            console.error("Error getting initial suggestions:", err);
-            // Display a user-friendly error message
-            setError('Failed to get initial suggestions: ' + (err.response?.data?.error || err.message));
-        } finally {
-            setIsLoading(false); // End loading
+            const day = parseInt(birthDateStr.split('-')[2]);
+            if (isNaN(day) || day < 1 || day > 31) return 0;
+            return calculateSingleDigit(day, true);
+        } catch {
+            return 0;
         }
     };
 
-    // --- Step 2: Validate a Single Name (from suggestions or custom input) ---
-    const handleValidateName = async (nameToValidate, index) => {
-        setIsLoading(true);
-        setError(''); // Clear previous errors
+    const calculateLifePathNumber = (birthDateStr) => {
         try {
-            // Ensure clientProfile is available before validating
-            if (!clientProfile) {
-                setError("Client profile not loaded. Please get initial suggestions first.");
-                setIsLoading(false);
+            const [year, month, day] = birthDateStr.split('-').map(Number);
+            const monthReduced = calculateSingleDigit(month, true);
+            const dayReduced = calculateSingleDigit(day, true);
+            const yearSum = String(year).split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+            const yearReduced = calculateSingleDigit(yearSum, true);
+            const total = monthReduced + dayReduced + yearReduced;
+            return calculateSingleDigit(total, true);
+        } catch {
+            return 0;
+        }
+    };
+
+    const calculateSoulUrgeNumber = (name) => {
+        const VOWELS = new Set('AEIOU');
+        let total = 0;
+        const cleaned = cleanName(name);
+        for (const char of cleaned) {
+            if (VOWELS.has(char)) {
+                total += getChaldeanValue(char);
+            }
+        }
+        return calculateSingleDigit(total, true);
+    };
+
+    const calculatePersonalityNumber = (name) => {
+        const VOWELS = new Set('AEIOU');
+        let total = 0;
+        const cleaned = cleanName(name);
+        for (const char of cleaned) {
+            if (!VOWELS.has(char) && char !== ' ') {
+                total += getChaldeanValue(char);
+            }
+        }
+        return calculateSingleDigit(total, true);
+    };
+
+    const calculateLoShuGrid = (birthDateStr, nameExpressionNum = null) => {
+        const gridCounts = {};
+        for (let i = 1; i <= 9; i++) gridCounts[i] = 0;
+
+        try {
+            const dobDigits = String(birthDateStr).replace(/-/g, '').split('').map(Number);
+            dobDigits.forEach(digit => {
+                if (digit >= 1 && digit <= 9) {
+                    gridCounts[digit]++;
+                }
+            });
+        } catch {}
+
+        if (nameExpressionNum !== null) {
+            const gridFriendlyExp = calculateSingleDigit(nameExpressionNum, false); // Reduce master numbers for grid
+            if (gridFriendlyExp >= 1 && gridFriendlyExp <= 9) {
+                gridCounts[gridFriendlyExp]++;
+            }
+        }
+
+        const missingNumbers = Object.keys(gridCounts).filter(key => gridCounts[key] === 0).map(Number).sort((a, b) => a - b);
+        
+        return {
+            grid_counts: gridCounts,
+            missing_numbers: missingNumbers,
+            has_8: gridCounts[8] > 0,
+            has_5: gridCounts[5] > 0,
+            has_6: gridCounts[6] > 0
+        };
+    };
+
+    // --- UI Display Functions ---
+    // Formats the client profile data into HTML for display
+    const formatProfileData = (profile) => {
+        if (!profile) return '<p>No profile data available.</p>';
+        return `
+            <h3 class="font-bold">Basic Info:</h3>
+            <p><b>Full Name:</b> ${profile.full_name}</p>
+            <p><b>Birth Date:</b> ${profile.birth_date}</p>
+            ${profile.birth_time ? `<p><b>Birth Time:</b> ${profile.birth_time}</p>` : ''}
+            ${profile.birth_place ? `<p><b>Birth Place:</b> ${profile.birth_place}</p>` : ''}
+            <p><b>Desired Outcome:</b> ${profile.desired_outcome}</p>
+            <hr class="my-2">
+            <h3 class="font-bold">Core Numbers:</h3>
+            <p><b>Expression Number:</b> ${profile.expression_number} (${profile.expression_details?.planetary_ruler || 'N/A'})</p>
+            <p><b>Life Path Number:</b> ${profile.life_path_number}</p>
+            <p><b>Birth Day Number:</b> ${profile.birth_day_number}</p>
+            <p><b>Soul Urge Number:</b> ${profile.soul_urge_number}</p>
+            <p><b>Personality Number:</b> ${profile.personality_number}</p>
+            <hr class="my-2">
+            <h3 class="font-bold">Lo Shu Grid:</h3>
+            <p><b>Counts:</b> ${JSON.stringify(profile.lo_shu_grid?.grid_counts || {})}</p>
+            <p><b>Missing Numbers:</b> ${profile.lo_shu_grid?.missing_numbers?.join(', ') || 'None'}</p>
+            <hr class="my-2">
+            <h3 class="font-bold">Conceptual Astro-Numerology:</h3>
+            <p><b>Ascendant:</b> ${profile.astro_info?.ascendant_info?.sign || 'N/A'} (${profile.astro_info?.ascendant_info?.ruler || 'N/A'})</p>
+            <p><b>Moon Sign:</b> ${profile.astro_info?.moon_sign_info?.sign || 'N/A'} (${profile.astro_info?.moon_sign_info?.ruler || 'N/A'})</p>
+            <p><b>Planetary Compatibility:</b> ${profile.astro_info?.planetary_compatibility?.compatibility_flags?.join('; ') || 'No specific flags'}</p>
+            <hr class="my-2">
+            <h3 class="font-bold">Phonetic Vibration:</h3>
+            <p><b>Harmony:</b> ${profile.phonetic_vibration?.is_harmonious ? 'Harmonious' : 'Needs consideration'} (Score: ${profile.phonetic_vibration?.score?.toFixed(2) || 'N/A'})</p>
+            <p><i>"${profile.phonetic_vibration?.qualitative_description || 'N/A'}"</i></p>
+            <hr class="my-2">
+            <h3 class="font-bold">Insights & Forecast:</h3>
+            <p><b>Compatibility Insights:</b> ${profile.compatibility_insights?.description || 'N/A'}</p>
+            <p><b>Karmic Lessons:</b> ${profile.karmic_lessons?.lessons_summary?.map(l => l.lesson).join('; ') || 'None'}</p>
+            <p><b>Karmic Debts (Birth Date):</b> ${profile.karmic_lessons?.birth_date_karmic_debts?.join(', ') || 'None'}</p>
+            <p><b>Edge Cases:</b> ${profile.edge_cases?.map(ec => ec.type).join('; ') || 'None'}</p>
+            <p><b>Current Personal Year:</b> ${profile.timing_recommendations?.current_personal_year || 'N/A'}</p>
+            <p><b>Success Areas:</b> ${profile.success_areas?.combined_strengths?.join(', ') || 'N/A'}</p>
+        `;
+    };
+
+    // Debounced function for live validation display and backend call
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const updateLiveValidationDisplay = useCallback(
+        debounce((name) => {
+            if (!name.trim() || !clientProfile) {
+                setLiveValidationOutput(null);
+                setBackendValidationResult(null);
                 return;
             }
 
-            const response = await axios.post(`${API_BASE_URL}/validate_name`, {
-                suggested_name: nameToValidate,
-                client_profile: clientProfile // Send the comprehensive client profile for validation
-            });
-            const { is_valid, rationale, expression_number } = response.data;
+            // Client-side calculations for immediate feedback
+            const expNum = calculateExpressionNumber(name);
+            const birthDateStr = clientProfile.birth_date;
+            const loShu = calculateLoShuGrid(birthDateStr, expNum);
+            const birthDayNum = calculateBirthDayNumber(birthDateStr);
+            const lifePathNum = calculateLifePathNumber(birthDateStr);
+            const soulUrgeNum = calculateSoulUrgeNumber(name);
+            const personalityNum = calculatePersonalityNumber(name);
 
-            setValidatedNames(prevNames => {
-                const updatedNames = [...prevNames];
-                if (index !== -1 && updatedNames[index]) { // If validating an existing suggestion/custom name
-                    updatedNames[index] = {
-                        ...updatedNames[index], // Keep existing properties (like original_llm_rationale)
-                        name: nameToValidate, // Update name if user edited it in the input field
-                        expression_number: expression_number,
-                        is_valid: is_valid,
-                        validation_rationale: rationale // This is the rule-based YES/NO rationale
-                    };
-                } else { // This path is primarily for new custom names if they were added without an index
-                    updatedNames.push({
-                        name: nameToValidate,
-                        expression_number: expression_number,
-                        original_llm_rationale: "Custom name, rationale will be generated with report if confirmed.", // Placeholder
-                        is_valid: is_valid,
-                        validation_rationale: rationale
-                    });
-                }
-                return updatedNames;
+            setLiveValidationOutput({
+                name,
+                expression_number: expNum,
+                birth_day_number: birthDayNum,
+                life_path_number: lifePathNum,
+                soul_urge_number: soulUrgeNum,
+                personality_number: personalityNum,
+                lo_shu_grid_counts: loShu.grid_counts,
+                lo_shu_missing_numbers: loShu.missing_numbers,
             });
-            setCustomNameInput(''); // Clear custom input after validating
 
-        } catch (err) {
-            console.error("Error validating name:", err);
-            setError('Failed to validate name: ' + (err.response?.data?.error || err.message));
-        } finally {
-            setIsLoading(false); // End loading
+            // Trigger backend validation for comprehensive rules
+            validateCustomNameBackend(name);
+        }, 300),
+        [clientProfile] // Dependency array: recreate debounce if clientProfile changes
+    );
+
+    // Effect to trigger live validation when customNameInput or clientProfile changes
+    useEffect(() => {
+        if (clientProfile) {
+            updateLiveValidationDisplay(customNameInput);
+        }
+    }, [customNameInput, clientProfile, updateLiveValidationDisplay]);
+
+
+    // --- API Call Functions ---
+    const getInitialSuggestions = async () => {
+        if (!fullName || !birthDate || !desiredOutcome) {
+            showAlert("Please fill in Full Name, Birth Date, and Desired Outcome.");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await axios.post(`${BACKEND_URL}/initial_suggestions`, {
+                full_name: fullName,
+                birth_date: birthDate,
+                birth_time: birthTime,
+                birth_place: birthPlace,
+                desired_outcome: desiredOutcome
+            });
+
+            setClientProfile(response.data.profile_data);
+            setSuggestions(response.data.suggestions);
+            // Reset confirmed suggestions, report preview, and chat history for a new profile
+            setConfirmedSuggestions([]);
+            setReportPreviewContent('');
+            setChatHistory([]);
+            setValidationChatSuggestedName('');
+
+            setIsLoading(false);
+        } catch (error) {
+            setIsLoading(false);
+            console.error('Error fetching initial suggestions:', error);
+            showAlert(`Failed to get suggestions: ${error.response?.data?.error || error.message}`);
         }
     };
 
-    // --- Add a custom name input field to the list of names to validate ---
-    const handleAddCustomName = () => {
-        if (customNameInput.trim()) {
-            const newIndex = validatedNames.length; // Get the index where the new name will be
-            const newNameObject = {
-                name: customNameInput.trim(),
-                expression_number: null, // Will be filled after validation
-                original_llm_rationale: "Custom name, rationale will be generated with report if confirmed.",
-                is_valid: null,
-                validation_rationale: ''
+    const validateCustomNameBackend = async (name) => {
+        if (!clientProfile) {
+            setBackendValidationResult({ is_valid: false, rationale: "No client profile loaded." });
+            return;
+        }
+        if (!name.trim()) {
+            setBackendValidationResult(null);
+            return;
+        }
+
+        try {
+            const response = await axios.post(`${BACKEND_URL}/validate_name`, {
+                suggested_name: name,
+                client_profile: clientProfile
+            });
+            setBackendValidationResult(response.data);
+        } catch (error) {
+            console.error('Error validating custom name backend:', error);
+            setBackendValidationResult({ is_valid: false, rationale: `Backend validation failed: ${error.response?.data?.error || error.message}` });
+        }
+    };
+
+    const generateTextReport = async () => {
+        if (!clientProfile) {
+            showAlert("Please get initial suggestions first to generate a client profile.");
+            return;
+        }
+        if (confirmedSuggestions.length === 0) {
+            showAlert("Please confirm at least one name suggestion before generating a report.");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const reportData = { ...clientProfile, confirmed_suggestions: confirmedSuggestions };
+            const response = await axios.post(`${BACKEND_URL}/generate_text_report`, reportData);
+            setReportPreviewContent(response.data.report_content);
+            setIsLoading(false);
+        }
+        catch (error) {
+            setIsLoading(false);
+            console.error('Error generating text report:', error);
+            showAlert(`Failed to generate text report: ${error.response?.data?.error || error.message}`);
+        }
+    };
+
+    const generatePdfReport = async () => {
+        if (!clientProfile) {
+            showAlert("Please get initial suggestions first to generate a client profile.");
+            return;
+        }
+        if (confirmedSuggestions.length === 0) {
+            showAlert("Please confirm at least one name suggestion before generating a report.");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const reportData = { ...clientProfile, confirmed_suggestions: confirmedSuggestions };
+            const response = await axios.post(`${BACKEND_URL}/generate_pdf_report`, reportData, {
+                responseType: 'blob', // Important for PDF download
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Numerology_Report_${fullName.replace(/ /g, '_')}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url); // Clean up the URL object
+
+            setIsLoading(false);
+            showAlert("PDF report downloaded successfully!");
+        } catch (error) {
+            setIsLoading(false);
+            console.error('Error generating PDF report:', error);
+            showAlert(`Failed to download PDF report: ${error.response?.data?.error || error.message}`);
+        }
+    };
+
+    const sendChatMessage = async () => {
+        const message = chatInput.trim();
+        // For general chat, message is required. For validation chat, current_message can be empty if just switching context.
+        if (!message && !isValidationChatMode) return; 
+
+        let chatPayload = { message, type: 'general_chat' };
+
+        // If in validation chat mode, include profile and suggested name
+        if (isValidationChatMode) {
+            if (!clientProfile || !validationChatSuggestedName) {
+                showAlert("Please select a name for validation chat or provide client profile first.");
+                return;
+            }
+            chatPayload = {
+                type: 'validation_chat',
+                original_profile: clientProfile,
+                suggested_name: validationChatSuggestedName,
+                current_message: message, // The current message from the user
+                chat_history: chatHistory.map(msg => ({ type: msg.sender === 'user' ? 'human' : 'ai', content: msg.message })) // Full history for context
             };
-            setValidatedNames(prev => [...prev, newNameObject]);
-            // Use a timeout to ensure state update for validatedNames is processed
-            // before handleValidateName attempts to read it.
-            setTimeout(() => handleValidateName(customNameInput.trim(), newIndex), 0);
+        }
+
+        setChatHistory(prev => [...prev, { message, sender: 'user' }]); // Add user message to history
+        setChatInput(''); // Clear input field
+        setIsLoading(true);
+
+        try {
+            const response = await axios.post(`${BACKEND_URL}/chat`, chatPayload);
+            setChatHistory(prev => [...prev, { message: response.data.response, sender: 'ai' }]); // Add AI response to history
+            setIsLoading(false);
+        } catch (error) {
+            setIsLoading(false);
+            console.error('Error sending chat message:', error);
+            setChatHistory(prev => [...prev, { message: `Error: ${error.response?.data?.error || error.message}`, sender: 'ai' }]);
         }
     };
 
+    const handleConfirmSuggestion = (suggestion) => {
+        // Prevent adding duplicates to confirmed suggestions
+        if (!confirmedSuggestions.some(s => s.name === suggestion.name)) {
+            setConfirmedSuggestions(prev => [...prev, suggestion]);
+            showAlert(`"${suggestion.name}" confirmed for report generation!`);
+        } else {
+            showAlert(`"${suggestion.name}" is already confirmed.`);
+        }
+        // Set this name as the context for validation chat and switch mode
+        setValidationChatSuggestedName(suggestion.name);
+        setIsValidationChatMode(true);
+        setChatInput(`Tell me more about the numerological implications of "${suggestion.name}".`);
+        setChatHistory(prev => [...prev, { message: `Switched to Validation Chat for "${suggestion.name}".`, sender: 'system' }]);
+    };
 
-    // --- Step 3: Toggle Confirmation for Report ---
-    const handleToggleConfirmSuggestion = (index) => {
-        setConfirmedSuggestionsForReport(prevConfirmed => {
-            const suggestion = validatedNames[index];
-            if (suggestion.is_valid === false) {
-                setError("Cannot confirm an invalid name for the report.");
-                return prevConfirmed;
-            }
-
-            const isAlreadyConfirmed = prevConfirmed.some(
-                cs => cs.name === suggestion.name && cs.expression_number === suggestion.expression_number
-            );
-
-            let updatedConfirmed;
-            if (isAlreadyConfirmed) {
-                // If confirmed, remove it
-                updatedConfirmed = prevConfirmed.filter(
-                    cs => !(cs.name === suggestion.name && cs.expression_number === suggestion.expression_number)
-                );
+    const toggleChatMode = () => {
+        setIsValidationChatMode(prevMode => {
+            const newMode = !prevMode;
+            if (newMode) {
+                // If switching to validation chat, try to set a default name if available
+                if (!validationChatSuggestedName && confirmedSuggestions.length > 0) {
+                    setValidationChatSuggestedName(confirmedSuggestions[0].name); // Default to first confirmed
+                    showAlert("Switched to Validation Chat. Discussing your first confirmed name.");
+                } else if (!validationChatSuggestedName && customNameInput.trim()) {
+                    setValidationChatSuggestedName(customNameInput.trim()); // Or the custom typed name
+                    showAlert("Switched to Validation Chat. Discussing your custom entered name.");
+                } else if (!validationChatSuggestedName) {
+                    // If no name context, prevent switching and alert
+                    showAlert("Please confirm a name or enter one in the custom validation section to start a validation chat.");
+                    return prevMode; // Stay in general chat if no name context
+                }
+                setChatInput(`Tell me more about "${validationChatSuggestedName}".`);
+                setChatHistory(prev => [...prev, { message: `Switched to Validation Chat for "${validationChatSuggestedName}".`, sender: 'system' }]);
             } else {
-                // If not confirmed, add it.
-                // Use the original_llm_rationale if available, otherwise fallback to validation_rationale.
-                // This ensures the LLM's more elaborate rationale is used for initial suggestions.
-                updatedConfirmed = [...prevConfirmed, {
-                    name: suggestion.name,
-                    rationale: suggestion.original_llm_rationale || suggestion.validation_rationale, 
-                    expression_number: suggestion.expression_number
-                }];
+                // If switching to general chat, clear validation context
+                setValidationChatSuggestedName('');
+                setChatInput('');
+                setChatHistory(prev => [...prev, { message: "Switched to General Numerology Chat.", sender: 'system' }]);
             }
-            // IMPORTANT: Clear report preview if confirmed names change, forcing a refresh
-            setReportPreviewContent(''); 
-            return updatedConfirmed;
+            return newMode;
         });
     };
 
-    // --- New Step: Generate Report Preview (Markdown content) ---
-    const handleGenerateReportPreview = async () => {
-        setIsLoading(true);
-        setError('');
-        try {
-            if (!clientProfile || confirmedSuggestionsForReport.length === 0) {
-                setError("Please load client profile and confirm at least one valid name suggestion for the report to generate preview.");
-                setIsLoading(false);
-                return;
-            }
-
-            const reportRequestData = {
-                ...clientProfile,
-                confirmed_suggestions: confirmedSuggestionsForReport
-            };
-
-            // Call the new backend endpoint that returns Markdown
-            const response = await axios.post(`${API_BASE_URL}/generate_text_report`, reportRequestData);
-            setReportPreviewContent(response.data.report_content);
-
-        } catch (err) {
-            console.error("Error generating report preview:", err);
-            setError('Failed to generate report preview: ' + (err.response?.data?.error || err.message));
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-
-    // --- Step 4 & 5: Generate Final Report (LLM part) & Download PDF ---
-    const handleGenerateAndDownloadReport = async () => {
-        setIsLoading(true);
-        setError('');
-        try {
-            if (!clientProfile || confirmedSuggestionsForReport.length === 0) {
-                setError("Please load client profile and confirm at least one valid name suggestion for the report.");
-                setIsLoading(false);
-                return;
-            }
-
-            // You must have generated the preview first before generating PDF
-            if (!reportPreviewContent) {
-                setError("Please generate the report preview first before downloading the PDF.");
-                setIsLoading(false);
-                return;
-            }
-
-            const pdfReportData = {
-                ...clientProfile,
-                confirmed_suggestions: confirmedSuggestionsForReport
-            };
-
-            const pdfResponse = await axios.post(`${API_BASE_URL}/generate_pdf_report`, pdfReportData, {
-                responseType: 'blob' // Important: tells axios to expect binary data (PDF)
-            });
-
-            // Trigger download of the PDF file
-            const url = window.URL.createObjectURL(new Blob([pdfResponse.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            // Create a user-friendly filename
-            link.setAttribute('download', `Numerology_Report_${clientProfile.full_name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
-            document.body.appendChild(link);
-            link.click(); // Programmatically click the link to start download
-            link.remove(); // Clean up the temporary link
-            window.URL.revokeObjectURL(url); // Release the object URL
-
-        } catch (err) {
-            console.error("Error generating/downloading report:", err);
-            setError('Failed to generate or download report: ' + (err.response?.data?.error || err.message));
-        } finally {
-            setIsLoading(false); // End loading
-        }
-    };
-
-    // --- Rendered JSX ---
     return (
-        <div className="container">
-            <h1 className="header-style">Sheelaa's Numerology Name Corrector</h1>
+        <div className="app-container">
+            <div className="main-content-wrapper">
 
-            {/* Error Display */}
-            {error && (
-                <div className="error-message" role="alert">
-                    <strong>Error!</strong> {error}
-                </div>
-            )}
-            {/* Loading Indicator */}
-            {isLoading && (
-                <div className="loading-indicator">
-                    <div className="spinner"></div>
-                    <span>Loading...</span>
-                </div>
-            )}
+                {/* Left Column: Input Form & Profile Display */}
+                <div className="column">
+                    <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Sheelaa's Numerology Portal</h1>
 
-            {!clientProfile ? (
-                // Initial Profile Input Form
-                <InitialProfileForm onSubmit={handleGetInitialSuggestions} isLoading={isLoading} />
-            ) : (
-                <>
-                    {/* Display Client Profile Summary */}
-                    <div className="card">
-                        <h2 className="card-title">Your Profile: {clientProfile.full_name}</h2>
-                        <p><strong>Birth Date:</strong> {clientProfile.birth_date}</p>
-                        {clientProfile.birth_time && <p><strong>Birth Time:</strong> {clientProfile.birth_time}</p>}
-                        {clientProfile.birth_place && <p><strong>Birth Place:</strong> {clientProfile.birth_place}</p>}
-                        <p><strong>Desired Outcome:</strong> {clientProfile.desired_outcome}</p>
+                    {/* Input Form */}
+                    <div className="section-card input-form-card">
+                        <h2>Client Information</h2>
+                        <input type="text" placeholder="Full Name (e.g., Rama Narayanan V)" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                        <input type="date" className="input-field" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+                        <input type="time" placeholder="Birth Time (HH:MM, optional)" className="input-field" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
+                        <input type="text" placeholder="Birth Place (optional)" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
+                        <input type="text" placeholder="Desired Outcome (e.g., Success, Love, Career)" className="input-field" value={desiredOutcome} onChange={(e) => setDesiredOutcome(e.target.value)} />
+                        <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
                     </div>
 
-                    {/* Initial Suggestions and Interactive Validation Area */}
-                    <div className="card">
-                        <h3 className="card-title">Initial Name Suggestions & Validation</h3>
-                        <p className="card-description">Review and validate the suggested names. You can edit them or add your own for validation. Select the ones you want to include in the final report.</p>
-                        
-                        {validatedNames.length === 0 && !isLoading && (
-                            <p className="no-suggestions-message">No suggestions generated yet. Please ensure your profile is complete.</p>
-                        )}
-
-                        {validatedNames.map((s, index) => (
-                            <div key={index} className="suggestion-card">
-                                <div className="suggestion-input-group">
-                                    <input
-                                        type="text"
-                                        value={s.name}
-                                        onChange={(e) => {
-                                            const newValidatedNames = [...validatedNames];
-                                            newValidatedNames[index].name = e.target.value;
-                                            newValidatedNames[index].is_valid = null; // Reset validation status
-                                            newValidatedNames[index].validation_rationale = ''; // Clear rationale
-                                            setValidatedNames(newValidatedNames);
-                                        }}
-                                        className="text-input"
-                                    />
-                                    <button
-                                        onClick={() => handleValidateName(s.name, index)}
-                                        className="validate-button"
-                                        disabled={isLoading}
-                                    >
-                                        Validate
-                                    </button>
-                                </div>
-                                <p className="expression-number-text">
-                                    <strong>Expression Number:</strong> {s.expression_number || 'N/A'}
-                                </p>
-                                {s.is_valid !== null && ( // Only show validation status if it's been run
-                                    <p className={`validation-status ${s.is_valid ? 'status-yes' : 'status-no'}`}>
-                                        Validation:{' '}
-                                        <span>
-                                            {s.is_valid ? 'YES' : 'NO'}
-                                        </span>
-                                    </p>
-                                )}
-                                {s.validation_rationale && ( // Only show rationale if available
-                                    <p className="validation-rationale">
-                                        {s.validation_rationale}
-                                    </p>
-                                )}
-                                <div className="checkbox-container">
-                                    <label className="checkbox-label">
-                                        <input
-                                            type="checkbox"
-                                            className="checkbox-input"
-                                            checked={confirmedSuggestionsForReport.some(cs => cs.name === s.name && cs.expression_number === s.expression_number)}
-                                            onChange={() => handleToggleConfirmSuggestion(index)}
-                                            disabled={s.is_valid === false || s.is_valid === null} // Disable if validation is NO or not yet run
-                                        />
-                                        <span className="checkbox-text">Confirm for Final Report</span>
-                                    </label>
-                                    {(s.is_valid === false || s.is_valid === null) && (
-                                        <span className="checkbox-disabled-note">
-                                            {s.is_valid === false ? '(Cannot confirm invalid names)' : '(Validate first to confirm)'}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-
-                        {/* Add Custom Name Input */}
-                        <div className="custom-name-input-container">
-                            <h4 className="custom-name-title">Add Your Own Name to Validate</h4>
-                            <div className="custom-name-input-group">
-                                <input
-                                    type="text"
-                                    placeholder="Enter a name to test..."
-                                    value={customNameInput}
-                                    onChange={(e) => setCustomNameInput(e.target.value)}
-                                    className="text-input"
-                                />
-                                <button
-                                    onClick={handleAddCustomName}
-                                    className="add-custom-button"
-                                    disabled={isLoading || !customNameInput.trim()} // Disable if loading or input is empty
-                                >
-                                    Add & Validate Custom Name
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Confirmed Names Summary and Generate Report Preview Button */}
-                    <div className="card">
-                        <h3 className="card-title">Confirmed Names for Report ({confirmedSuggestionsForReport.length})</h3>
-                        {confirmedSuggestionsForReport.length === 0 ? (
-                            <p className="no-suggestions-message">No names confirmed yet. Select names above to include them in the final report.</p>
-                        ) : (
-                            <ul className="confirmed-names-list">
-                                {confirmedSuggestionsForReport.map((s, idx) => (
-                                    <li key={idx}>
-                                        <strong>{s.name}</strong> (Expression: {s.expression_number})
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        <button
-                            onClick={handleGenerateReportPreview}
-                            className="preview-button"
-                            disabled={isLoading || confirmedSuggestionsForReport.length === 0}
-                        >
-                            {isLoading && !reportPreviewContent ? "Generating Preview..." : "Generate Report Preview"}
-                        </button>
-                    </div>
-
-                    {/* Full Report Preview Area - NOW ACTIVE */}
-                    {reportPreviewContent && (
-                        <div className="report-preview-container">
-                            <h2 className="report-preview-title">Full Numerology Report Preview</h2>
-                            {/* The Markdown component will render the HTML based on the Markdown string */}
-                            <div className="markdown-content">
-                                <Markdown>{reportPreviewContent}</Markdown>
+                    {/* Profile Display */}
+                    {clientProfile && (
+                        <div className="section-card profile-display-card">
+                            <h2>Client Numerology Profile</h2>
+                            <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
                             </div>
                         </div>
                     )}
 
-                    {/* Generate PDF Report Button */}
-                    <div className="card">
-                        <button
-                            onClick={handleGenerateAndDownloadReport}
-                            className="primary-button"
-                            // Disable if loading, no names confirmed, OR no preview generated yet
-                            disabled={isLoading || confirmedSuggestionsForReport.length === 0 || !reportPreviewContent} 
-                        >
-                            {isLoading ? "Generating PDF..." : "Generate & Download Final PDF Report"}
-                        </button>
+                    {/* Custom Name Validation */}
+                    {clientProfile && (
+                        <div className="section-card custom-validation-card">
+                            <h2>Validate Custom Name</h2>
+                            <input
+                                type="text"
+                                placeholder="Enter a name to validate..."
+                                className="input-field"
+                                value={customNameInput}
+                                onChange={(e) => setCustomNameInput(e.target.value)}
+                            />
+                            {liveValidationOutput && (
+                                <div className="live-validation-output section-card" style={{backgroundColor: '#ffffff', border: '1px solid #e5e7eb', boxShadow: 'none'}}>
+                                    <p className="font-bold">Live Calculated Values:</p>
+                                    <p><b>Name:</b> {liveValidationOutput.name}</p>
+                                    <p><b>Expression Number:</b> {liveValidationOutput.expression_number}</p>
+                                    <p><b>Birth Day Number:</b> {liveValidationOutput.birth_day_number}</p>
+                                    <p><b>Life Path Number:</b> {liveValidationOutput.life_path_number}</p>
+                                    <p><b>Soul Urge Number:</b> {liveValidationOutput.soul_urge_number}</p>
+                                    <p><b>Personality Number:</b> {liveValidationOutput.personality_number}</p>
+                                    <p><b>Lo Shu Grid:</b> {JSON.stringify(liveValidationOutput.lo_shu_grid_counts)}</p>
+                                    <p><b>Missing Lo Shu:</b> {liveValidationOutput.lo_shu_missing_numbers.join(', ') || 'None'}</p>
+                                    {backendValidationResult && (
+                                        <>
+                                            <hr className="my-2" />
+                                            <p><b>Backend Validation:</b> <span className={backendValidationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{backendValidationResult.is_valid ? 'VALID' : 'INVALID'}</span></p>
+                                            <p><b>Rationale:</b> {backendValidationResult.rationale}</p>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Right Column: Suggestions, Reports, Chat */}
+                <div className="column">
+                    {/* Initial Suggestions Display */}
+                    {suggestions.length > 0 && (
+                        <div className="section-card suggestions-display-card">
+                            <h2>Suggested Name Variations</h2>
+                            <p className="text-sm text-gray-700 mb-3">
+                                {suggestions[0]?.reasoning || 'Overall reasoning for suggestions.'}
+                            </p>
+                            <div className="suggestions-list-content">
+                                {suggestions.map((s, index) => (
+                                    <div key={index} className="suggestions-list-item">
+                                        <h3>{s.name} (Expression: {s.expression_number})</h3>
+                                        <p>{s.rationale}</p>
+                                        <button
+                                            onClick={() => handleConfirmSuggestion(s)}
+                                            className={`primary-btn mt-3 ${confirmedSuggestions.some(cs => cs.name === s.name) ? 'disabled-btn' : ''}`}
+                                            disabled={confirmedSuggestions.some(cs => cs.name === s.name)}
+                                        >
+                                            {confirmedSuggestions.some(cs => cs.name === s.name) ? 'Confirmed!' : 'Confirm This Name'}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Report Generation */}
+                    {clientProfile && (
+                        <div className="section-card report-generation-card">
+                            <h2>Generate Reports</h2>
+                            <div className="text-sm text-gray-700 mb-3">
+                                Confirmed Names for Report: {confirmedSuggestions.map(s => s.name).join(', ') || 'None'}
+                            </div>
+                            <button onClick={generateTextReport} className="secondary-btn mb-2">Generate Text Report (Preview)</button>
+                            <button onClick={generatePdfReport} className="secondary-btn">Download Full Report (PDF)</button>
+                            {reportPreviewContent && (
+                                <div className="report-preview-area" dangerouslySetInnerHTML={{ __html: marked.parse(reportPreviewContent) }}>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Chat Interface */}
+                    {clientProfile && (
+                        <div className="section-card chat-interface-card">
+                            <h2>Numerology Chat Assistant</h2>
+                            <div ref={chatMessagesRef} className="chat-messages">
+                                {chatHistory.map((msg, index) => (
+                                    <div key={index} className={`chat-message ${msg.sender}`}>
+                                        {msg.message}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="chat-input-wrapper">
+                                <input
+                                    type="text"
+                                    placeholder={isValidationChatMode ? `Ask about "${validationChatSuggestedName || 'a selected name'}"...` : "Ask a general numerology question..."}
+                                    className="input-field"
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    onKeyPress={(e) => { if (e.key === 'Enter') sendChatMessage(); }}
+                                />
+                                <button onClick={sendChatMessage} className="primary-btn" style={{width: 'auto', flexShrink: 0}}>Send</button>
+                            </div>
+                            <div style={{marginTop: '8px'}}>
+                                <button onClick={toggleChatMode} className="secondary-btn">
+                                    {isValidationChatMode ? 'Switch to General Chat' : 'Switch to Validation Chat'}
+                                </button>
+                                {isValidationChatMode && !validationChatSuggestedName && (
+                                    <p className="text-red-500 text-sm mt-1">Please confirm a name or enter one in the custom validation section to use validation chat.</p>
+                                )}
+                                {isValidationChatMode && validationChatSuggestedName && (
+                                    <p className="text-green-600 text-sm mt-1">Validation Chat active for: <b>{validationChatSuggestedName}</b></p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Loading Overlay */}
+            {isLoading && (
+                <div className="loading-overlay">
+                    <div className="loader"></div>
+                    <p>Loading...</p>
+                </div>
+            )}
+
+            {/* Custom Modal for Alerts */}
+            {modal.isOpen && (
+                <div className="custom-modal">
+                    <div className="modal-content">
+                        <p className="modal-message">{modal.message}</p>
+                        <button onClick={closeModal} className="primary-btn">OK</button>
                     </div>
-                </>
+                </div>
             )}
         </div>
     );
 }
-
-// Separate Component for Initial Profile Input Form
-const InitialProfileForm = ({ onSubmit, isLoading }) => {
-    const [formData, setFormData] = useState({
-        full_name: '',
-        birth_date: '',
-        birth_time: '',
-        birth_place: '',
-        desired_outcome: ''
-    });
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSubmit(formData);
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="form-card">
-            <h2 className="form-title">Enter Client Profile</h2>
-            <div className="form-group">
-                <label htmlFor="full_name" className="form-label">Full Name:</label>
-                <input
-                    type="text"
-                    name="full_name"
-                    id="full_name"
-                    placeholder="Client's Full Name"
-                    value={formData.full_name}
-                    onChange={handleChange}
-                    required
-                    className="text-input"
-                />
-            </div>
-            <div className="form-group">
-                <label htmlFor="birth_date" className="form-label">Birth Date:</label>
-                <input
-                    type="date"
-                    name="birth_date"
-                    id="birth_date"
-                    value={formData.birth_date}
-                    onChange={handleChange}
-                    required
-                    className="text-input"
-                />
-            </div>
-            <div className="form-group">
-                <label htmlFor="birth_time" className="form-label">Birth Time (HH:MM - Optional):</label>
-                <input
-                    type="time"
-                    name="birth_time"
-                    id="birth_time"
-                    placeholder="e.g., 14:30"
-                    value={formData.birth_time}
-                    onChange={handleChange}
-                    className="text-input"
-                />
-            </div>
-            <div className="form-group">
-                <label htmlFor="birth_place" className="form-label">Birth Place (Optional):</label>
-                <input
-                    type="text"
-                    name="birth_place"
-                    id="birth_place"
-                    placeholder="City, Country"
-                    value={formData.birth_place}
-                    onChange={handleChange}
-                    className="text-input"
-                />
-            </div>
-            <div className="form-group">
-                <label htmlFor="desired_outcome" className="form-label">Desired Outcome (e.g., success, love, career growth):</label>
-                <textarea
-                    name="desired_outcome"
-                    id="desired_outcome"
-                    placeholder="What is the client's primary desired outcome?"
-                    value={formData.desired_outcome}
-                    onChange={handleChange}
-                    required
-                    rows="3"
-                    className="text-input"
-                ></textarea>
-            </div>
-            <button
-                type="submit"
-                className="primary-button"
-                disabled={isLoading}
-            >
-                {isLoading ? "Getting Suggestions..." : "Get Initial Name Suggestions"}
-            </button>
-        </form>
-    );
-};
 
 export default App;
