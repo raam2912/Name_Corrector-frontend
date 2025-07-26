@@ -12,6 +12,7 @@ body {
 
 #root, .app-container {
     min-height: 100vh; /* Ensure it takes full viewport height */
+    width: 100%; /* Ensure it takes full viewport width */
     display: flex;
     /* On smaller screens, align to start for better vertical flow */
     align-items: flex-start; 
@@ -26,9 +27,8 @@ body {
     padding: 30px; /* Slightly less padding for better mobile fit */
     border-radius: 15px; /* Rounded corners for the main card */
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
-    width: 100%;
+    width: 100%; /* Always take 100% of parent's width */
     /* Removed max-width to allow it to adapt to ANY screen size */
-    /* max-width: 1400px; */ /* This line is now commented out/removed */
     display: flex; /* Use flexbox for column layout */
     flex-direction: column; /* Default to column layout for small screens */
     gap: 30px; /* Space between columns/sections */
@@ -41,12 +41,14 @@ body {
         gap: 40px; /* More space between columns */
         padding: 40px; /* Restore generous padding for desktop */
         align-items: flex-start; /* Align columns to the top */
+        /* No max-width here, let it expand */
     }
 }
 
 /* Column Styles (Left and Right sections) */
 .column {
-    flex: 1; /* Each column takes equal available space */
+    flex: 1; /* Each column takes equal available space (flex-grow: 1, flex-shrink: 1, flex-basis: 0%) */
+    min-width: 0; /* Allow content to shrink within the column if needed */
     display: flex;
     flex-direction: column;
     gap: 25px; /* Space between cards within a column */
