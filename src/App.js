@@ -723,7 +723,7 @@ function App() {
                                 </div>
                             ))}
                         </div>
-                
+                    
 
                     {/* Report Generation */}
                     {clientProfile && (
@@ -777,7 +777,7 @@ function App() {
                         </div>
                     )}
                 </div>
-             )}</div>
+             )} </div>
 
             {/* Loading Overlay */}
             {isLoading && (
