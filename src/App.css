@@ -1,7 +1,7 @@
-/* General Body and Container Styles */
+/* General Body and Root Container Styles */
 body {
     font-family: 'Inter', sans-serif; /* Assuming Inter font is desired */
-    background-color: #f0f2f5; /* Softer light gray background */
+    background-color: #f0f2f5; /* Soft light gray background */
     margin: 0;
     padding: 0;
     line-height: 1.6;
@@ -10,90 +10,91 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.app-container {
-    min-height: 100vh;
+#root, .app-container {
+    min-height: 100vh; /* Ensure it takes full viewport height */
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    align-items: center; /* Vertically center content */
+    justify-content: center; /* Horizontally center content */
+    padding: 20px; /* Padding around the main content wrapper */
     box-sizing: border-box; /* Include padding in element's total width and height */
 }
 
+/* Main Content Wrapper (The big white card) */
 .main-content-wrapper {
     background-color: #ffffff;
-    padding: 40px; /* Increased padding for more breathing room */
-    border-radius: 15px; /* More rounded corners */
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Softer, deeper shadow */
+    padding: 40px; /* Generous padding inside the wrapper */
+    border-radius: 15px; /* Rounded corners for the main card */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
     width: 100%;
-    max-width: 1200px; /* Slightly wider max-width */
-    display: flex;
-    flex-direction: column;
-    gap: 30px; /* Consistent spacing between columns/sections */
+    max-width: 1200px; /* Max width for larger screens */
+    display: flex; /* Use flexbox for column layout */
+    flex-direction: column; /* Default to column layout for small screens */
+    gap: 30px; /* Space between columns/sections */
 }
 
-@media (min-width: 1024px) { /* lg breakpoint */
+@media (min-width: 1024px) { /* On large screens (lg breakpoint) */
     .main-content-wrapper {
-        flex-direction: row;
-        gap: 40px; /* Increased gap for larger screens */
+        flex-direction: row; /* Switch to row layout */
+        gap: 40px; /* More space between columns */
     }
 }
 
-/* Column Styles */
-.column {
-    flex: 1;
+/* Column Styles (Left and Right sections) */
+.content-column {
+    flex: 1; /* Each column takes equal available space */
     display: flex;
     flex-direction: column;
-    gap: 25px; /* Spacing between cards within a column */
+    gap: 25px; /* Space between cards within a column */
 }
 
-/* Section Card Styles */
+/* Section Card Styles (Individual colored boxes) */
 .section-card {
-    padding: 28px; /* More padding inside cards */
-    border-radius: 12px; /* Consistent rounded corners */
+    padding: 28px; /* Padding inside each card */
+    border-radius: 12px; /* Rounded corners for cards */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow for cards */
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transitions */
 }
 
 .section-card:hover {
-    transform: translateY(-3px); /* Slight lift on hover */
+    transform: translateY(-3px); /* Slight lift effect on hover */
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); /* Enhanced shadow on hover */
 }
 
 .section-card h2 {
-    font-size: 22px; /* Slightly larger headings */
+    font-size: 22px; /* Larger headings for sections */
     font-weight: 700; /* Bolder headings */
     margin-bottom: 18px;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.05); /* Subtle separator */
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05); /* Subtle separator line */
     padding-bottom: 10px;
-    color: #2c3e50; /* Darker, more professional heading color */
+    color: #2c3e50; /* Dark, professional heading color */
 }
 
-/* Specific Section Backgrounds (slightly refined colors for better contrast and harmony) */
-.input-form-card { background-color: #eaf6ff; /* Very light blue */ }
-.input-form-card h2 { color: #2196f3; /* Medium blue */ }
+/* Specific Section Backgrounds and Heading Colors */
+.input-form-card { background-color: #eaf6ff; } /* Light blue */
+.input-form-card h2 { color: #2196f3; } /* Medium blue */
 
-.profile-display-card { background-color: #e6ffee; /* Very light green */ }
-.profile-display-card h2 { color: #4caf50; /* Medium green */ }
+.profile-display-card { background-color: #e6ffee; } /* Light green */
+.profile-display-card h2 { color: #4caf50; } /* Medium green */
 
-.custom-validation-card { background-color: #fffbe6; /* Very light yellow */ }
-.custom-validation-card h2 { color: #ff9800; /* Medium orange */ }
+.custom-validation-card { background-color: #fffbe6; } /* Light yellow */
+.custom-validation-card h2 { color: #ff9800; } /* Medium orange */
 
-.suggestions-display-card { background-color: #f7e6ff; /* Very light purple */ }
-.suggestions-display-card h2 { color: #9c27b0; /* Medium purple */ }
+.suggestions-display-card { background-color: #f7e6ff; } /* Light purple */
+.suggestions-display-card h2 { color: #9c27b0; } /* Medium purple */
 
-.report-generation-card { background-color: #ffe6e6; /* Very light red */ }
-.report-generation-card h2 { color: #f44336; /* Medium red */ }
+.report-generation-card { background-color: #ffe6e6; } /* Light red */
+.report-generation-card h2 { color: #f44336; } /* Medium red */
 
-.chat-interface-card { background-color: #fcfcfc; /* Almost white */ }
-.chat-interface-card h2 { color: #607d8b; /* Medium gray-blue */ }
+.chat-interface-card { background-color: #fcfcfc; } /* Very light gray */
+.chat-interface-card h2 { color: #607d8b; } /* Medium gray-blue */
 
 /* Input Field Styles */
 .input-field {
     width: 100%;
-    padding: 14px 18px; /* More padding */
-    margin-bottom: 15px; /* Consistent margin */
+    padding: 14px 18px;
+    margin-bottom: 15px;
     border: 1px solid #ced4da; /* Soft gray border */
-    border-radius: 9px; /* More rounded */
+    border-radius: 9px;
     font-size: 16px;
     color: #495057;
     box-sizing: border-box;
@@ -102,38 +103,38 @@ body {
 
 .input-field:focus {
     outline: none;
-    border-color: #007bff; /* Primary blue focus */
-    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25); /* Glow effect */
+    border-color: #007bff; /* Primary blue focus color */
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25); /* Subtle glow effect */
 }
 
 /* Button Styles */
 .primary-btn, .secondary-btn {
     display: block;
     width: 100%;
-    padding: 14px 22px; /* More padding */
-    border-radius: 9px; /* More rounded */
-    font-size: 17px; /* Slightly larger font */
+    padding: 14px 22px;
+    border-radius: 9px;
+    font-size: 17px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     text-align: center;
-    border: none; /* Default to no border */
+    border: none;
 }
 
 .primary-btn {
     background-color: #007bff; /* Primary blue */
     color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Soft shadow */
 }
 
 .primary-btn:hover {
     background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+    transform: translateY(-2px); /* Slight lift */
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3); /* Enhanced shadow */
 }
 
 .primary-btn:disabled, .disabled-btn {
-    background-color: #a0a0a0; /* Gray for disabled */
+    background-color: #a0a0a0; /* Gray for disabled state */
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -152,55 +153,49 @@ body {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
 }
 
-/* Profile Details / Live Validation Output */
-.profile-details-content, .live-validation-output {
-    font-size: 15px; /* Slightly larger font for readability */
+/* Text Content Areas */
+.profile-details-content, .live-validation-output, .suggestions-list-content, .report-preview-area {
+    font-size: 15px;
     color: #495057;
     line-height: 1.6;
-    max-height: 450px; /* Increased height for more content */
-    overflow-y: auto;
-    padding-right: 10px; /* For scrollbar */
+    max-height: 450px; /* Consistent max height for scrollable areas */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding-right: 10px; /* Space for scrollbar */
     word-wrap: break-word; /* Ensure long text wraps */
 }
 
 .profile-details-content p, .live-validation-output p {
-    margin-bottom: 6px; /* Slightly more space between paragraphs */
+    margin-bottom: 6px;
 }
 
 .profile-details-content hr, .live-validation-output hr {
     margin: 12px 0;
     border: 0;
-    border-top: 1px dashed #e9ecef; /* Dashed separator for softer look */
+    border-top: 1px dashed #e9ecef; /* Dashed separator */
 }
 
 .profile-details-content b, .live-validation-output b {
     font-weight: 700;
 }
 
-/* Suggestions List */
-.suggestions-list-content {
-    max-height: 450px; /* Consistent height with profile display */
-    overflow-y: auto;
-    padding-right: 10px;
-}
-
+/* Suggestions List Specifics */
 .suggestions-list-item {
     background-color: #ffffff;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e0c2f7; /* Lighter purple border */
-    margin-bottom: 15px; /* Space between items */
+    border: 1px solid #e0c2f7;
+    margin-bottom: 15px;
 }
 
 .suggestions-list-item:last-child {
-    margin-bottom: 0; /* No margin after last item */
+    margin-bottom: 0;
 }
 
 .suggestions-list-item h3 {
     font-size: 19px;
     font-weight: 600;
-    color: #8a2be2; /* Medium purple */
+    color: #8a2be2;
     margin-bottom: 8px;
 }
 
@@ -210,41 +205,41 @@ body {
     margin-top: 5px;
 }
 
-/* Chat Interface */
+/* Chat Interface Specifics */
 .chat-messages {
-    height: 280px; /* Slightly taller chat window */
+    height: 280px;
     overflow-y: auto;
     padding: 15px;
     background-color: #ffffff;
     border-radius: 10px;
-    border: 1px solid #dee2e6; /* Soft gray border */
+    border: 1px solid #dee2e6;
     margin-bottom: 18px;
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Space between messages */
+    gap: 10px;
 }
 
 .chat-message {
     padding: 10px 15px;
     border-radius: 10px;
-    max-width: 85%; /* Slightly wider messages */
+    max-width: 85%;
     word-wrap: break-word;
 }
 
 .chat-message.user {
-    background-color: #d1e7fd; /* Light blue */
+    background-color: #d1e7fd; /* Light blue for user messages */
     align-self: flex-end;
     margin-left: auto;
 }
 
 .chat-message.ai {
-    background-color: #e9ecef; /* Lighter gray */
+    background-color: #e9ecef; /* Lighter gray for AI messages */
     align-self: flex-start;
     margin-right: auto;
 }
 
 .chat-message.system {
-    background-color: #f0f2f5; /* Even lighter gray for system messages */
+    background-color: #f0f2f5;
     color: #6c757d;
     font-style: italic;
     text-align: center;
@@ -254,15 +249,15 @@ body {
 
 .chat-input-wrapper {
     display: flex;
-    gap: 10px; /* Space between input and button */
+    gap: 10px;
 }
 
 .chat-input-wrapper .input-field {
     flex-grow: 1;
-    margin-bottom: 0; /* Override default margin */
+    margin-bottom: 0;
 }
 
-/* Report Preview Area */
+/* Report Preview Area Specifics (Markdown rendering) */
 .report-preview-area {
     margin-top: 20px;
     padding: 20px;
@@ -270,21 +265,20 @@ body {
     border-radius: 10px;
     border: 1px solid #e9ecef;
     overflow-y: auto;
-    max-height: 400px; /* Consistent height */
+    max-height: 400px;
     font-size: 15px;
     color: #333;
     line-height: 1.6;
 }
 
-/* Markdown specific styling for report preview (refined) */
-.report-preview-area h1 { font-size: 32px; font-weight: 700; margin-bottom: 20px; text-align: center; color: #2196f3; } /* Matches input form h2 */
-.report-preview-area h2 { font-size: 26px; font-weight: 700; margin-top: 30px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; color: #4caf50; } /* Matches profile h2 */
-.report-preview-area h3 { font-size: 22px; font-weight: 600; margin-top: 20px; margin-bottom: 10px; color: #ff9800; } /* Matches validation h2 */
+.report-preview-area h1 { font-size: 32px; font-weight: 700; margin-bottom: 20px; text-align: center; color: #2196f3; }
+.report-preview-area h2 { font-size: 26px; font-weight: 700; margin-top: 30px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; color: #4caf50; }
+.report-preview-area h3 { font-size: 22px; font-weight: 600; margin-top: 20px; margin-bottom: 10px; color: #ff9800; }
 .report-preview-area p { margin-bottom: 10px; }
 .report-preview-area ul { list-style-type: disc; margin-left: 30px; margin-bottom: 10px; }
 .report-preview-area ol { list-style-type: decimal; margin-left: 30px; margin-bottom: 10px; }
 .report-preview-area li { margin-bottom: 5px; }
-.report-preview-area b, .report-preview-area strong { font-weight: bold; color: #0056b3; } /* Stronger emphasis */
+.report-preview-area b, .report-preview-area strong { font-weight: bold; color: #0056b3; }
 .report-preview-area i, .report-preview-area em { font-style: italic; color: #555; }
 .report-preview-area hr { border: 0; border-top: 1px dashed #ddd; margin: 20px 0; }
 .report-preview-area pre {
@@ -312,21 +306,21 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6); /* Slightly darker overlay */
+    background-color: rgba(0, 0, 0, 0.6);
     display: flex;
-    flex-direction: column; /* Stack loader and text */
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 9999; /* Higher z-index */
+    z-index: 9999;
 }
 
 .loader {
-    border: 5px solid rgba(255, 255, 255, 0.3); /* Lighter border for loader */
-    border-top: 5px solid #007bff; /* Primary blue loader color */
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top: 5px solid #007bff;
     border-radius: 50%;
-    width: 60px; /* Larger loader */
+    width: 60px;
     height: 60px;
-    animation: spin 1.2s linear infinite; /* Faster spin */
+    animation: spin 1.2s linear infinite;
     margin-bottom: 20px;
 }
 
@@ -337,7 +331,7 @@ body {
 
 .loading-overlay p {
     color: #ffffff;
-    font-size: 20px; /* Larger text */
+    font-size: 20px;
     font-weight: 600;
 }
 
@@ -357,16 +351,16 @@ body {
 
 .modal-content {
     background-color: #ffffff;
-    padding: 30px; /* More padding */
+    padding: 30px;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    width: 350px; /* Slightly wider */
+    width: 350px;
     text-align: center;
 }
 
 .modal-message {
     color: #333;
-    font-size: 19px; /* Larger text */
+    font-size: 19px;
     margin-bottom: 20px;
 }
 
@@ -376,7 +370,22 @@ body {
 }
 
 /* Specific text colors for validation */
-.text-green-600 { color: #28a745; } /* Medium green */
-.text-red-600 { color: #dc3545; } /* Medium red */
-.text-gray-500 { color: #6c757d; } /* Medium gray */
+.text-green-600 { color: #28a745; }
+.text-red-600 { color: #dc3545; }
+.text-gray-500 { color: #6c757d; }
 
+/* Main title styling */
+.main-title {
+    font-size: 32px; /* Large font size */
+    font-weight: 700; /* Extra bold */
+    text-align: center;
+    color: #2c3e50; /* Dark heading color */
+    margin-bottom: 30px; /* Space below title */
+    padding-bottom: 10px;
+    border-bottom: 3px solid rgba(0, 0, 0, 0.1); /* Stronger separator */
+}
+
+/* Ensure consistent button styling across the app */
+.primary-btn, .secondary-btn {
+    margin-top: 15px; /* Add some space above buttons */
+}
