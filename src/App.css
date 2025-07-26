@@ -32,16 +32,17 @@ body {
     gap: 30px; /* Space between columns/sections */
 }
 
-@media (min-width: 1024px) { /* On large screens (lg breakpoint) */
+/* Laptop and larger screens */
+@media (min-width: 769px) { /* Changed from 1024px to 769px to target laptops and larger */
     .main-content-wrapper {
-        flex-direction: row; /* Switch to row layout */
+        flex-direction: row; /* Switch to row layout for two columns */
         gap: 40px; /* More space between columns */
         padding: 40px; /* Restore generous padding for desktop */
     }
 }
 
 /* Column Styles (Left and Right sections) */
-.column { /* Renamed from .content-column for consistency, but kept existing usage of .column */
+.column {
     flex: 1; /* Each column takes equal available space */
     display: flex;
     flex-direction: column;
@@ -236,7 +237,7 @@ body {
     margin-top: 5px;
 }
 
-/* NEW: Styles for editable name input within suggestions */
+/* Styles for editable name input within suggestions */
 .editable-name-input {
     margin-bottom: 5px; /* Reduce margin to fit better */
     font-size: 18px; /* Slightly larger font for prominence */
@@ -247,7 +248,7 @@ body {
     border-radius: 8px;
 }
 
-/* NEW: Styles for validation display within suggestions */
+/* Styles for validation display within suggestions */
 .validation-result-display {
     background-color: #f9f9f9; /* Light background for the validation box */
     border: 1px solid #e0e0e0;
@@ -459,7 +460,7 @@ body {
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 768px) { /* Adjust breakpoint for tablets/larger phones */
+@media (max-width: 768px) { /* Small screens (phones) */
     #root, .app-container {
         padding: 10px; /* Reduce overall padding */
         align-items: stretch; /* Stretch to fill width */
