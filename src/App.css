@@ -13,7 +13,8 @@ body {
 #root, .app-container {
     min-height: 100vh; /* Ensure it takes full viewport height */
     display: flex;
-    align-items: flex-start; /* Align items to the start for better mobile flow */
+    /* On smaller screens, align to start for better vertical flow */
+    align-items: flex-start; 
     justify-content: center; /* Horizontally center content */
     padding: 20px; /* Padding around the main content wrapper */
     box-sizing: border-box; /* Include padding in element's total width and height */
@@ -26,18 +27,20 @@ body {
     border-radius: 15px; /* Rounded corners for the main card */
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
     width: 100%;
-    max-width: 1200px; /* Max width for larger screens */
+    /* Removed max-width to allow it to adapt to ANY screen size */
+    /* max-width: 1400px; */ /* This line is now commented out/removed */
     display: flex; /* Use flexbox for column layout */
     flex-direction: column; /* Default to column layout for small screens */
     gap: 30px; /* Space between columns/sections */
 }
 
 /* Laptop and larger screens */
-@media (min-width: 769px) { /* Changed from 1024px to 769px to target laptops and larger */
+@media (min-width: 769px) { /* Two-column layout starts from typical laptop screens */
     .main-content-wrapper {
         flex-direction: row; /* Switch to row layout for two columns */
         gap: 40px; /* More space between columns */
         padding: 40px; /* Restore generous padding for desktop */
+        align-items: flex-start; /* Align columns to the top */
     }
 }
 
