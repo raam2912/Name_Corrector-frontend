@@ -1,24 +1,27 @@
 /* General Body and Root Container Styles */
+html, body, #root, .app-container {
+    height: 100%; /* Ensure full height for flexbox to work */
+    width: 100%; /* Ensure full width */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* Global box-sizing */
+}
+
 body {
     font-family: 'Inter', sans-serif; /* Assuming Inter font is desired */
     background-color: #f0f2f5; /* Soft light gray background */
-    margin: 0;
-    padding: 0;
     line-height: 1.6;
     color: #333;
     -webkit-font-smoothing: antialiased; /* Smoother fonts */
     -moz-osx-font-smoothing: grayscale;
 }
 
-#root, .app-container {
-    min-height: 100vh; /* Ensure it takes full viewport height */
-    width: 100%; /* Ensure it takes full viewport width */
+.app-container {
     display: flex;
     align-items: flex-start; /* Align content to the top */
     justify-content: center; /* Horizontally center the main content wrapper */
     padding: 20px; /* Padding around the main content wrapper */
-    box-sizing: border-box; /* Include padding in element's total width and height */
-    border: 5px dashed red; /* VERY OBVIOUS VISIBLE CHANGE: Added for testing, remove later if desired */
+    /* Removed temporary red dashed border */
 }
 
 /* Main Content Wrapper (The big white card) */
@@ -31,9 +34,8 @@ body {
     display: flex;
     flex-direction: column; /* Always a single column by default */
     gap: 30px; /* Space between sections/cards */
-
-    /* NEW: Max-width for laptop/desktop screens to create 'landscaped' feel */
     max-width: 1000px; /* Adjusted for a comfortable reading width on laptops */
+    /* Removed temporary lightcoral background */
 }
 
 @media (min-width: 769px) { /* Adjust padding for laptop and larger screens */
@@ -41,7 +43,6 @@ body {
         padding: 40px; /* More generous padding for larger screens */
         flex-direction: row; /* Arrange into columns on larger screens */
         gap: 40px; /* More space between columns */
-        background-color: lightcoral; /* VERY OBVIOUS VISIBLE CHANGE: Added for testing, remove later if desired */
     }
 }
 
@@ -472,7 +473,7 @@ body {
     font-size: 32px; /* Large font size */
     font-weight: 700; /* Extra bold */
     text-align: center;
-    color: #8B0000; /* VERY OBVIOUS VISIBLE CHANGE: Dark Red */
+    color: #2c3e50; /* Reverted to original dark professional heading color */
     margin-bottom: 30px; /* Space below title */
     padding-bottom: 10px;
     border-bottom: 3px solid rgba(0, 0, 0, 0.1); /* Stronger separator */
@@ -488,6 +489,7 @@ body {
     #root, .app-container {
         padding: 10px; /* Reduce overall padding */
         align-items: stretch; /* Stretch to fill width */
+        border: none; /* Removed border for mobile */
     }
 
     .main-content-wrapper {
