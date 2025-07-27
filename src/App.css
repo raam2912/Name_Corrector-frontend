@@ -4,7 +4,7 @@
 }
 
 html, body, #root, .app-container {
-    height: 100%; /* Important for flexbox to fill viewport */
+    height: 100%; /* Important for container to fill viewport */
     width: 100%;
     margin: 0;
     padding: 0;
@@ -20,7 +20,7 @@ body {
 }
 
 .app-container {
-    display: flex;
+    display: flex; /* Use flex to center the main-content-wrapper */
     align-items: flex-start; /* Align content to the top */
     justify-content: center; /* Horizontally center the main content wrapper */
     padding: 20px; /* Padding around the main content wrapper */
@@ -34,41 +34,41 @@ body {
     border-radius: 15px; /* Rounded corners for the main card */
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
     width: 100%; /* Always take 100% of parent's width (minus padding) */
-    display: flex; /* Make it a flex container */
+    display: flex; /* Default to flex column for mobile */
     flex-direction: column; /* Default to column on small screens */
     gap: 30px; /* Space between sections/cards */
     max-width: 1000px; /* Adjusted for a comfortable reading width on laptops */
 }
 
-@media (min-width: 769px) { /* Adjust padding for laptop and larger screens */
+@media (min-width: 769px) { /* Apply grid for laptop and larger screens */
     .main-content-wrapper {
         padding: 40px; /* More generous padding for larger screens */
-        flex-direction: row; /* Arrange into columns on larger screens */
-        gap: 40px; /* More space between columns */
+        display: grid; /* Use grid for two-column layout */
+        grid-template-columns: 1fr 1fr; /* Two equal columns */
+        gap: 40px; /* Space between columns */
+        /* Remove flex properties as grid will manage layout */
+        flex-direction: unset; 
     }
 }
 
 
-/* Column Styles (These will now effectively be just containers for sections) */
+/* Column Styles (These will now be grid items) */
 .column {
-    flex: 1; /* Allow columns to grow and shrink */
     display: flex; /* Make columns flex containers for their contents */
     flex-direction: column;
     gap: 25px; /* Space between cards within a column */
+    /* flex: 1; removed as grid handles sizing */
 }
 
-/* Specific background for the right column on desktop for debugging layout */
+/* No specific background or shadow for columns themselves, let cards handle it */
 @media (min-width: 769px) {
     .column:last-child { /* Targets the second column (right one) */
-        /* Removed background color for a cleaner look as per user feedback implied by "clean white background" */
-        /* background-color: #f8f9fa; */ 
-        border-radius: 12px; /* Maintain rounded corners */
-        padding: 0; /* Remove padding here, let inner cards handle it */
-        box-shadow: none; /* Remove inner shadow here */
+        padding: 0; /* No padding on the column itself */
+        box-shadow: none; /* No shadow on the column itself */
+        background-color: transparent; /* Ensure transparent background */
     }
     /* Ensure cards within the right column still have their styling */
     .column:last-child .section-card {
-        padding: 28px; /* Re-apply card padding */
         background-color: #ffffff; /* Ensure white background for cards */
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Re-apply card shadow */
     }
@@ -515,6 +515,9 @@ body {
         padding: 20px; /* Smaller padding inside the main card */
         gap: 20px; /* Reduce gap between sections */
         flex-direction: column; /* Ensure column layout on small screens */
+        /* Remove grid properties on mobile */
+        display: flex;
+        grid-template-columns: unset;
     }
 
     .column:last-child { /* Remove specific background for right column on mobile */

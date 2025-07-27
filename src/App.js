@@ -251,7 +251,7 @@ function App() {
             // CRITICAL FIX: Ensure profile_data is present and an object before setting clientProfile
             if (response.data.profile_data && typeof response.data.profile_data === 'object') {
                 setClientProfile(response.data.profile_data); 
-                console.log("Client Profile set:", response.data.profile_data);
+                console.log("Client Profile set successfully:", response.data.profile_data);
             } else {
                 console.error("Backend did not return valid profile_data in initial_suggestions response:", response.data.profile_data);
                 openModal("Failed to load client profile due to invalid data from backend. Please try again or contact support.");
@@ -267,7 +267,9 @@ function App() {
     }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading]);
 
     const handleValidateName = useCallback(async (nameToValidate, isCustom = false, suggestionIndex = null) => {
-        // CRITICAL FIX: Ensure clientProfile is NOT null before proceeding
+        // CRITICAL FIX: Use a ref or a direct check on the *current* clientProfile value
+        // The clientProfile state might not be immediately updated due to async nature.
+        // We ensure we have a valid profile before making the backend call.
         if (!clientProfile) {
             openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
             console.error("Validation attempted with null clientProfile. Aborting API call.");
@@ -422,7 +424,8 @@ function App() {
         });
 
         // Trigger backend validation for comprehensive rules
-        handleValidateName(name, true);
+        // Pass clientProfile explicitly here to ensure the latest value is used
+        handleValidateName(name, true, null); // custom validation doesn't need suggestion index
     }, [handleValidateName, setLiveValidationOutput, setBackendValidationResult]);
 
     // Debounced version of updateLiveValidationDisplayCore
@@ -684,7 +687,7 @@ function App() {
                                     )}
                                 </div>
                             )}
-                            <button onClick={() => handleValidateName(customNameInput, true)} className="primary-btn" disabled={!clientProfile}>Validate Custom Name</button>
+                            <button onClick={() => handleValidateName(customNameInput, true, null)} className="primary-btn" disabled={!clientProfile || !customNameInput.trim()}>Validate Custom Name</button>
                         </div>
                     )}
                 </div>
@@ -735,7 +738,7 @@ function App() {
                                                 <div className="button-group">
                                                     <button onClick={() => handleSaveEdit(index)} className="primary-btn small-btn">Save</button>
                                                     <button onClick={() => handleCancelEdit(index)} className="secondary-btn small-btn">Cancel</button>
-                                                    <button onClick={() => handleValidateName(s.currentName, false, index)} className="secondary-btn small-btn" disabled={!clientProfile}>Re-Validate</button>
+                                                    <button onClick={() => handleValidateName(s.currentName, false, index)} className="secondary-btn small-btn" disabled={!clientProfile || !s.currentName.trim()}>Re-Validate</button>
                                                 </div>
                                             </>
                                         ) : (
