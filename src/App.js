@@ -201,22 +201,39 @@ function App() {
     // --- Fullscreen Toggle Function ---
     const toggleTableFullscreen = useCallback(() => {
         setIsTableFullscreen(prev => {
-            // Toggle body class for visual effect on main content
-            if (!prev) {
-                document.body.classList.add('fullscreen-active');
-            } else {
-                document.body.classList.remove('fullscreen-active');
+            // Toggle 'fullscreen-active' class on the app-container for visual effect
+            const appContainer = document.querySelector('.app-container');
+            if (appContainer) {
+                if (!prev) {
+                    appContainer.classList.add('fullscreen-active');
+                } else {
+                    appContainer.classList.remove('fullscreen-active');
+                }
             }
             return !prev;
         });
     }, []);
 
-    // Clean up body class on component unmount
+    // Effect to handle Esc key to exit fullscreen
     useEffect(() => {
-        return () => {
-            document.body.classList.remove('fullscreen-active');
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape' && isTableFullscreen) {
+                toggleTableFullscreen();
+            }
         };
-    }, []);
+
+        document.addEventListener('keydown', handleKeyDown);
+
+        // Clean up event listener on component unmount or when fullscreen state changes
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            // Also ensure app-container class is removed if component unmounts while fullscreen
+            const appContainer = document.querySelector('.app-container');
+            if (appContainer) {
+                appContainer.classList.remove('fullscreen-active');
+            }
+        };
+    }, [isTableFullscreen, toggleTableFullscreen]);
 
 
     // --- formatProfileData Function ---
@@ -370,7 +387,7 @@ function App() {
                 birth_date: clientProfile.birth_date,
                 birth_time: clientProfile.birth_time,
                 birth_place: clientProfile.birth_place,
-                desired_outcome: clientProfile.desired_outcome,
+                desired_outcome: desiredOutcome,
                 confirmed_suggestions: confirmedSuggestions,
             }, {
                 responseType: 'blob', // Important for downloading files
@@ -392,7 +409,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, confirmedSuggestions, openModal, setReportPreviewContent, setIsLoading]);
+    }, [clientProfile, confirmedSuggestions, openModal, setReportPreviewContent, setIsLoading, desiredOutcome]);
 
     // --- Effects ---
     // Initialize editableSuggestions when suggestions from backend are received
@@ -570,7 +587,8 @@ function App() {
     };
 
     return (
-        <div className="app-container">
+        // Apply fullscreen-active class to app-container
+        <div className={`app-container ${isTableFullscreen ? 'fullscreen-active' : ''}`}>
             <div className="main-content-wrapper">
                 <h1 className="main-title">Sheelaa's Numerology Portal</h1>
 

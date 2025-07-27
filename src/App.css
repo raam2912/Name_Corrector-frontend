@@ -167,7 +167,21 @@ body::before {
   padding: var(--space-2xl);
   min-height: 100vh;
   position: relative;
+  /* Add transition for fullscreen effect */
+  transition: all 0.3s ease-in-out; 
 }
+
+/* ✦ When fullscreen is active, transform the main content */
+.app-container.fullscreen-active {
+    /* Scale down and blur the main content */
+    transform: scale(0.9) translateY(-50px); /* Adjust as needed */
+    opacity: 0.3;
+    filter: blur(5px);
+    pointer-events: none; /* Disable interaction with background content */
+    overflow: hidden; /* Prevent scrolling of the main content */
+    height: 100vh; /* Ensure it takes full viewport height */
+}
+
 
 /* ✦ ENHANCED MAIN CONTENT WRAPPER ✦ */
 .main-content-wrapper {
@@ -1121,28 +1135,28 @@ p,
 }
 
 /* ✦ FULLSCREEN TABLE MODE ✦ */
-.table-fullscreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    /* Changed background to a more translucent cosmic navy */
-    background: rgba(20, 24, 50, 0.9); /* cosmic-navy with 90% opacity */
-    backdrop-filter: blur(15px) saturate(120%); /* Slightly less blur for more visibility */
-    z-index: 100; /* Ensure it's on top of everything */
+.suggestions-display-card.table-fullscreen {
+    position: fixed; /* Position relative to the viewport */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the table */
+    width: 95vw; /* Take up most of the viewport width */
+    height: 95vh; /* Take up most of the viewport height */
+    background: var(--pure-white); /* Solid background for the table itself */
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: var(--radius-xl);
+    padding: var(--space-3xl); /* Maintain internal padding */
+    box-shadow: var(--shadow-large);
+    z-index: 1000; /* Extremely high z-index to ensure it's on top */
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: var(--space-xl); /* Add some padding around the fullscreen content */
-    border-radius: 0 !important; /* Remove border-radius in fullscreen */
-    box-shadow: none !important; /* Remove shadows in fullscreen */
-    overflow-y: auto; /* Allow scrolling if content overflows in fullscreen */
+    justify-content: flex-start; /* Align content to the top within fullscreen */
+    align-items: center; /* Center horizontally */
+    overflow-y: auto; /* Allow scrolling within the fullscreen table if content overflows */
     transition: all 0.3s ease-in-out; /* Smooth transition */
 }
 
-.table-fullscreen .table-header-controls {
+.suggestions-display-card.table-fullscreen .table-header-controls {
     width: 100%;
     max-width: 1000px; /* Match main content wrapper max-width */
     padding: var(--space-lg) var(--space-2xl);
@@ -1150,44 +1164,31 @@ p,
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     margin-bottom: var(--space-md);
     box-shadow: var(--shadow-medium);
+    color: var(--text-white); /* Ensure header text is visible */
 }
 
-.table-fullscreen .table-responsive {
+.suggestions-display-card.table-fullscreen .table-responsive {
     width: 100%;
     max-width: 1000px; /* Match main content wrapper max-width */
-    height: calc(100vh - 180px); /* Adjust height to fit screen, considering header/footer */
+    height: calc(100% - 180px); /* Adjust height to fit screen, considering header/footer */
     overflow-y: auto; /* Enable scrolling for table content */
     margin-bottom: var(--space-md);
     box-shadow: var(--shadow-large);
 }
 
-.table-fullscreen .name-suggestion-table {
+.suggestions-display-card.table-fullscreen .name-suggestion-table {
     width: 100%; /* Ensure table fills its container */
 }
 
-.table-fullscreen .pagination-controls {
+.suggestions-display-card.table-fullscreen .pagination-controls {
     width: 100%;
     max-width: 1000px; /* Match main content wrapper max-width */
     margin-top: var(--space-md);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     background: var(--cosmic-navy); /* Darker pagination background for fullscreen */
     box-shadow: var(--shadow-medium);
+    color: var(--text-white); /* Ensure pagination text is visible */
 }
-
-/* Ensure other elements are hidden or styled appropriately in fullscreen mode */
-/* We will target the main-content-wrapper directly to make it translucent */
-body.fullscreen-active .main-content-wrapper {
-    opacity: 0.3; /* Make the main content translucent */
-    pointer-events: none; /* Disable interactions with background content */
-    filter: blur(5px); /* Add a slight blur to the background content */
-    transition: opacity 0.3s ease, filter 0.3s ease;
-}
-
-/* Add a class to the body when fullscreen is active */
-body.fullscreen-active {
-    overflow: hidden; /* Prevent scrolling on the main page when fullscreen is active */
-}
-
 
 /* ✦ MODAL & LOADING ✦ */
 .custom-modal, .loading-overlay {
