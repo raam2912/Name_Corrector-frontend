@@ -916,7 +916,7 @@ p,
 .pseudo-table-header {
   display: grid;
   /* Define column widths for wide screens */
-  grid-template-columns: 40% 15% 15% 10% 20%; /* Adjusted widths */
+  grid-template-columns: 45% 15% 15% 10% 15%; /* Adjusted widths for more name space */
   background-color: var(--aurora-violet);
   color: var(--pure-white);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -954,7 +954,7 @@ p,
 .pseudo-table-row {
   display: grid;
   /* Inherit column widths from header for alignment */
-  grid-template-columns: 40% 15% 15% 10% 20%; /* Adjusted widths */
+  grid-template-columns: 45% 15% 15% 10% 15%; /* Adjusted widths for more name space */
   border-bottom: 1px solid var(--mist-white);
   background-color: var(--pure-white);
   transition: background-color var(--transition-fast);
@@ -1027,6 +1027,9 @@ p,
 .pseudo-table-input.full-name-input {
   margin-bottom: var(--space-md); /* Space below the full name input */
   font-weight: 600; /* Make it slightly bolder */
+  white-space: normal; /* Allow full name to wrap */
+  overflow: visible; /* Ensure full text is visible */
+  text-overflow: unset;
 }
 
 /* First name editing section */

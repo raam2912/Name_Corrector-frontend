@@ -682,7 +682,7 @@ function App() {
                         </p>
                         <div className="pseudo-table-responsive">
                             <div className="pseudo-table-header">
-                                <div className="pseudo-table-cell header">Full Suggested Name</div>
+                                <div className="pseudo-table-cell header">Suggested Name</div>
                                 <div className="pseudo-table-cell header">First Name Value</div>
                                 <div className="pseudo-table-cell header">Expression Number</div>
                                 <div className="pseudo-table-cell header">Valid</div>
@@ -692,7 +692,7 @@ function App() {
                                 {paginatedSuggestions.map((s) => (
                                     <div key={s.id} className="pseudo-table-row">
                                         <div className="pseudo-table-cell name-editing-cell">
-                                            <span className="cell-label">Full Suggested Name:</span>
+                                            <span className="cell-label">Suggested Name:</span>
                                             <input
                                                 type="text"
                                                 value={s.currentName}
@@ -701,7 +701,7 @@ function App() {
                                                 aria-label={`Edit full name for ${s.originalName}`}
                                             />
                                             <div className="first-name-edit-section">
-                                                <span className="cell-label">Edit First Name:</span>
+                                                <span className="cell-label">First Name:</span>
                                                 <input
                                                     type="text"
                                                     value={s.currentFirstName}
