@@ -1053,7 +1053,8 @@ p,
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 2px solid var(--celestial-light); /* Stronger border below header */
-  white-space: nowrap; /* Prevent text wrapping in headers */
+  /* Remove white-space: nowrap; from default table headers */
+  /* This allows wrapping for the default view, only enforce nowrap in fullscreen */
 }
 
 .name-suggestion-table td {
@@ -1066,7 +1067,7 @@ p,
   background-color: var(--pure-white); /* Default cell background */
   color: var(--text-primary); /* Changed to text-primary for better contrast */
   transition: background-color var(--transition-fast);
-  white-space: nowrap; /* Prevent text wrapping in cells */
+  /* Remove white-space: nowrap; from default table cells */
 }
 
 .name-suggestion-table tbody tr:nth-of-type(even) td {
@@ -1143,35 +1144,35 @@ p,
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%); /* Center the table */
-    width: 95vw; /* Take up most of the viewport width */
-    height: 95vh; /* Take up most of the viewport height */
+    width: 98vw; /* Slightly wider to give more space */
+    height: 98vh; /* Slightly taller */
     background: var(--pure-white); /* Solid background for the table itself */
     border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: var(--radius-xl);
-    padding: var(--space-3xl); /* Maintain internal padding */
+    padding: var(--space-2xl); /* Reduced padding to give more table space */
     box-shadow: var(--shadow-large);
     z-index: 1000; /* Extremely high z-index to ensure it's on top */
     display: flex;
     flex-direction: column;
     justify-content: flex-start; /* Align content to the top within fullscreen */
     align-items: center; /* Center horizontally */
-    overflow-y: auto; /* Allow scrolling within the fullscreen table if content overflows */
+    overflow-y: hidden; /* Prevent scrolling of the card itself, table will scroll */
     transition: all 0.3s ease-in-out; /* Smooth transition */
 }
 
 /* Header and controls within the fullscreen table */
 .suggestions-display-card.table-fullscreen .table-header-controls {
     width: 100%;
-    max-width: 1000px; /* Constrain header width */
-    padding: var(--space-lg) var(--space-2xl);
+    max-width: 1200px; /* Increased max-width for header */
+    padding: var(--space-lg) var(--space-xl); /* Adjusted padding */
     background: var(--cosmic-navy); /* Darker header background for fullscreen */
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     margin-bottom: var(--space-md);
     box-shadow: var(--shadow-medium);
     color: var(--text-white); /* Ensure header text is visible */
-    display: flex; /* Ensure flex behavior for title and button */
-    justify-content: space-between; /* Space between title and button */
-    align-items: center; /* Vertically align */
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
 }
 
 /* "Exit Fullscreen" button specific styles for visibility */
@@ -1182,6 +1183,8 @@ p,
     box-shadow: var(--shadow-soft);
     font-weight: 700;
     padding: var(--space-sm) var(--space-lg); /* Smaller padding for button */
+    font-size: var(--text-sm); /* Ensure readable font size */
+    flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 .suggestions-display-card.table-fullscreen .table-header-controls .secondary-btn:hover {
@@ -1194,11 +1197,12 @@ p,
 /* Table responsive container within fullscreen */
 .suggestions-display-card.table-fullscreen .table-responsive {
     width: 100%;
-    max-width: 1000px; /* Constrain table width */
-    height: calc(100% - 180px); /* Adjust height to fit screen, considering header/pagination */
+    max-width: 1200px; /* Increased max-width for table */
+    height: calc(100% - 150px); /* Adjusted height, reduced constant for more space */
     overflow-y: auto; /* Enable scrolling for table content */
     margin-bottom: var(--space-md);
     box-shadow: var(--shadow-large);
+    border-radius: var(--radius-lg); /* Ensure consistent border-radius */
 }
 
 /* Actual table within fullscreen */
@@ -1207,44 +1211,51 @@ p,
     table-layout: fixed; /* Fix table layout to respect column widths */
 }
 
-/* Table headers within fullscreen - specific widths */
+/* Table headers within fullscreen - specific widths and styles */
 .suggestions-display-card.table-fullscreen .name-suggestion-table th {
-    padding: var(--space-lg) var(--space-md); /* Adjust padding for better fit */
+    padding: var(--space-md) var(--space-sm); /* Reduced padding for more content space */
     font-size: var(--text-sm); /* Keep font size consistent */
     white-space: nowrap; /* Prevent wrapping */
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Add ellipsis for long text */
+    vertical-align: top; /* Align header text to top if it wraps */
+    line-height: 1.3; /* Allow slight wrapping if necessary */
+    min-width: 80px; /* Minimum width for small columns */
 }
 
-/* Table data cells within fullscreen - specific widths */
+/* Table data cells within fullscreen - specific widths and styles */
 .suggestions-display-card.table-fullscreen .name-suggestion-table td {
-    padding: var(--space-lg) var(--space-md); /* Adjust padding for better fit */
-    font-size: var(--text-base); /* Keep font size consistent */
-    white-space: nowrap; /* Prevent wrapping */
+    padding: var(--space-md) var(--space-sm); /* Reduced padding for more content space */
+    font-size: var(--text-sm); /* Slightly smaller font for better fit */
+    white-space: normal; /* Allow text to wrap within cell in fullscreen */
+    word-wrap: break-word; /* Ensure long words break */
+    vertical-align: top; /* Align content to top */
+    line-height: 1.4; /* Improve readability of wrapped text */
+    max-width: 0; /* Needed for text-overflow to work with table-layout: fixed */
     overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Add ellipsis for long text */
+    text-overflow: ellipsis; /* Add ellipsis for truly long content */
 }
 
 /* Specific column widths for better layout in fullscreen */
 .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(1),
 .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(1) {
-    width: 35%; /* Name column */
+    width: 38%; /* Name column - increased width */
 }
 .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(2),
 .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(2) {
-    width: 15%; /* FNV column */
+    width: 14%; /* FNV column */
 }
 .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(3),
 .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(3) {
-    width: 15%; /* EN column */
+    width: 14%; /* EN column */
 }
 .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(4),
 .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(4) {
-    width: 10%; /* Valid column */
+    width: 9%; /* Valid column - slightly reduced */
 }
 .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(5),
 .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(5) {
-    width: 25%; /* Actions column */
+    width: 25%; /* Actions column - adjusted */
 }
 
 
@@ -1258,17 +1269,21 @@ p,
 .suggestions-display-card.table-fullscreen .actions-cell {
     gap: var(--space-sm); /* Reduce gap between buttons in fullscreen */
     flex-wrap: nowrap; /* Prevent wrapping of buttons */
+    justify-content: space-around; /* Distribute space */
 }
 .suggestions-display-card.table-fullscreen .actions-cell .small-btn {
-    padding: var(--space-xs) var(--space-sm); /* Even smaller buttons in fullscreen */
+    padding: var(--space-xs) var(--space-xs); /* Even smaller buttons in fullscreen */
     font-size: var(--text-xs); /* Smaller font for buttons */
+    min-width: 60px; /* Ensure minimum width for buttons */
 }
-
+.suggestions-display-card.table-fullscreen .actions-cell .primary-btn {
+    background: var(--aurora-violet); /* Darker primary button for contrast */
+}
 
 /* Pagination controls within fullscreen */
 .suggestions-display-card.table-fullscreen .pagination-controls {
     width: 100%;
-    max-width: 1000px; /* Constrain pagination width */
+    max-width: 1200px; /* Increased max-width for pagination */
     margin-top: var(--space-md);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     background: var(--cosmic-navy); /* Darker pagination background for fullscreen */
@@ -1456,6 +1471,37 @@ button:disabled, .primary-btn.disabled-btn {
     color: var(--text-secondary);
   }
 
+  /* Fullscreen table in Dark Mode */
+  .suggestions-display-card.table-fullscreen {
+    background: var(--cosmic-navy); /* Darker background */
+    border-color: var(--deep-space);
+  }
+  .suggestions-display-card.table-fullscreen .table-header-controls {
+    background: var(--nebula-violet);
+    color: var(--text-white);
+  }
+  .suggestions-display-card.table-fullscreen .name-suggestion-table th {
+    background: var(--mystic-purple);
+    color: var(--celestial-light);
+    border-bottom-color: var(--aurora-violet);
+  }
+  .suggestions-display-card.table-fullscreen .name-suggestion-table td {
+    background: var(--deep-space);
+    color: var(--text-primary);
+    border-bottom-color: var(--cosmic-navy);
+  }
+  .suggestions-display-card.table-fullscreen .name-suggestion-table tbody tr:nth-of-type(even) td {
+    background-color: var(--stellar-blue);
+  }
+  .suggestions-display-card.table-fullscreen .name-suggestion-table tbody tr:hover td {
+    background-color: var(--nebula-violet);
+  }
+  .suggestions-display-card.table-fullscreen .pagination-controls {
+    background: var(--nebula-violet);
+    color: var(--text-white);
+  }
+
+
   @media (max-width: 768px) {
     .name-suggestion-table tr {
       border: 1px solid var(--mist-white); /* Darker border for collapsed rows */
@@ -1514,6 +1560,80 @@ button:disabled, .primary-btn.disabled-btn {
     margin: var(--space-lg);
     padding: var(--space-2xl);
   }
+
+  /* Fullscreen table on smaller screens */
+  .suggestions-display-card.table-fullscreen {
+    width: 100vw;
+    height: 100vh;
+    padding: var(--space-sm); /* Even less padding for small screens */
+    border-radius: 0; /* No radius to maximize space */
+  }
+  .suggestions-display-card.table-fullscreen .table-header-controls {
+    max-width: none; /* No max-width */
+    padding: var(--space-md) var(--space-sm);
+    flex-wrap: wrap; /* Allow wrapping of header elements */
+    justify-content: center;
+  }
+  .suggestions-display-card.table-fullscreen .table-header-controls h2 {
+    font-size: var(--text-xl);
+    width: 100%;
+    text-align: center;
+    margin-bottom: var(--space-sm);
+  }
+  .suggestions-display-card.table-fullscreen .table-header-controls .secondary-btn {
+    width: 100%;
+    max-width: 200px;
+  }
+  .suggestions-display-card.table-fullscreen .table-responsive {
+    max-width: none; /* No max-width */
+    height: calc(100% - 120px); /* Adjust height */
+  }
+  .suggestions-display-card.table-fullscreen .name-suggestion-table th,
+  .suggestions-display-card.table-fullscreen .name-suggestion-table td {
+    padding: var(--space-sm) var(--space-xs); /* Very small padding */
+    font-size: var(--text-xs); /* Very small font size */
+    min-width: unset; /* Remove min-width to allow more flexibility */
+  }
+
+  .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(1),
+  .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(1) {
+      width: 40%; /* Name column - slightly more space */
+  }
+  .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(2),
+  .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(2) {
+      width: 13%; /* FNV column */
+  }
+  .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(3),
+  .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(3) {
+      width: 13%; /* EN column */
+  }
+  .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(4),
+  .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(4) {
+      width: 8%; /* Valid column - even smaller */
+  }
+  .suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(5),
+  .suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(5) {
+      width: 26%; /* Actions column - adjusted */
+  }
+
+  .suggestions-display-card.table-fullscreen .actions-cell .small-btn {
+    padding: 3px 5px; /* Tiny buttons */
+    font-size: 0.65rem; /* Smallest font */
+    min-width: 40px; /* Very small min-width */
+  }
+
+  .suggestions-display-card.table-fullscreen .pagination-controls {
+    max-width: none; /* No max-width */
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-xs);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .suggestions-display-card.table-fullscreen .pagination-controls button {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--text-xs);
+    min-height: 28px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1557,97 +1677,6 @@ button:disabled, .primary-btn.disabled-btn {
   .celestial-gradient-text {
     -webkit-text-fill-color: black;
     color: black;
-  }
-}
-
-/* ✦ DARK MODE SUPPORT ✦ */
-@media (prefers-color-scheme: dark) {
-  /* Existing dark mode variables from your file */
-  :root {
-    --pure-white: #1e293b; /* Darker card background */
-    --pearl-white: #28364b;
-    --cosmic-white: #334155; /* Hover state for rows */
-    --cloud-white: #141832; /* Header background for table */
-    --mist-white: #475569; /* Border color */
-    --text-primary: #f1f5f9;
-    --text-secondary: #e2e8f0;
-    --text-tertiary: #cbd5e1;
-    --text-muted: #94a3b8;
-  }
-  
-  .main-content-wrapper {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.9) 50%, rgba(71, 85, 105, 0.85) 100%);
-  }
-  
-  .section-card,
-  .input-field,
-  .live-values,
-  .report-preview-area {
-    background: var(--pure-white);
-    border-color: rgba(71, 85, 105, 0.3);
-    color: var(--text-primary);
-  }
-
-  /* Dark mode for the table */
-  .name-suggestion-table {
-    background-color: var(--cosmic-navy); /* Darker background for table */
-  }
-
-  .name-suggestion-table thead tr {
-    background-color: var(--mystic-purple); /* Darker header background */
-  }
-
-  .name-suggestion-table th {
-    color: var(--celestial-light); /* Lighter text for dark headers */
-    background-color: var(--mystic-purple); /* Ensure consistency */
-    border-bottom-color: var(--nebula-violet); /* Darker border below header */
-  }
-
-  .name-suggestion-table td {
-    border-bottom: 1px solid var(--deep-space); /* Darker border between rows */
-    background-color: var(--cosmic-navy); /* Darker default cell background */
-    color: var(--text-primary); /* Ensure text is visible in dark mode */
-  }
-
-  .name-suggestion-table tbody tr:nth-of-type(even) td {
-    background-color: var(--deep-space); /* Darker zebra striping */
-  }
-
-  .name-suggestion-table tbody tr:hover td {
-    background-color: var(--nebula-violet); /* Darker hover for rows */
-    color: var(--stardust); /* Lighter text on hover */
-  }
-
-  .name-suggestion-table tbody tr:last-child td {
-    border-bottom: none; /* No border for the very last row */
-  }
-
-  .table-input {
-    background: var(--pure-white); /* Keep input background consistent in dark mode */
-    border-color: var(--mist-white);
-    color: var(--text-primary);
-  }
-  
-  .table-input:focus {
-    border-color: var(--aurora-violet);
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-  }
-
-  .pagination-controls {
-    background: var(--cloud-white); /* Darker background for pagination */
-    color: var(--text-secondary);
-  }
-
-  @media (max-width: 768px) {
-    .name-suggestion-table tr {
-      border: 1px solid var(--mist-white); /* Darker border for collapsed rows */
-    }
-    .name-suggestion-table td {
-      border-bottom: 1px dashed var(--mist-white); /* Darker dashed border */
-    }
-    .name-suggestion-table td::before {
-      color: var(--celestial-light); /* Lighter data-label text */
-    }
   }
 }
 
