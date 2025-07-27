@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { marked } from 'marked'; // For rendering Markdown in report preview
@@ -9,44 +8,9 @@ import './App.css'; // Import the CSS file for styling
 // Configure your backend URL
 const BACKEND_URL = 'https://name-corrector-backend.onrender.com'; // <<< IMPORTANT: REPLACE THIS WITH YOUR RENDER BACKEND URL
 
+
 // --- Client-Side Numerology Calculation Functions (Ported from Backend) ---
 // These are essential for live updates without constant server calls.
-
-// Patch: Replace suggestion list with a strict table layout
-const LUCKY_NAME_NUMBERS = new Set([1, 3, 5, 6, 9, 11, 22, 33]);
-
-// eslint-disable-next-line no-unused-vars
-function NameSuggestionTable({ suggestions }) {
-  const filtered = suggestions.filter(
-    (item) => LUCKY_NAME_NUMBERS.has(item.fullNameNumber)
-  );
-
-  return (
-    <table className="name-suggestion-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>FNV</th>
-          <th>EN</th>
-          <th>✓</th>
-        </tr>
-      </thead>
-      <tbody>
-        {filtered.slice(0, 5).map((item, index) => (
-          <tr key={index}>
-            <td>{item.name}</td>
-            <td>{item.fullNameNumber}</td>
-            <td>{item.expressionNumber}</td>
-            <td>{item.isValid ? '✅' : '❌'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-
-
 
 const CHALDEAN_MAP = {
     'A': 1, 'I': 1, 'J': 1, 'Q': 1, 'Y': 1,
@@ -213,6 +177,7 @@ function App() {
     const [suggestions, setSuggestions] = useState([]); // Original suggestions from backend
     const [editableSuggestions, setEditableSuggestions] = useState([]); // Suggestions with edit state and live calculated values
     const [confirmedSuggestions, setConfirmedSuggestions] = useState([]);
+    const [currentPage, setCurrentPage] = useState(0); // For paginating suggestions table
 
     const [customNameInput, setCustomNameInput] = useState('');
     const [liveValidationOutput, setLiveValidationOutput] = useState(null); // For live client-side calcs of custom input
@@ -301,6 +266,7 @@ function App() {
                 openModal("Failed to load client profile due to invalid data from backend. Please try again or contact support.");
             }
             setConfirmedSuggestions([]);
+            setCurrentPage(0); // Reset to first page of table on new suggestions
         } catch (error) {
             console.error('Error fetching suggestions:', error);
             // Display specific error from backend if available, otherwise a generic one
@@ -308,7 +274,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading]);
+    }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading, setCurrentPage]);
 
     // handleValidateName now accepts the currentClientProfile directly
     const handleValidateName = useCallback(async (nameToValidate, currentClientProfile, isCustom = false, suggestionIndex = null) => {
@@ -343,8 +309,8 @@ function App() {
             if (isCustom) {
                 setBackendValidationResult(response.data);
             } else {
-                setEditableSuggestions(prev => prev.map((s, idx) =>
-                    idx === suggestionIndex ? { ...s, validationResult: response.data } : s
+                 setEditableSuggestions(prev => prev.map((s, idx) =>
+                    idx === suggestionIndex ? { ...s, validationResult: response.data, isEdited: true } : s
                 ));
             }
             console.log('Validation successful:', response.data);
@@ -410,7 +376,7 @@ function App() {
     // Initialize editableSuggestions when suggestions from backend are received
     useEffect(() => {
         if (suggestions.length > 0) {
-            const initialEditable = suggestions.map(s => {
+            const initialEditable = suggestions.map((s, index) => {
                 // Calculate initial live values for each suggestion
                 const firstNameValue = calculateFirstNameValue(s.name);
                 const expressionNumber = calculateExpressionNumber(s.name);
@@ -418,13 +384,10 @@ function App() {
                 const personalityNumber = calculatePersonalityNumber(s.name);
                 const karmicDebtPresent = checkKarmicDebt(s.name);
 
-                // Add currentFirstName state for separate editing
-                const initialFirstName = s.name.split(' ')[0] || '';
-
                 return {
                     ...s,
+                    id: index, // Add a stable id
                     currentName: s.name, // The full name the user can edit
-                    currentFirstName: initialFirstName, // The first name part for separate editing
                     originalName: s.name, // The original full name suggested by LLM
                     firstNameValue,
                     expressionNumber,
@@ -437,7 +400,8 @@ function App() {
             });
             setEditableSuggestions(initialEditable);
         }
-    }, [suggestions, setEditableSuggestions]);
+    }, [suggestions]);
+
 
     // Core logic for live validation display (not debounced)
     // This function now takes currentClientProfile directly
@@ -474,7 +438,7 @@ function App() {
         // Trigger backend validation for comprehensive rules
         // Pass clientProfileRef.current to handleValidateName
         handleValidateName(name, currentClientProfile, true, null); // custom validation doesn't need suggestion index
-    }, [handleValidateName, setLiveValidationOutput, setBackendValidationResult]);
+    }, [handleValidateName]);
 
     // Debounced version of updateLiveValidationDisplayCore
     const debouncedUpdateLiveValidationDisplay = useRef(
@@ -491,33 +455,12 @@ function App() {
             setLiveValidationOutput(null);
             setBackendValidationResult(null);
         }
-    }, [customNameInput, debouncedUpdateLiveValidationDisplay, setLiveValidationOutput, setBackendValidationResult]);
-
-
-    // --- Highlighting Logic ---
-    const simpleRenderHighlightedName = useCallback((originalText, currentText) => {
-        const originalChars = originalText.split('');
-        const currentChars = currentText.split('');
-        const maxLength = Math.max(originalChars.length, currentChars.length);
-
-        return Array.from({ length: maxLength }).map((_, i) => {
-            const originalChar = originalChars[i];
-            const currentChar = currentChars[i];
-
-            if (originalChar === currentChar) {
-                return <span key={i}>{currentChar}</span>;
-            } else {
-                // If characters differ or one is missing, highlight the current one
-                // Use a non-breaking space if currentChar is undefined to maintain layout
-                return <u key={i} className="highlighted-char">{currentChar || '\u00A0'}</u>;
-            }
-        });
-    }, []);
+    }, [customNameInput, debouncedUpdateLiveValidationDisplay]);
 
     // --- Confirmation Logic ---
     const handleConfirmSuggestion = useCallback((suggestion) => {
         // Use the editedName if available, otherwise the original name
-        const nameToConfirm = suggestion.isEdited ? suggestion.currentName : suggestion.originalName;
+        const nameToConfirm = suggestion.currentName;
         
         const isAlreadyConfirmed = confirmedSuggestions.some(
             (s) => s.name === nameToConfirm
@@ -529,67 +472,48 @@ function App() {
         }
 
         // Add the current edited name and its original rationale to confirmed list
-        // The rationale is stored with the original suggestion and passed along
-        const originalSuggestionData = suggestions.find(s => s.originalName === suggestion.originalName);
-        
-        // Use the live calculated expression number
         const expressionToConfirm = suggestion.expressionNumber;
 
-        if (originalSuggestionData) {
-             setConfirmedSuggestions(prev => [
-                ...prev,
-                {
-                    name: nameToConfirm, // Use the current edited name or original
-                    expression_number: expressionToConfirm, // Use the live calculated expression
-                    rationale: originalSuggestionData.rationale, // Use the original rationale from LLM
-                }
-            ]);
-            openModal(`'${nameToConfirm}' has been added to your confirmed list.`);
-        } else {
-            openModal("Could not find original rationale for this suggestion. Please try again.");
-        }
-    }, [confirmedSuggestions, suggestions, openModal, setConfirmedSuggestions]);
+        setConfirmedSuggestions(prev => [
+            ...prev,
+            {
+                name: nameToConfirm, // Use the current edited name
+                expression_number: expressionToConfirm, // Use the live calculated expression
+                rationale: suggestion.validationResult?.rationale || suggestion.rationale, // Use new rationale if available
+            }
+        ]);
+        openModal(`'${nameToConfirm}' has been added to your confirmed list.`);
+
+    }, [confirmedSuggestions, openModal]);
 
     const handleRemoveConfirmedSuggestion = useCallback((nameToRemove) => {
         setConfirmedSuggestions(prev => prev.filter(s => s.name !== nameToRemove));
         openModal(`'${nameToRemove}' has been removed from confirmed list.`);
-    }, [openModal, setConfirmedSuggestions]);
+    }, [openModal]);
 
 
-    // --- New Handlers for Editable Suggestions ---
-    const handleEditSuggestion = useCallback((index) => {
-        setEditableSuggestions(prev => prev.map((s, idx) => 
-            idx === index ? { ...s, isEditing: true, currentName: s.currentName, currentFirstName: s.currentName.split(' ')[0] || '', validationResult: null } : { ...s, isEditing: false } // Only one can be edited at a time
-        ));
-    }, [setEditableSuggestions]);
-
+    // --- Handlers for Editable Suggestions Table ---
     // Core logic for backend suggestion validation (not debounced)
-    // This function now uses clientProfileRef.current
     const validateSuggestionNameBackendCore = useCallback((name, index) => {
-        // Ensure clientProfileRef.current is not null before calling handleValidateName
         if (clientProfileRef.current) {
-            handleValidateName(name, clientProfileRef.current, false, index); // Pass clientProfileRef.current
+            handleValidateName(name, clientProfileRef.current, false, index);
         } else {
-            console.warn("Cannot validate suggestion: clientProfile is null. Please get initial suggestions first.");
+            console.warn("Cannot validate suggestion: clientProfile is null.");
             openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
         }
     }, [handleValidateName, openModal]);
 
-    // Debounced version of validateSuggestionNameBackendCore - DECLARED BEFORE USAGE
+    // Debounced version
     const debouncedValidateSuggestionNameBackend = useRef(
         debounce((name, index) => validateSuggestionNameBackendCore(name, index), 500)
     ).current;
 
-
-    // This function handles changes to the FULL name input
-    const handleEditedNameChange = useCallback((index, newFullName) => {
+    const handleNameTableCellChange = useCallback((index, newFullName) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
             if (idx === index) {
                 const updatedSuggestion = { ...s, currentName: newFullName, isEdited: true };
-                // Update first name part based on full name change
-                updatedSuggestion.currentFirstName = newFullName.split(' ')[0] || '';
 
-                // Recalculate all live numerology values for the new full name
+                // Recalculate all live numerology values
                 updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
                 updatedSuggestion.expressionNumber = calculateExpressionNumber(newFullName);
                 updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
@@ -599,90 +523,29 @@ function App() {
                 if (newFullName.trim()) {
                     debouncedValidateSuggestionNameBackend(newFullName, index);
                 } else {
-                    updatedSuggestion.validationResult = null;
+                    updatedSuggestion.validationResult = null; // Clear validation on empty
                 }
                 return updatedSuggestion;
             }
             return s;
         }));
-    }, [debouncedValidateSuggestionNameBackend, setEditableSuggestions]);
+    }, [debouncedValidateSuggestionNameBackend]);
+    
+    // --- Pagination Logic ---
+    const SUGGESTIONS_PER_PAGE = 5;
+    const pageCount = Math.ceil(editableSuggestions.length / SUGGESTIONS_PER_PAGE);
+    const paginatedSuggestions = editableSuggestions.slice(
+        currentPage * SUGGESTIONS_PER_PAGE,
+        (currentPage + 1) * SUGGESTIONS_PER_PAGE
+    );
 
-    // This new function handles changes to the FIRST name input
-    const handleEditedFirstNameChange = useCallback((index, newFirstName) => {
-        setEditableSuggestions(prev => prev.map((s, idx) => {
-            if (idx === index) {
-                // Construct the new full name by replacing the first part
-                const currentParts = s.currentName.split(' ');
-                currentParts[0] = newFirstName;
-                const newFullName = currentParts.join(' ').trim(); // Reconstruct full name
+    const goToNextPage = () => {
+        setCurrentPage((page) => Math.min(page + 1, pageCount - 1));
+    };
 
-                const updatedSuggestion = { ...s, currentFirstName: newFirstName, currentName: newFullName, isEdited: true };
-                
-                // Recalculate all live numerology values for the new full name
-                updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
-                updatedSuggestion.expressionNumber = calculateExpressionNumber(newFullName);
-                updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
-                updatedSuggestion.personalityNumber = calculatePersonalityNumber(newFullName);
-                updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newFullName);
-
-                if (newFullName.trim()) {
-                    debouncedValidateSuggestionNameBackend(newFullName, index);
-                } else {
-                    updatedSuggestion.validationResult = null;
-                }
-                return updatedSuggestion;
-            }
-            return s;
-        }));
-    }, [debouncedValidateSuggestionNameBackend, setEditableSuggestions]);
-
-
-    const handleSaveEdit = useCallback((index) => {
-        setEditableSuggestions(prev => prev.map((s, idx) => {
-            if (idx === index) {
-                const newExpressionNumber = calculateExpressionNumber(s.currentName);
-                const newFirstNameValue = calculateFirstNameValue(s.currentName);
-                const newSoulUrgeNumber = calculateSoulUrgeNumber(s.currentName);
-                const newPersonalityNumber = calculatePersonalityNumber(s.currentName);
-                const newKarmicDebtPresent = checkKarmicDebt(s.currentName);
-
-                return {
-                    ...s,
-                    name: s.currentName, // This becomes the new "base" name for this suggestion item
-                    expression_number: newExpressionNumber,
-                    firstNameValue: newFirstNameValue,
-                    soulUrgeNumber: newSoulUrgeNumber,
-                    personalityNumber: newPersonalityNumber,
-                    karmicDebtPresent: newKarmicDebtPresent,
-                    rationale: s.validationResult ? s.validationResult.rationale : s.rationale, // Use validation rationale if available
-                    isEditing: false,
-                    isEdited: true, // Keep edited flag true after saving
-                };
-            }
-            return s;
-        }));
-        openModal("Name updated successfully!");
-    }, [openModal, setEditableSuggestions]);
-
-    const handleCancelEdit = useCallback((index) => {
-        setEditableSuggestions(prev => prev.map((s, idx) => 
-            idx === index ? { 
-                ...s, 
-                currentName: s.originalName, // Revert to original LLM suggested name
-                currentFirstName: s.originalName.split(' ')[0] || '', // Revert first name too
-                firstNameValue: calculateFirstNameValue(s.originalName),
-                expressionNumber: calculateExpressionNumber(s.originalName),
-                soulUrgeNumber: calculateSoulUrgeNumber(s.originalName),
-                personalityNumber: calculatePersonalityNumber(s.originalName),
-                karmicDebtPresent: checkKarmicDebt(s.originalName),
-                isEditing: false, 
-                isEdited: false, // Reset edited flag
-                validationResult: null // Clear validation result
-            } : s
-        ));
-        openModal("Edit cancelled. Name reverted to original suggestion.");
-    }, [openModal, setEditableSuggestions]);
-
+    const goToPreviousPage = () => {
+        setCurrentPage((page) => Math.max(page - 1, 0));
+    };
 
     return (
         <div className="app-container">
@@ -716,13 +579,13 @@ function App() {
                 </div>
 
                 {/* Profile Display */}
-                {clientProfile ? ( // Display profile if available
+                {clientProfile ? (
                     <div className="section-card profile-display-card">
                         <h2>Client Numerology Profile</h2>
                         <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
                         </div>
                     </div>
-                ) : ( // Show message if profile is not loaded
+                ) : (
                     <div className="section-card profile-display-card">
                         <h2>Client Numerology Profile</h2>
                         <p className="text-gray-600">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
@@ -730,7 +593,7 @@ function App() {
                 )}
 
                 {/* Custom Name Validation */}
-                {clientProfile && ( // Only show this section if clientProfile is available
+                {clientProfile && (
                     <div className="section-card custom-validation-card">
                         <h2>Validate Custom Name</h2>
                         <div className="input-group">
@@ -750,14 +613,7 @@ function App() {
                                 <p><b>Name:</b> {customNameInput}</p>
                                 <p><b>First Name Value:</b> {liveValidationOutput.firstNameValue}</p>
                                 <p><b>Expression Number:</b> {liveValidationOutput.expressionNumber}</p>
-                                <p><b>Soul Urge Number:</b> {liveValidationOutput.soulUrgeNumber}</p>
-                                <p><b>Personality Number:</b> {liveValidationOutput.personalityNumber}</p>
-                                <p><b>Karmic Debt Present:</b> {liveValidationOutput.karmicDebtPresent ? 'Yes ⚠️' : 'No'}</p>
-                                <hr className="my-2" />
-                                <p><b>Birth Day Number:</b> {liveValidationOutput.birthDayNumber}</p>
-                                <p><b>Life Path Number:</b> {liveValidationOutput.lifePathNumber}</p>
-                                <p><b>Lo Shu Grid Counts:</b> {JSON.stringify(liveValidationOutput.loShuGridCounts)}</p>
-                                <p><b>Missing Lo Shu:</b> {liveValidationOutput.loShuMissingNumbers.join(', ') || 'None'}</p>
+                                <p><b>Karmic Debt:</b> {liveValidationOutput.karmicDebtPresent ? 'Yes ⚠️' : 'No'}</p>
                                 {backendValidationResult && (
                                     <>
                                         <hr className="my-2" />
@@ -771,124 +627,103 @@ function App() {
                     </div>
                 )}
 
-                {/* Initial Suggestions Display */}
+                {/* --- NEW PAGINATED SUGGESTIONS TABLE --- */}
                 {editableSuggestions.length > 0 && (
                     <div className="section-card suggestions-display-card">
                         <h2>Suggested Name Variations</h2>
                         <p className="text-sm text-gray-700 mb-3">
-                            {suggestions[0]?.reasoning || 'Overall reasoning for suggestions.'}
+                           Here are the suggested names. You can edit, validate, and confirm them directly in the table.
                         </p>
-                        <div className="suggestions-list-content">
-                            {editableSuggestions.map((s, index) => (
-                                <div key={index} className="suggestions-list-item">
-                                    {s.isEditing ? (
-                                        <>
-                                            <div className="name-input-wrapper">
-                                                <label htmlFor={`editedName-${index}`} className="input-label">Edit Full Name:</label>
+                        <div className="table-responsive">
+                            <table className="name-suggestion-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>FNV</th>
+                                        <th>EN</th>
+                                        <th>Valid</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paginatedSuggestions.map((s) => (
+                                        <tr key={s.id}>
+                                            <td data-label="Name">
                                                 <input
                                                     type="text"
-                                                    id={`editedName-${index}`}
-                                                    className="input-field editable-name-input"
-                                                    value={s.currentName} // Use currentName for editing
-                                                    onChange={(e) => handleEditedNameChange(index, e.target.value)}
+                                                    value={s.currentName}
+                                                    onChange={(e) => handleNameTableCellChange(s.id, e.target.value)}
+                                                    className="table-input"
+                                                    aria-label={`Edit name for ${s.originalName}`}
                                                 />
-                                                <div className="highlighted-name-display">
-                                                    {simpleRenderHighlightedName(s.originalName, s.currentName)}
-                                                </div>
-                                            </div>
-                                            {/* New First Name Input */}
-                                            <div className="name-input-wrapper mt-3">
-                                                <label htmlFor={`editedFirstName-${index}`} className="input-label">Edit First Name (only):</label>
-                                                <input
-                                                    type="text"
-                                                    id={`editedFirstName-${index}`}
-                                                    className="input-field editable-name-input"
-                                                    value={s.currentFirstName} // Use currentFirstName for editing
-                                                    onChange={(e) => handleEditedFirstNameChange(index, e.target.value)}
-                                                />
-                                            </div>
-
-                                            {/* Live values displayed constantly, so no need for conditional rendering here */}
-                                            <div className="live-values">
-                                                <p>First Name Value: <b>{s.firstNameValue}</b></p>
-                                                <p>Expression: <b>{s.expressionNumber}</b></p>
-                                                <p>Soul Urge: <b>{s.soulUrgeNumber}</b></p>
-                                                <p>Personality: <b>{s.personalityNumber}</b></p>
-                                                {s.karmicDebtPresent && <p className="karmic-debt-flag">⚠️ Karmic Debt Present</p>}
-                                            </div>
-                                            {s.validationResult && (
-                                                <div className={`validation-result ${s.validationResult.is_valid ? 'valid' : 'invalid'}`}>
-                                                    <p className="validation-status">
-                                                        <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
-                                                    </p>
-                                                </div>
-                                            )}
-                                            <div className="button-group">
-                                                <button onClick={() => handleSaveEdit(index)} className="primary-btn small-btn">Save</button>
-                                                <button onClick={() => handleCancelEdit(index)} className="secondary-btn small-btn">Cancel</button>
-                                                <button onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, index)} className="secondary-btn small-btn" disabled={!clientProfile || !s.currentName.trim()}>Re-Validate</button>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <h3>{s.currentName} (Expression: {s.expressionNumber})</h3>
-                                            {/* Live values displayed constantly */}
-                                            <div className="live-values">
-                                                <p>First Name Value: <b>{s.firstNameValue}</b></p>
-                                                <p>Expression: <b>{s.expressionNumber}</b></p>
-                                                <p>Soul Urge: <b>{s.soulUrgeNumber}</b></p>
-                                                <p>Personality: <b>{s.personalityNumber}</b></p>
-                                                {s.karmicDebtPresent && <p className="karmic-debt-flag">⚠️ Karmic Debt Present</p>}
-                                            </div>
-                                            {s.validationResult && (
-                                                <div className={`validation-result ${s.validationResult.is_valid ? 'valid' : 'invalid'}`}>
-                                                    <p className="validation-status">
-                                                        <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
-                                                    </p>
-                                                </div>
-                                            )}
-                                            <div className="button-group">
-                                                <button onClick={() => handleEditSuggestion(index)} className="secondary-btn small-btn">Edit Name</button>
+                                            </td>
+                                            <td data-label="FNV">{s.firstNameValue}</td>
+                                            <td data-label="EN">{s.expressionNumber}</td>
+                                            <td data-label="Valid">
+                                                {s.validationResult ? (
+                                                    s.validationResult.is_valid ? '✅' : '❌'
+                                                ) : (
+                                                    '--'
+                                                )}
+                                            </td>
+                                            <td data-label="Actions" className="actions-cell">
+                                                <button 
+                                                    onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, s.id)} 
+                                                    className="secondary-btn small-btn" 
+                                                    disabled={!clientProfile || !s.currentName.trim()}
+                                                    title="Re-validate this name with the backend"
+                                                >
+                                                    Validate
+                                                </button>
                                                 <button
                                                     onClick={() => handleConfirmSuggestion(s)}
                                                     className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'disabled-btn' : ''}`}
                                                     disabled={confirmedSuggestions.some(cs => cs.name === s.currentName)}
+                                                     title="Confirm this name for the report"
                                                 >
-                                                    {confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'Confirmed!' : 'Confirm This Name'}
+                                                    {confirmedSuggestions.some(cs => cs.name === s.currentName) ? '✓' : 'Confirm'}
                                                 </button>
-                                                <button onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, index)} className="secondary-btn small-btn" disabled={!clientProfile}>Validate</button>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            ))}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="pagination-controls">
+                            <button onClick={goToPreviousPage} disabled={currentPage === 0} className="secondary-btn">
+                                Previous
+                            </button>
+                            <span>Page {currentPage + 1} of {pageCount}</span>
+                            <button onClick={goToNextPage} disabled={currentPage >= pageCount - 1} className="secondary-btn">
+                                Next
+                            </button>
                         </div>
                     </div>
                 )}
+
 
                 {/* Report Generation */}
                 {clientProfile && (
                     <div className="section-card report-generation-card">
                         <h2>Generate Reports</h2>
-                        <div className="text-sm text-gray-700 mb-3">
-                            Confirmed Names for Report: {confirmedSuggestions.map(s => s.name).join(', ') || 'None'}
-                        </div>
-                        {confirmedSuggestions.length > 0 && (
+                         {confirmedSuggestions.length > 0 ? (
                             <div className="confirmed-suggestions-list mt-4 mb-4">
                                 <h3 className="font-bold text-lg mb-2">Your Confirmed Names:</h3>
                                 {confirmedSuggestions.map((s, index) => (
-                                    <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg mb-2">
+                                    <div key={index} className="confirmed-item">
                                         <span>{s.name} (Exp: {s.expression_number})</span>
                                         <button 
                                             onClick={() => handleRemoveConfirmedSuggestion(s.name)} 
-                                            className="secondary-btn small-btn"
-                                            style={{width: 'auto', margin: '0'}} // Override default button styles
+                                            className="remove-btn"
+                                            title="Remove this name from the confirmed list"
                                         >
-                                            Remove
+                                            &times;
                                         </button>
                                     </div>
                                 ))}
                             </div>
+                        ) : (
+                            <p className="text-gray-700 mb-3">Confirm names from the table above to include them in the report.</p>
                         )}
                         <button onClick={handleGenerateReport} className="primary-btn" disabled={!clientProfile || confirmedSuggestions.length === 0}>Generate Comprehensive Report (PDF & Preview)</button>
                         {reportPreviewContent && (
