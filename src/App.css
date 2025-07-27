@@ -205,14 +205,16 @@ body::before {
   z-index: 1;
 }
 
-/* ✦ FULLSCREEN TABLE OVERLAY - COMPLETELY REDESIGNED ✦ */
+/* ✦ FIXED FULLSCREEN TABLE STYLES ✦ */
+
+/* Enhanced fullscreen table container */
 .fullscreen-table-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: var(--gradient-cosmic);
+  background: linear-gradient(135deg, #0a0d1f 0%, #141832 25%, #1f2347 50%, #2d1b69 75%, #4c3494 100%);
   backdrop-filter: blur(30px) saturate(130%);
   z-index: 1000;
   display: flex;
@@ -221,17 +223,7 @@ body::before {
   animation: fullscreenFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes fullscreenFadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(30px) saturate(130%);
-  }
-}
-
+/* Fixed fullscreen table header */
 .fullscreen-table-header {
   background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.95) 100%);
   border-bottom: 2px solid rgba(99, 102, 241, 0.15);
@@ -266,66 +258,25 @@ body::before {
   letter-spacing: -0.02em;
 }
 
-.fullscreen-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-}
-
-.fullscreen-instructions {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  font-weight: 500;
-  background: var(--pure-white);
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  box-shadow: var(--shadow-soft);
-}
-
-.fullscreen-close-btn {
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
-  border: 2px solid rgba(220, 38, 38, 0.3);
-  color: var(--text-error);
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition-medium);
-  line-height: 1;
-  box-shadow: var(--shadow-medium);
-}
-
-.fullscreen-close-btn:hover {
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%);
-  border-color: var(--text-error);
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(220, 38, 38, 0.2);
-}
-
+/* Fixed fullscreen table content area */
 .fullscreen-table-content {
   flex: 1;
   padding: var(--space-2xl);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.02) 0%, rgba(99, 102, 241, 0.01) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(99, 102, 241, 0.01) 100%);
 }
 
-/* ✦ COMPLETELY REDESIGNED FULLSCREEN TABLE ✦ */
+/* Fixed main fullscreen table container */
 .fullscreen-table {
   flex: 1;
-  background: var(--pure-white);
+  background: #ffffff;
   border-radius: var(--radius-xl);
   border: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1), 0 8px 16px rgba(15, 23, 42, 0.06);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -339,19 +290,22 @@ body::before {
   right: 0;
   height: 2px;
   background: linear-gradient(90deg, var(--aurora-violet) 0%, var(--celestial-light) 50%, var(--aurora-violet) 100%);
+  z-index: 1;
 }
 
+/* Fixed table structure */
 .fullscreen-table .name-suggestion-table {
   width: 100%;
-  height: 100%;
+  min-width: 1200px;
   border-collapse: separate;
   border-spacing: 0;
   font-family: 'Inter', sans-serif;
   table-layout: fixed;
-  background: var(--pure-white);
+  background: #ffffff;
+  margin: 0;
 }
 
-/* ✦ ENHANCED FULLSCREEN TABLE HEADERS ✦ */
+/* Fixed table headers with better contrast */
 .fullscreen-table .name-suggestion-table thead {
   position: sticky;
   top: 0;
@@ -359,16 +313,16 @@ body::before {
 }
 
 .fullscreen-table .name-suggestion-table thead tr {
-  background: linear-gradient(135deg, var(--aurora-violet) 0%, var(--mystic-purple) 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #4c3494 100%);
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
 }
 
 .fullscreen-table .name-suggestion-table th {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: var(--text-sm);
+  font-size: 0.875rem;
   font-weight: 700;
-  color: var(--pure-white);
-  padding: var(--space-xl) var(--space-lg);
+  color: #ffffff;
+  padding: 1.5rem 1rem;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -376,6 +330,7 @@ body::before {
   position: relative;
   vertical-align: middle;
   background: transparent;
+  white-space: nowrap;
 }
 
 .fullscreen-table .name-suggestion-table th::after {
@@ -392,64 +347,72 @@ body::before {
   display: none;
 }
 
-/* ✦ OPTIMIZED COLUMN WIDTHS FOR FULLSCREEN ✦ */
+/* Optimized column widths */
 .fullscreen-table .name-suggestion-table th:nth-child(1),
 .fullscreen-table .name-suggestion-table td:nth-child(1) {
-  width: 28%;
+  width: 25%;
   text-align: left;
 }
 
 .fullscreen-table .name-suggestion-table th:nth-child(2),
 .fullscreen-table .name-suggestion-table td:nth-child(2) {
   width: 10%;
+  text-align: center;
 }
 
 .fullscreen-table .name-suggestion-table th:nth-child(3),
 .fullscreen-table .name-suggestion-table td:nth-child(3) {
   width: 12%;
+  text-align: center;
 }
 
 .fullscreen-table .name-suggestion-table th:nth-child(4),
 .fullscreen-table .name-suggestion-table td:nth-child(4) {
   width: 10%;
+  text-align: center;
 }
 
 .fullscreen-table .name-suggestion-table th:nth-child(5),
 .fullscreen-table .name-suggestion-table td:nth-child(5) {
   width: 10%;
+  text-align: center;
 }
 
 .fullscreen-table .name-suggestion-table th:nth-child(6),
 .fullscreen-table .name-suggestion-table td:nth-child(6) {
   width: 10%;
+  text-align: center;
 }
 
 .fullscreen-table .name-suggestion-table th:nth-child(7),
 .fullscreen-table .name-suggestion-table td:nth-child(7) {
   width: 8%;
+  text-align: center;
 }
 
 .fullscreen-table .name-suggestion-table th:nth-child(8),
 .fullscreen-table .name-suggestion-table td:nth-child(8) {
-  width: 18%;
+  width: 15%;
+  text-align: center;
 }
 
-/* ✦ ENHANCED FULLSCREEN TABLE BODY ✦ */
+/* Fixed table body with better contrast */
 .fullscreen-table .name-suggestion-table tbody {
-  background: var(--pure-white);
+  background: #ffffff;
 }
 
 .fullscreen-table .name-suggestion-table tbody tr {
-  transition: all var(--transition-fast);
+  transition: all 0.15s ease-out;
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  background: #ffffff;
 }
 
 .fullscreen-table .name-suggestion-table tbody tr:nth-child(even) {
-  background: linear-gradient(135deg, var(--cloud-white) 0%, rgba(248, 250, 252, 0.8) 100%);
+  background: linear-gradient(135deg, #f1f5f9 0%, rgba(248, 250, 252, 0.8) 100%);
 }
 
 .fullscreen-table .name-suggestion-table tbody tr:hover {
-  background: linear-gradient(135deg, var(--stardust) 0%, rgba(199, 210, 254, 0.3) 100%);
+  background: linear-gradient(135deg, #c7d2fe 0%, rgba(199, 210, 254, 0.3) 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
 }
@@ -458,98 +421,103 @@ body::before {
   border-bottom: none;
 }
 
+/* Fixed table cells with proper contrast */
 .fullscreen-table .name-suggestion-table td {
-  padding: var(--space-lg);
+  padding: 1rem;
   vertical-align: middle;
   font-family: 'Inter', sans-serif;
-  font-size: var(--text-base);
+  font-size: 1rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #0f172a;
   border: none;
   position: relative;
   background: transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ✦ ENHANCED TABLE INPUT FOR FULLSCREEN ✦ */
+/* Enhanced table inputs */
 .fullscreen-table .table-input {
   width: 100%;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.8);
   border: 2px solid transparent;
-  border-radius: var(--radius-md);
-  padding: var(--space-md) var(--space-lg);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
   font-family: 'Inter', sans-serif;
-  font-size: var(--text-base);
+  font-size: 1rem;
   font-weight: 500;
-  color: var(--text-primary);
-  transition: all var(--transition-medium);
+  color: #0f172a;
+  transition: all 0.25s ease-out;
   outline: none;
 }
 
 .fullscreen-table .table-input:focus {
-  background: var(--pure-white);
-  border-color: var(--aurora-violet);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), var(--shadow-medium);
+  background: #ffffff;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 4px 6px rgba(15, 23, 42, 0.07);
   transform: scale(1.02);
 }
 
 .fullscreen-table .table-input:hover {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   border-color: rgba(99, 102, 241, 0.3);
 }
 
-/* ✦ ENHANCED ACTIONS CELL FOR FULLSCREEN ✦ */
+/* Enhanced action buttons */
 .fullscreen-table .actions-cell {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-lg);
+  gap: 0.75rem;
+  padding: 1rem;
 }
 
 .fullscreen-table .actions-cell .secondary-btn,
 .fullscreen-table .actions-cell .primary-btn {
   margin: 0;
-  padding: var(--space-md) var(--space-lg);
-  font-size: var(--text-sm);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   min-height: 40px;
   min-width: 80px;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-medium);
+  border-radius: 0.5rem;
+  transition: all 0.25s ease-out;
   cursor: pointer;
   border: none;
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .fullscreen-table .actions-cell .secondary-btn {
-  background: linear-gradient(135deg, var(--cloud-white) 0%, var(--silver-white) 100%);
-  color: var(--text-secondary);
+  background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%);
+  color: #334155;
   border: 2px solid rgba(99, 102, 241, 0.2);
 }
 
 .fullscreen-table .actions-cell .secondary-btn:hover {
-  background: linear-gradient(135deg, var(--pure-white) 0%, var(--cosmic-white) 100%);
-  border-color: var(--aurora-violet);
-  color: var(--text-violet);
+  background: linear-gradient(135deg, #ffffff 0%, #fdfdff 100%);
+  border-color: #6366f1;
+  color: #4338ca;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
 .fullscreen-table .actions-cell .primary-btn {
-  background: linear-gradient(135deg, var(--aurora-violet) 0%, var(--mystic-purple) 100%);
-  color: var(--pure-white);
+  background: linear-gradient(135deg, #6366f1 0%, #4c3494 100%);
+  color: #ffffff;
 }
 
 .fullscreen-table .actions-cell .primary-btn:hover {
-  background: linear-gradient(135deg, var(--celestial-light) 0%, var(--aurora-violet) 100%);
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
 
 .fullscreen-table .actions-cell .primary-btn.disabled-btn {
-  background: linear-gradient(135deg, var(--text-success) 0%, #10b981 100%);
-  color: var(--pure-white);
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
   cursor: default;
   opacity: 0.9;
 }
@@ -559,19 +527,67 @@ body::before {
   box-shadow: none;
 }
 
-/* ✦ ENHANCED FULLSCREEN PAGINATION ✦ */
+/* Hide empty rows */
+.fullscreen-table .name-suggestion-table tbody tr:empty {
+  display: none;
+}
+
+.fullscreen-table .name-suggestion-table tbody tr:has(td:empty:first-child) {
+  display: none;
+}
+
+/* Ensure proper text visibility in name column */
+.fullscreen-table .name-suggestion-table td:nth-child(1) {
+  text-align: left;
+  padding-left: 1.5rem;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+/* Enhanced close button */
+.fullscreen-close-btn {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+  border: 2px solid rgba(220, 38, 38, 0.3);
+  color: #dc2626;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease-out;
+  line-height: 1;
+  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.07);
+}
+
+.fullscreen-close-btn:hover {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%);
+  border-color: #dc2626;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.2);
+}
+
+/* Enhanced pagination */
 .fullscreen-pagination {
-  margin-top: var(--space-xl);
-  background: linear-gradient(135deg, var(--pure-white) 0%, var(--cloud-white) 100%);
-  border-radius: var(--radius-xl);
+  margin-top: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border-radius: 1rem;
   border: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-  padding: var(--space-xl) var(--space-2xl);
+  padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .fullscreen-pagination::before {
@@ -581,37 +597,37 @@ body::before {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--aurora-violet) 0%, var(--pure-gold) 50%, var(--aurora-violet) 100%);
+  background: linear-gradient(90deg, #6366f1 0%, #f59e0b 50%, #6366f1 100%);
 }
 
 .fullscreen-pagination span {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: var(--text-base);
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--pure-white);
-  padding: var(--space-md) var(--space-xl);
-  border-radius: var(--radius-lg);
+  color: #334155;
+  background: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
   border: 1px solid rgba(99, 102, 241, 0.1);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 .fullscreen-pagination button {
-  padding: var(--space-lg) var(--space-2xl);
-  font-size: var(--text-base);
+  padding: 1rem 2rem;
+  font-size: 1rem;
   font-weight: 600;
   min-height: 48px;
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-medium);
+  border-radius: 0.75rem;
+  transition: all 0.25s ease-out;
   cursor: pointer;
   border: 2px solid rgba(99, 102, 241, 0.2);
-  background: linear-gradient(135deg, var(--pure-white) 0%, var(--cloud-white) 100%);
-  color: var(--text-secondary);
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  color: #334155;
 }
 
 .fullscreen-pagination button:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--aurora-violet) 0%, var(--mystic-purple) 100%);
-  color: var(--pure-white);
+  background: linear-gradient(135deg, #6366f1 0%, #4c3494 100%);
+  color: #ffffff;
   border-color: transparent;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
@@ -620,9 +636,72 @@ body::before {
 .fullscreen-pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: var(--mist-white);
-  color: var(--text-muted);
+  background: #e2e8f0;
+  color: #64748b;
   border-color: transparent;
+}
+
+/* Responsive fixes for fullscreen table */
+@media (max-width: 1400px) {
+  .fullscreen-table .name-suggestion-table {
+    min-width: 1000px;
+  }
+  
+  .fullscreen-table .name-suggestion-table th:nth-child(1),
+  .fullscreen-table .name-suggestion-table td:nth-child(1) {
+    width: 22%;
+  }
+  
+  .fullscreen-table .name-suggestion-table th:nth-child(8),
+  .fullscreen-table .name-suggestion-table td:nth-child(8) {
+    width: 18%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .fullscreen-table-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  .fullscreen-table-content {
+    padding: 1.5rem;
+  }
+  
+  .fullscreen-table .name-suggestion-table th,
+  .fullscreen-table .name-suggestion-table td {
+    padding: 0.75rem;
+  }
+  
+  .fullscreen-table .actions-cell {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .fullscreen-table .actions-cell .secondary-btn,
+  .fullscreen-table .actions-cell .primary-btn {
+    width: 100%;
+    min-width: 70px;
+  }
+}
+
+/* Scrollbar styling for fullscreen table */
+.fullscreen-table::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.fullscreen-table::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.fullscreen-table::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #6366f1 0%, #4c3494 100%);
+  border-radius: 4px;
+}
+
+.fullscreen-table::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
 }
 
 /* ✦ FULLSCREEN BUTTON ✦ */
