@@ -18,7 +18,7 @@ body {
     justify-content: center; /* Horizontally center the main content wrapper */
     padding: 20px; /* Padding around the main content wrapper */
     box-sizing: border-box; /* Include padding in element's total width and height */
-    border: 2px dashed #a0a0a0; /* VISIBLE CHANGE: Added for testing, remove later if desired */
+    border: 5px dashed red; /* VERY OBVIOUS VISIBLE CHANGE: Added for testing, remove later if desired */
 }
 
 /* Main Content Wrapper (The big white card) */
@@ -41,6 +41,7 @@ body {
         padding: 40px; /* More generous padding for larger screens */
         flex-direction: row; /* Arrange into columns on larger screens */
         gap: 40px; /* More space between columns */
+        background-color: lightcoral; /* VERY OBVIOUS VISIBLE CHANGE: Added for testing, remove later if desired */
     }
 }
 
@@ -471,7 +472,7 @@ body {
     font-size: 32px; /* Large font size */
     font-weight: 700; /* Extra bold */
     text-align: center;
-    color: #1a5276; /* VISIBLE CHANGE: Slightly different dark blue */
+    color: #8B0000; /* VERY OBVIOUS VISIBLE CHANGE: Dark Red */
     margin-bottom: 30px; /* Space below title */
     padding-bottom: 10px;
     border-bottom: 3px solid rgba(0, 0, 0, 0.1); /* Stronger separator */
@@ -493,6 +494,7 @@ body {
         padding: 20px; /* Smaller padding inside the main card */
         gap: 20px; /* Reduce gap between sections */
         flex-direction: column; /* Ensure column layout on small screens */
+        background-color: #ffffff; /* Revert background for small screens */
     }
 
     .section-card {

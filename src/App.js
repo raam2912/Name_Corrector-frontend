@@ -182,18 +182,14 @@ function App() {
     // --- Modal Functions ---
     const openModal = useCallback((message) => {
         setModal({ isOpen: true, message });
-    }, [setModal]); // Add setModal to dependency array
+    }, [setModal]);
 
     const closeModal = useCallback(() => {
         setModal({ isOpen: false, message: '' });
-    }, [setModal]); // Add setModal to dependency array
+    }, [setModal]);
 
     // --- formatProfileData Function ---
     const formatProfileData = useCallback((profile) => {
-        // IMPORTANT: If 'profile' contains any user-controlled or untrusted data,
-        // using dangerouslySetInnerHTML can expose your app to XSS attacks.
-        // For a production environment, consider sanitizing HTML content using a library like DOMPurify.
-        // Example: DOMPurify.sanitize(htmlString)
         if (!profile) return '<p>No profile data available.</p>';
         return `
             <h3 class="font-bold">Basic Info:</h3>
@@ -250,9 +246,9 @@ function App() {
                 birth_place: birthPlace,
                 desired_outcome: desiredOutcome,
             });
-            setSuggestions(response.data.suggestions); // This triggers the useEffect to populate editableSuggestions
+            setSuggestions(response.data.suggestions);
             setClientProfile(response.data.profile_data);
-            setConfirmedSuggestions([]); // Clear confirmed suggestions on new request
+            setConfirmedSuggestions([]);
         } catch (error) {
             console.error('Error fetching suggestions:', error);
             openModal(error.response?.data?.error || 'Failed to get suggestions. Please try again.');
@@ -264,19 +260,20 @@ function App() {
     const handleValidateName = useCallback(async (nameToValidate, isCustom = false, suggestionIndex = null) => {
         // IMPORTANT FIX: Only show modal if clientProfile is null AND it's a custom validation or initial suggestion fetch.
         // For editing existing suggestions, clientProfile should already be present.
-        if (!clientProfile && (isCustom || suggestionIndex === null)) { 
+        if (!clientProfile && (isCustom || suggestionIndex === null)) {
             openModal("Please get initial suggestions first to generate your numerology profile.");
             return;
         }
-        if (!nameToValidate) {
-            if (!isCustom) { // Only clear validation if it's a suggestion and name is empty
-                setEditableSuggestions(prev => prev.map((s, idx) => 
+        // If nameToValidate is empty, clear the validation result and return without API call
+        if (!nameToValidate.trim()) {
+            if (!isCustom) {
+                setEditableSuggestions(prev => prev.map((s, idx) =>
                     idx === suggestionIndex ? { ...s, validationResult: null } : s
                 ));
-            } else { // For custom input, clear its specific result
+            } else {
                 setBackendValidationResult(null);
             }
-            return;
+            return; // Exit function if name is empty
         }
 
         setIsLoading(true);
@@ -298,7 +295,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, openModal, setEditableSuggestions, setBackendValidationResult, setIsLoading]); // Added setters to dependencies
+    }, [clientProfile, openModal, setEditableSuggestions, setBackendValidationResult, setIsLoading]);
 
     const handleGenerateReport = useCallback(async () => {
         if (!clientProfile || confirmedSuggestions.length === 0) {
@@ -347,7 +344,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, confirmedSuggestions, openModal, setReportPreviewContent, setIsLoading]); // Added setters to dependencies
+    }, [clientProfile, confirmedSuggestions, openModal, setReportPreviewContent, setIsLoading]);
 
     // --- Effects ---
     // Initialize editableSuggestions when suggestions from backend are received
@@ -376,7 +373,7 @@ function App() {
             });
             setEditableSuggestions(initialEditable);
         }
-    }, [suggestions, setEditableSuggestions]); // Added setEditableSuggestions to dependencies
+    }, [suggestions, setEditableSuggestions]);
 
     // Core logic for live validation display (not debounced)
     const updateLiveValidationDisplayCore = useCallback((name, profile) => {
@@ -411,7 +408,7 @@ function App() {
 
         // Trigger backend validation for comprehensive rules
         handleValidateName(name, true);
-    }, [handleValidateName, setLiveValidationOutput, setBackendValidationResult]); // Added setters to dependencies
+    }, [handleValidateName, setLiveValidationOutput, setBackendValidationResult]);
 
     // Debounced version of updateLiveValidationDisplayCore
     const debouncedUpdateLiveValidationDisplay = useRef(
@@ -426,7 +423,7 @@ function App() {
             setLiveValidationOutput(null);
             setBackendValidationResult(null);
         }
-    }, [customNameInput, clientProfile, debouncedUpdateLiveValidationDisplay, setLiveValidationOutput, setBackendValidationResult]); // Added setters to dependencies
+    }, [customNameInput, clientProfile, debouncedUpdateLiveValidationDisplay, setLiveValidationOutput, setBackendValidationResult]);
 
 
     // --- Highlighting Logic ---
@@ -483,12 +480,12 @@ function App() {
         } else {
             openModal("Could not find original rationale for this suggestion. Please try again.");
         }
-    }, [confirmedSuggestions, suggestions, openModal, setConfirmedSuggestions]); // Added setters to dependencies
+    }, [confirmedSuggestions, suggestions, openModal, setConfirmedSuggestions]);
 
     const handleRemoveConfirmedSuggestion = useCallback((nameToRemove) => {
         setConfirmedSuggestions(prev => prev.filter(s => s.name !== nameToRemove));
         openModal(`'${nameToRemove}' has been removed from confirmed list.`);
-    }, [openModal, setConfirmedSuggestions]); // Added setters to dependencies
+    }, [openModal, setConfirmedSuggestions]);
 
 
     // --- New Handlers for Editable Suggestions ---
@@ -496,12 +493,12 @@ function App() {
         setEditableSuggestions(prev => prev.map((s, idx) => 
             idx === index ? { ...s, isEditing: true, currentName: s.currentName, validationResult: null } : { ...s, isEditing: false } // Only one can be edited at a time
         ));
-    }, [setEditableSuggestions]); // Added setEditableSuggestions to dependencies
+    }, [setEditableSuggestions]);
 
     // Core logic for backend suggestion validation (not debounced)
     const validateSuggestionNameBackendCore = useCallback((name, index) => {
         handleValidateName(name, false, index); // Call the main validation handler
-    }, [handleValidateName]); // Dependency
+    }, [handleValidateName]);
 
     // Debounced version of validateSuggestionNameBackendCore
     const debouncedValidateSuggestionNameBackend = useRef(
@@ -520,13 +517,18 @@ function App() {
                 updatedSuggestion.personalityNumber = calculatePersonalityNumber(newName);
                 updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newName);
 
-                // Trigger debounced validation for the updated name
-                debouncedValidateSuggestionNameBackend(newName, index);
+                // IMPORTANT FIX: Only trigger backend validation if the name is not empty
+                if (newName.trim()) {
+                    debouncedValidateSuggestionNameBackend(newName, index);
+                } else {
+                    // If the name becomes empty, clear the validation result immediately
+                    updatedSuggestion.validationResult = null;
+                }
                 return updatedSuggestion;
             }
             return s;
         }));
-    }, [debouncedValidateSuggestionNameBackend, setEditableSuggestions]); // Added setEditableSuggestions to dependencies
+    }, [debouncedValidateSuggestionNameBackend, setEditableSuggestions]);
 
     const handleSaveEdit = useCallback((index) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
@@ -553,7 +555,7 @@ function App() {
             return s;
         }));
         openModal("Name updated successfully!");
-    }, [openModal, setEditableSuggestions]); // Added setEditableSuggestions to dependencies
+    }, [openModal, setEditableSuggestions]);
 
     const handleCancelEdit = useCallback((index) => {
         setEditableSuggestions(prev => prev.map((s, idx) => 
@@ -571,7 +573,7 @@ function App() {
             } : s
         ));
         openModal("Edit cancelled. Name reverted to original suggestion.");
-    }, [openModal, setEditableSuggestions]); // Added setEditableSuggestions to dependencies
+    }, [openModal, setEditableSuggestions]);
 
 
     return (
