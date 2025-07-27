@@ -32,24 +32,21 @@ body {
     gap: 30px; /* Space between sections/cards */
 
     /* NEW: Max-width for laptop/desktop screens to create 'landscaped' feel */
-    /* This prevents the content from becoming too wide on very large monitors */
-    max-width: 850px; /* Adjusted for a comfortable reading width on laptops */
+    max-width: 1000px; /* Adjusted for a comfortable reading width on laptops */
 }
 
-/* No specific media query for flex-direction: row, as it's always a column */
-/* The previous media query for (min-width: 769px) is now redundant for flex-direction */
-/* We will keep it for padding adjustments if needed, but remove flex-direction change */
 @media (min-width: 769px) { /* Adjust padding for laptop and larger screens */
     .main-content-wrapper {
         padding: 40px; /* More generous padding for larger screens */
+        flex-direction: row; /* Arrange into columns on larger screens */
+        gap: 40px; /* More space between columns */
     }
 }
 
 
 /* Column Styles (These will now effectively be just containers for sections) */
 .column {
-    flex: none; /* Remove flex-grow/shrink to prevent horizontal stretching of internal columns */
-    width: 100%; /* Ensure it takes full width within the main-content-wrapper */
+    flex: 1; /* Allow columns to grow and shrink */
     display: flex;
     flex-direction: column;
     gap: 25px; /* Space between cards within a column */
@@ -244,18 +241,66 @@ body {
 }
 
 /* Styles for editable name input within suggestions */
+.name-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%; /* Take full width */
+    margin-bottom: 10px;
+}
+
 .editable-name-input {
-    margin-bottom: 5px; /* Reduce margin to fit better */
-    font-size: 18px; /* Slightly larger font for prominence */
-    font-weight: 600;
-    color: #8a2be2; /* Match suggestion heading color */
-    padding: 10px 12px;
-    border: 1px solid #a0d9ef; /* Softer border */
+    width: calc(100% - 20px); /* Adjust width for padding */
+    padding: 8px 10px;
+    margin-bottom: 5px; /* Space between input and highlighted display */
+    border: 1px solid #ddd;
     border-radius: 8px;
+    font-size: 16px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.highlighted-name-display {
+    font-family: 'Inter', sans-serif; /* Ensure consistent font */
+    font-size: 16px;
+    min-height: 20px; /* Ensure space even if no highlight */
+    color: #555; /* Slightly muted color for display */
+    word-wrap: break-word; /* Allow long names to wrap */
+    padding: 0 10px; /* Align with input padding */
+}
+
+.highlighted-char {
+    text-decoration: underline;
+    text-decoration-color: #FF6347; /* Tomato red for emphasis */
+    text-decoration-thickness: 2px;
+    font-weight: bold;
+    color: #FF6347; /* Make the highlighted text red */
+}
+
+.live-values {
+    font-size: 14px;
+    color: #555;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.live-values p {
+    margin: 3px 0;
+}
+
+.live-values b {
+    color: #333;
+}
+
+.karmic-debt-flag {
+    color: #e74c3c; /* Red color for warning */
+    font-weight: bold;
 }
 
 /* Styles for validation display within suggestions */
-.validation-result-display {
+.validation-result {
     background-color: #f9f9f9; /* Light background for the validation box */
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -264,6 +309,17 @@ body {
     font-size: 14px;
     line-height: 1.5;
 }
+
+.validation-result.valid {
+    border-color: #4CAF50; /* Green border for valid */
+    background-color: #e8f5e9; /* Light green background */
+}
+
+.validation-result.invalid {
+    border-color: #F44336; /* Red border for invalid */
+    background-color: #ffebee; /* Light red background */
+}
+
 
 .validation-status {
     margin-bottom: 5px;
@@ -299,6 +355,7 @@ body {
     border-radius: 10px;
     max-width: 85%;
     word-wrap: break-word;
+    white-space: pre-wrap; /* Preserve whitespace and line breaks */
 }
 
 .chat-message.user {
@@ -417,11 +474,11 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.7); /* Slightly darker overlay */
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 10000; /* High z-index */
 }
 
 .modal-content {
@@ -431,6 +488,20 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     width: 350px;
     text-align: center;
+    transform: scale(0.95);
+    opacity: 0;
+    animation: modalAppear 0.3s forwards ease-out; /* Animation */
+}
+
+@keyframes modalAppear {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .modal-message {
@@ -475,6 +546,7 @@ body {
     .main-content-wrapper {
         padding: 20px; /* Smaller padding inside the main card */
         gap: 20px; /* Reduce gap between sections */
+        flex-direction: column; /* Ensure column layout on small screens */
     }
 
     .section-card {
@@ -534,6 +606,15 @@ body {
     .modal-message {
         font-size: 17px;
     }
+
+    .button-group {
+        flex-direction: column; /* Stack buttons vertically on small screens */
+        align-items: stretch; /* Make buttons take full width */
+    }
+
+    .button-group button {
+        width: 100%; /* Full width for stacked buttons */
+    }
 }
 
 @media (max-width: 480px) { /* Extra small screens / very narrow phones */
@@ -570,3 +651,4 @@ body {
         height: 180px;
     }
 }
+/* END OF App.css - DO NOT DELETE THIS LINE */
