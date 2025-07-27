@@ -548,6 +548,7 @@ p,
 }
 
 /* ✦ ENHANCED SUGGESTIONS STYLING ✦ */
+/* This section is for individual suggestion cards, not the table itself */
 .suggestions-list-item {
   background: var(--pure-white);
   border: 1px solid rgba(226, 232, 240, 0.8);
@@ -982,9 +983,9 @@ p,
   font-weight: 700;
   color: var(--pure-gold);
 }
-/* ✦ TABLE STYLES ✦ */
+/* ✦ ENHANCED SUGGESTIONS TABLE ✦ */
 
-.table-container {
+.table-responsive {
   width: 100%;
   overflow-x: auto; /* Ensures table is scrollable on small screens */
   margin-bottom: var(--space-2xl);
@@ -993,252 +994,301 @@ p,
   box-shadow: var(--shadow-medium);
 }
 
-.styled-table {
+.name-suggestion-table {
   width: 100%;
   border-collapse: collapse; /* Removes space between table cells */
+  text-align: left;
   font-family: 'Inter', sans-serif;
-  color: var(--text-primary);
-  background-color: var(--pure-white);
 }
 
-.styled-table thead tr {
+.name-suggestion-table thead tr {
   background-color: var(--aurora-violet);
   color: var(--pure-white);
-  text-align: left;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0; /* Rounded top corners */
+  overflow: hidden; /* Ensures border-radius applies */
 }
 
-.styled-table th,
-.styled-table td {
-  padding: var(--space-lg) var(--space-xl);
-  border-bottom: 1px solid var(--mist-white);
-}
-
-.styled-table th {
+.name-suggestion-table th {
+  font-family: 'Space Grotesk', sans-serif;
   font-size: var(--text-sm);
   font-weight: 600;
+  color: var(--pure-white); /* Text color for header */
+  background-color: var(--aurora-violet); /* Background for header */
+  padding: var(--space-lg) var(--space-xl);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--celestial-light); /* Stronger border below header */
 }
 
-.styled-table tbody tr {
+.name-suggestion-table td {
+  padding: var(--space-lg) var(--space-xl);
+  vertical-align: middle;
+  font-family: 'Inter', sans-serif;
+  font-size: var(--text-base);
+  font-weight: 500;
+  border-bottom: 1px solid var(--mist-white); /* Light border between rows */
+  background-color: var(--pure-white); /* Default cell background */
+  color: var(--text-primary); /* Changed to text-primary for better contrast */
   transition: background-color var(--transition-fast);
 }
 
-.styled-table tbody tr:nth-of-type(even) {
-  background-color: var(--cosmic-white); /* Zebra striping */
+.name-suggestion-table tbody tr:nth-of-type(even) td {
+  background-color: var(--cloud-white); /* Zebra striping */
 }
 
-.styled-table tbody tr:hover {
-  background-color: var(--celestial-light);
-  color: var(--deep-space);
+.name-suggestion-table tbody tr:hover td {
+  background-color: var(--stardust); /* Lighter hover for rows */
+  color: var(--deep-space); /* Changed to deep-space for better contrast on hover */
 }
 
-.styled-table tbody tr:last-of-type {
-  border-bottom: 2px solid var(--aurora-violet); /* Stronger border for the last row */
+.name-suggestion-table tbody tr:last-child td {
+  border-bottom: none; /* No border for the very last row */
 }
 
-/* Responsive Table Behavior for Smaller Screens */
-@media (max-width: 768px) {
-  .styled-table thead {
-    display: none; /* Hide table headers on small screens */
-  }
-
-  .styled-table,
-  .styled-table tbody,
-  .styled-table tr,
-  .styled-table td {
-    display: block; /* Make table elements behave like block elements */
-    width: 100%;
-  }
-
-  .styled-table tr {
-    margin-bottom: var(--space-lg);
-    border: 1px solid var(--mist-white);
-    border-radius: var(--radius-md);
-    padding: var(--space-md);
-  }
-
-  .styled-table td {
-    text-align: right;
-    padding-left: 50%; /* Make space for the data-label */
-    position: relative;
-    border: none;
-    border-bottom: 1px dashed var(--mist-white); /* Dashed border for readability */
-  }
-
-  .styled-table td:last-child {
-    border-bottom: none;
-  }
-
-  .styled-table td::before {
-    content: attr(data-label); /* Use data-label for pseudo-elements */
-    position: absolute;
-    left: var(--space-md);
-    width: calc(50% - var(--space-md));
-    padding-right: var(--space-md);
-    white-space: nowrap;
-    text-align: left;
-    font-weight: 700;
-    color: var(--text-violet);
-  }
+.table-input {
+  width: 100%;
+  background: transparent; /* Make input background transparent by default */
+  border: 1px solid transparent; /* Transparent border */
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-family: 'Inter', sans-serif;
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-primary); /* Ensure input text is primary color */
+  transition: all var(--transition-fast);
 }
 
-/* Dark Mode Adjustments for Tables */
+.table-input:focus {
+  outline: none;
+  background: var(--pure-white); /* White background on focus */
+  border-color: var(--aurora-violet); /* Highlight border on focus */
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1); /* Subtle glow on focus */
+}
+
+.actions-cell {
+  text-align: center; /* Center actions for better alignment */
+  white-space: nowrap; /* Keep buttons on one line */
+  display: flex; /* Use flexbox for button alignment */
+  justify-content: center; /* Center buttons horizontally */
+  gap: var(--space-md); /* Space between buttons */
+}
+
+.actions-cell .secondary-btn,
+.actions-cell .primary-btn {
+  margin: 0; /* Remove default button margins to use gap */
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg) var(--space-xl);
+  background: var(--cloud-white);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-xl);
+  box-shadow: var(--shadow-soft);
+  color: var(--text-secondary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.pagination-controls button {
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--text-sm);
+  min-height: 36px; /* Ensure consistent button height */
+}
+
+/* ✦ MODAL & LOADING ✦ */
+.custom-modal, .loading-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(15px);
+}
+
+.modal-content {
+  background: var(--pure-white);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3xl);
+  box-shadow: var(--shadow-large);
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+}
+
+.modal-message {
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.loader {
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid var(--aurora-violet);
+  border-right: 3px solid var(--pure-gold);
+  border-radius: 50%;
+  animation: celestialSpin 1.2s linear infinite;
+  margin-bottom: var(--space-xl);
+}
+
+@keyframes celestialSpin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+  color: var(--text-white);
+  font-family: 'Playfair Display', serif;
+  font-size: var(--text-xl);
+}
+
+/* ✦ REPORT & PROFILE STYLES ✦ */
+.profile-details-content, .report-preview-area {
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: var(--space-md);
+}
+
+.confirmed-item {
+  background: linear-gradient(135deg, var(--pure-white) 0%, var(--gold-whisper) 100%);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-xl);
+  cursor: pointer;
+  border-radius: var(--radius-full);
+}
+
+.remove-btn:hover {
+  color: var(--text-error);
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* ✦ UTILITY & STATE CLASSES ✦ */
+.text-green-600 { color: var(--text-success); }
+.text-red-600 { color: var(--text-error); }
+.font-bold { font-weight: 700; }
+
+button:disabled, .primary-btn.disabled-btn {
+  background: var(--mist-white);
+  color: var(--text-muted);
+  border-color: transparent;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.primary-btn.disabled-btn {
+  background: var(--text-success);
+  color: var(--pure-white);
+  cursor: default;
+}
+
+/* ✦ DARK MODE SUPPORT ✦ */
 @media (prefers-color-scheme: dark) {
-  .styled-table {
-    background-color: var(--cosmic-navy);
+  :root {
+    --pure-white: #1e293b; /* Darker card background */
+    --pearl-white: #28364b;
+    --cosmic-white: #334155; /* Hover state for rows */
+    --cloud-white: #141832; /* Header background for table */
+    --mist-white: #475569; /* Border color */
+    --text-primary: #f1f5f9;
+    --text-secondary: #e2e8f0;
+    --text-tertiary: #cbd5e1;
+    --text-muted: #94a3b8;
+  }
+  
+  .main-content-wrapper {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.9) 50%, rgba(71, 85, 105, 0.85) 100%);
+  }
+  
+  .section-card,
+  .input-field,
+  .live-values,
+  .report-preview-area {
+    background: var(--pure-white);
+    border-color: rgba(71, 85, 105, 0.3);
+    color: var(--text-primary);
   }
 
-  .styled-table thead tr {
-    background-color: var(--mystic-purple);
+  /* Dark mode for the table */
+  .name-suggestion-table {
+    background-color: var(--cosmic-navy); /* Darker background for table */
   }
 
-  .styled-table th,
-  .styled-table td {
-    border-bottom: 1px solid var(--deep-space);
+  .name-suggestion-table thead tr {
+    background-color: var(--mystic-purple); /* Darker header background */
   }
 
-  .styled-table tbody tr:nth-of-type(even) {
-    background-color: var(--deep-space);
+  .name-suggestion-table th {
+    color: var(--celestial-light); /* Lighter text for dark headers */
+    background-color: var(--mystic-purple); /* Ensure consistency */
+    border-bottom-color: var(--nebula-violet); /* Darker border below header */
   }
 
-  .styled-table tbody tr:hover {
-    background-color: var(--nebula-violet);
-    color: var(--stardust);
+  .name-suggestion-table td {
+    border-bottom: 1px solid var(--deep-space); /* Darker border between rows */
+    background-color: var(--cosmic-navy); /* Darker default cell background */
+    color: var(--text-primary); /* Ensure text is visible in dark mode */
   }
 
-  .styled-table tbody tr:last-of-type {
-    border-bottom: 2px solid var(--celestial-light);
+  .name-suggestion-table tbody tr:nth-of-type(even) td {
+    background-color: var(--deep-space); /* Darker zebra striping */
+  }
+
+  .name-suggestion-table tbody tr:hover td {
+    background-color: var(--nebula-violet); /* Darker hover for rows */
+    color: var(--stardust); /* Lighter text on hover */
+  }
+
+  .name-suggestion-table tbody tr:last-child td {
+    border-bottom: none; /* No border for the very last row */
+  }
+
+  .table-input {
+    background: var(--pure-white); /* Keep input background consistent in dark mode */
+    border-color: var(--mist-white);
+    color: var(--text-primary);
+  }
+  
+  .table-input:focus {
+    border-color: var(--aurora-violet);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
+
+  .pagination-controls {
+    background: var(--cloud-white); /* Darker background for pagination */
+    color: var(--text-secondary);
   }
 
   @media (max-width: 768px) {
-    .styled-table tr {
-      border: 1px solid var(--deep-space);
+    .name-suggestion-table tr {
+      border: 1px solid var(--mist-white); /* Darker border for collapsed rows */
     }
-    .styled-table td {
-      border-bottom: 1px dashed var(--deep-space);
+    .name-suggestion-table td {
+      border-bottom: 1px dashed var(--mist-white); /* Darker dashed border */
+    }
+    .name-suggestion-table td::before {
+      color: var(--celestial-light); /* Lighter data-label text */
     }
   }
-}
-.confirmed-suggestions-list > div:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-gold);
-  border-color: var(--bright-gold);
-}
-
-.confirmed-suggestions-list span {
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: var(--text-base);
-  color: var(--text-primary);
-  margin-left: var(--space-2xl);
-}
-
-/* ✦ COLOR UTILITY CLASSES ✦ */
-.text-green-600 { 
-  color: var(--text-success); 
-  font-weight: 600;
-}
-
-.text-red-600 { 
-  color: var(--text-error); 
-  font-weight: 600;
-}
-
-.text-gray-500 { 
-  color: var(--text-muted); 
-  font-weight: 400;
-}
-
-.text-gray-600 { 
-  color: var(--text-light); 
-  font-weight: 400;
-}
-
-.font-bold { 
-  font-weight: 700; 
-}
-
-/* ✦ ENHANCED SCROLLBAR STYLING ✦ */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--cloud-white);
-  border-radius: var(--radius-full);
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, var(--aurora-violet), var(--pure-gold));
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, var(--mystic-purple), var(--bright-gold));
-}
-
-/* ✦ FOCUS STYLES FOR ACCESSIBILITY ✦ */
-*:focus-visible {
-  outline: 2px solid var(--aurora-violet);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
-}
-
-/* ✦ DISABLED STATES ✦ */
-.primary-btn:disabled,
-.secondary-btn:disabled {
-  background: var(--text-muted);
-  color: var(--text-white);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: var(--shadow-soft);
-  opacity: 0.6;
-}
-
-.primary-btn:disabled:hover,
-.secondary-btn:disabled:hover {
-  transform: none;
-  box-shadow: var(--shadow-soft);
-}
-
-/* ✦ TEXT SELECTION ✦ */
-::selection {
-  background: rgba(99, 102, 241, 0.15);
-  color: var(--text-primary);
-}
-
-::-moz-selection {
-  background: rgba(99, 102, 241, 0.15);
-  color: var(--text-primary);
-}
-
-/* ✦ UTILITY CLASSES ✦ */
-.celestial-gradient-text {
-  background: linear-gradient(135deg, var(--aurora-violet), var(--pure-gold));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 600;
-}
-
-.glass-effect {
-  backdrop-filter: blur(15px) saturate(120%);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.hover-lift {
-  transition: transform var(--transition-medium);
-}
-
-.hover-lift:hover {
-  transform: translateY(-3px);
-}
-
-.celestial-glow {
-  box-shadow: var(--shadow-glow);
 }
 
 /* ✦ RESPONSIVE DESIGN ✦ */
@@ -1334,13 +1384,17 @@ p,
 
 /* ✦ DARK MODE SUPPORT ✦ */
 @media (prefers-color-scheme: dark) {
+  /* Existing dark mode variables from your file */
   :root {
-    --pure-white: #1e293b;
-    --cosmic-white: #334155;
-    --cloud-white: #475569;
+    --pure-white: #1e293b; /* Darker card background */
+    --pearl-white: #28364b;
+    --cosmic-white: #334155; /* Hover state for rows */
+    --cloud-white: #141832; /* Header background for table */
+    --mist-white: #475569; /* Border color */
     --text-primary: #f1f5f9;
     --text-secondary: #e2e8f0;
     --text-tertiary: #cbd5e1;
+    --text-muted: #94a3b8;
   }
   
   .main-content-wrapper {
@@ -1354,6 +1408,68 @@ p,
     background: var(--pure-white);
     border-color: rgba(71, 85, 105, 0.3);
     color: var(--text-primary);
+  }
+
+  /* Dark mode for the table */
+  .name-suggestion-table {
+    background-color: var(--cosmic-navy); /* Darker background for table */
+  }
+
+  .name-suggestion-table thead tr {
+    background-color: var(--mystic-purple); /* Darker header background */
+  }
+
+  .name-suggestion-table th {
+    color: var(--celestial-light); /* Lighter text for dark headers */
+    background-color: var(--mystic-purple); /* Ensure consistency */
+    border-bottom-color: var(--nebula-violet); /* Darker border below header */
+  }
+
+  .name-suggestion-table td {
+    border-bottom: 1px solid var(--deep-space); /* Darker border between rows */
+    background-color: var(--cosmic-navy); /* Darker default cell background */
+    color: var(--text-primary); /* Ensure text is visible in dark mode */
+  }
+
+  .name-suggestion-table tbody tr:nth-of-type(even) td {
+    background-color: var(--deep-space); /* Darker zebra striping */
+  }
+
+  .name-suggestion-table tbody tr:hover td {
+    background-color: var(--nebula-violet); /* Darker hover for rows */
+    color: var(--stardust); /* Lighter text on hover */
+  }
+
+  .name-suggestion-table tbody tr:last-child td {
+    border-bottom: none; /* No border for the very last row */
+  }
+
+  .table-input {
+    background: var(--pure-white); /* Keep input background consistent in dark mode */
+    border-color: var(--mist-white);
+    color: var(--text-primary);
+  }
+  
+  .table-input:focus {
+    border-color: var(--aurora-violet);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
+
+  .pagination-controls {
+    background: var(--cloud-white); /* Darker background for pagination */
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    .name-suggestion-table tr {
+      border: 1px solid var(--mist-white); /* Darker border for collapsed rows */
+    }
+    .name-suggestion-table td {
+      border-bottom: 1px dashed var(--mist-white); /* Darker dashed border */
+    }
+    .name-suggestion-table td::before {
+      color: var(--celestial-light); /* Lighter data-label text */
+    }
   }
 }
 
@@ -1412,4 +1528,3 @@ body::after {
   z-index: -2;
 }
 
-/* ✦ IMPROVEMENTS: Enhanced Button Ripple Effect ✦ */
