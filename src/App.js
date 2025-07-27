@@ -187,7 +187,7 @@ function App() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
-    const [isTableFullscreen, setIsTableFullscreen] = useState(false); // New state for fullscreen table
+    // Removed isTableFullscreen state and related logic
 
     // --- Modal Functions ---
     const openModal = useCallback((message) => {
@@ -198,31 +198,7 @@ function App() {
         setModal({ isOpen: false, message: '' });
     }, [setModal]);
 
-    // Fullscreen toggle function
-    const toggleTableFullscreen = useCallback(() => {
-        setIsTableFullscreen(prev => !prev);
-    }, []);
-
-    // ESC key handler for fullscreen mode
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && isTableFullscreen) {
-                setIsTableFullscreen(false);
-            }
-        };
-
-        if (isTableFullscreen) {
-            document.addEventListener('keydown', handleEscKey);
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-            document.body.style.overflow = 'unset';
-        };
-    }, [isTableFullscreen]);
+    // Removed toggleTableFullscreen and its useEffect for Esc key
 
     // --- formatProfileData Function ---
     const formatProfileData = useCallback((profile) => {
@@ -519,7 +495,7 @@ function App() {
     }, [openModal]);
 
 
-    // --- Handlers for Editable Suggestions Table ---
+    // --- Handlers for Editable Suggestions Pseudo-Table ---
     // Core logic for backend suggestion validation (not debounced)
     const validateSuggestionNameBackendCore = useCallback((name, index) => {
         if (clientProfileRef.current) {
@@ -559,7 +535,7 @@ function App() {
     }, [debouncedValidateSuggestionNameBackend]);
     
     // --- Pagination Logic ---
-    const SUGGESTIONS_PER_PAGE = isTableFullscreen ? 10 : 5; // More items in fullscreen
+    const SUGGESTIONS_PER_PAGE = 5; 
     const pageCount = Math.ceil(editableSuggestions.length / SUGGESTIONS_PER_PAGE);
     const paginatedSuggestions = editableSuggestions.slice(
         currentPage * SUGGESTIONS_PER_PAGE,
@@ -575,79 +551,7 @@ function App() {
     };
 
     return (
-        <div className={`app-container ${isTableFullscreen ? 'fullscreen-active' : ''}`}>
-            {/* Fullscreen Table Overlay */}
-            {isTableFullscreen && (
-                <div className="fullscreen-table-overlay">
-                    <div className="fullscreen-table-header">
-                        <h2>Suggested Name Variations - Fullscreen Mode</h2>
-                        <div className="fullscreen-controls">
-                            <span className="fullscreen-instructions">Press ESC or click × to exit fullscreen</span>
-                            <button 
-                                onClick={toggleTableFullscreen} 
-                                className="fullscreen-close-btn"
-                                aria-label="Exit fullscreen"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div className="fullscreen-table-content">
-                        <div className="table-responsive fullscreen-table">
-                            <table className="name-suggestion-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>First Name Value</th>
-                                        <th>Expression Number</th>
-                                        <th>Soul Urge</th>
-                                        <th>Personality</th>
-                                        <th>Karmic Debt</th>
-                                        <th>Valid</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {paginatedSuggestions.map((s) => (
-                                        <tr key={s.id}>
-                                            <td data-label="Actions" className="actions-cell">
-                                                <button 
-                                                    onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, s.id)} 
-                                                    className="secondary-btn small-btn" 
-                                                    disabled={!clientProfile || !s.currentName.trim()}
-                                                    title="Re-validate this name with the backend"
-                                                >
-                                                    Validate
-                                                </button>
-                                                <button
-                                                    onClick={() => handleConfirmSuggestion(s)}
-                                                    className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'disabled-btn' : ''}`}
-                                                    disabled={confirmedSuggestions.some(cs => cs.name === s.currentName)}
-                                                    title="Confirm this name for the report"
-                                                >
-                                                    {confirmedSuggestions.some(cs => cs.name === s.currentName) ? '✓' : 'Confirm'}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div className="pagination-controls fullscreen-pagination">
-                            <button onClick={goToPreviousPage} disabled={currentPage === 0} className="secondary-btn">
-                                Previous
-                            </button>
-                            <span>Page {currentPage + 1} of {pageCount} | Showing {paginatedSuggestions.length} of {editableSuggestions.length} names</span>
-                            <button onClick={goToNextPage} disabled={currentPage >= pageCount - 1} className="secondary-btn">
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
+        <div className="app-container">
             <div className="main-content-wrapper">
                 <h1 className="main-title">Sheelaa's Numerology Portal</h1>
 
@@ -732,76 +636,74 @@ function App() {
                     )}
                 </div>
 
-                {/* Enhanced Suggestions Table */}
+                {/* Pseudo-Table for Suggested Name Variations */}
                 {editableSuggestions.length > 0 && (
                     <div className="section-card suggestions-display-card">
-                        <div className="table-header-controls">
+                        <div className="pseudo-table-header-controls">
                             <h2>Suggested Name Variations</h2>
-                            <button 
-                                onClick={toggleTableFullscreen}
-                                className="secondary-btn fullscreen-btn"
-                                title="Open table in fullscreen mode"
-                            >
-                                <span className="fullscreen-icon">⛶</span> Fullscreen
-                            </button>
                         </div>
                         <p className="text-sm text-gray-700 mb-3">
-                           Here are the suggested names. You can edit, validate, and confirm them directly in the table. Click "Fullscreen" for a better editing experience.
+                           Here are the suggested names. You can edit, validate, and confirm them directly in the list.
                         </p>
-                        <div className="table-responsive">
-                            <table className="name-suggestion-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>FNV</th>
-                                        <th>EN</th>
-                                        <th>Valid</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {paginatedSuggestions.map((s) => (
-                                        <tr key={s.id}>
-                                            <td data-label="Name">
-                                                <input
-                                                    type="text"
-                                                    value={s.currentName}
-                                                    onChange={(e) => handleNameTableCellChange(s.id, e.target.value)}
-                                                    className="table-input"
-                                                    aria-label={`Edit name for ${s.originalName}`}
-                                                />
-                                            </td>
-                                            <td data-label="FNV">{s.firstNameValue}</td>
-                                            <td data-label="EN">{s.expressionNumber}</td>
-                                            <td data-label="Valid">
-                                                {s.validationResult ? (
-                                                    s.validationResult.is_valid ? '✅' : '❌'
-                                                ) : (
-                                                    '--'
-                                                )}
-                                            </td>
-                                            <td data-label="Actions" className="actions-cell">
-                                                <button 
-                                                    onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, s.id)} 
-                                                    className="secondary-btn small-btn" 
-                                                    disabled={!clientProfile || !s.currentName.trim()}
-                                                    title="Re-validate this name with the backend"
-                                                >
-                                                    Validate
-                                                </button>
-                                                <button
-                                                    onClick={() => handleConfirmSuggestion(s)}
-                                                    className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'disabled-btn' : ''}`}
-                                                    disabled={confirmedSuggestions.some(cs => cs.name === s.currentName)}
-                                                     title="Confirm this name for the report"
-                                                >
-                                                    {confirmedSuggestions.some(cs => cs.name === s.currentName) ? '✓' : 'Confirm'}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <div className="pseudo-table-responsive">
+                            <div className="pseudo-table-header">
+                                <div className="pseudo-table-cell header">Name</div>
+                                <div className="pseudo-table-cell header">FNV</div>
+                                <div className="pseudo-table-cell header">EN</div>
+                                <div className="pseudo-table-cell header">Valid</div>
+                                <div className="pseudo-table-cell header">Actions</div>
+                            </div>
+                            <div className="pseudo-table-body">
+                                {paginatedSuggestions.map((s) => (
+                                    <div key={s.id} className="pseudo-table-row">
+                                        <div className="pseudo-table-cell name-cell">
+                                            <span className="cell-label">Name:</span>
+                                            <input
+                                                type="text"
+                                                value={s.currentName}
+                                                onChange={(e) => handleNameTableCellChange(s.id, e.target.value)}
+                                                className="pseudo-table-input"
+                                                aria-label={`Edit name for ${s.originalName}`}
+                                            />
+                                        </div>
+                                        <div className="pseudo-table-cell">
+                                            <span className="cell-label">FNV:</span>
+                                            {s.firstNameValue}
+                                        </div>
+                                        <div className="pseudo-table-cell">
+                                            <span className="cell-label">EN:</span>
+                                            {s.expressionNumber}
+                                        </div>
+                                        <div className="pseudo-table-cell">
+                                            <span className="cell-label">Valid:</span>
+                                            {s.validationResult ? (
+                                                s.validationResult.is_valid ? '✅' : '❌'
+                                            ) : (
+                                                '--'
+                                            )}
+                                        </div>
+                                        <div className="pseudo-table-cell actions-cell">
+                                            <span className="cell-label">Actions:</span>
+                                            <button 
+                                                onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, s.id)} 
+                                                className="secondary-btn small-btn" 
+                                                disabled={!clientProfile || !s.currentName.trim()}
+                                                title="Re-validate this name with the backend"
+                                            >
+                                                Validate
+                                            </button>
+                                            <button
+                                                onClick={() => handleConfirmSuggestion(s)}
+                                                className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'disabled-btn' : ''}`}
+                                                disabled={confirmedSuggestions.some(cs => cs.name === s.currentName)}
+                                                 title="Confirm this name for the report"
+                                            >
+                                                {confirmedSuggestions.some(cs => cs.name === s.currentName) ? '✓' : 'Confirm'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         <div className="pagination-controls">
                             <button onClick={goToPreviousPage} disabled={currentPage === 0} className="secondary-btn">
@@ -814,6 +716,7 @@ function App() {
                         </div>
                     </div>
                 )}
+
 
                 {/* Report Generation */}
                 {clientProfile && (
@@ -871,4 +774,6 @@ function App() {
 }
 
 export default App;
-// END OF App.js - DO NOT DELETE THIS LINE="Name">
+// END OF App.js - DO NOT DELETE THIS LINE
+
+
