@@ -387,10 +387,14 @@ function App() {
                 const personalityNumber = calculatePersonalityNumber(s.name);
                 const karmicDebtPresent = checkKarmicDebt(s.name);
 
+                // Extract first name from the full suggested name
+                const firstName = s.name.split(' ')[0];
+
                 return {
                     ...s,
                     id: index, // Add a stable id
-                    currentName: s.name, // The full name the user can edit
+                    currentName: s.name, // The full name the user can edit (initially LLM suggestion)
+                    currentFirstName: firstName, // The first name part for separate editing
                     originalName: s.name, // The original full name suggested by LLM
                     firstNameValue,
                     expressionNumber,
@@ -511,12 +515,42 @@ function App() {
         debounce((name, index) => validateSuggestionNameBackendCore(name, index), 500)
     ).current;
 
-    const handleNameTableCellChange = useCallback((index, newFullName) => {
+    const handleNameChange = useCallback((index, newFullName) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
             if (idx === index) {
                 const updatedSuggestion = { ...s, currentName: newFullName, isEdited: true };
 
-                // Recalculate all live numerology values
+                // Recalculate all live numerology values for the full name
+                updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
+                updatedSuggestion.expressionNumber = calculateExpressionNumber(newFullName);
+                updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
+                updatedSuggestion.personalityNumber = calculatePersonalityNumber(newFullName);
+                updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newFullName);
+
+                // Update currentFirstName based on the newFullName
+                updatedSuggestion.currentFirstName = newFullName.split(' ')[0];
+
+                if (newFullName.trim()) {
+                    debouncedValidateSuggestionNameBackend(newFullName, index);
+                } else {
+                    updatedSuggestion.validationResult = null; // Clear validation on empty
+                }
+                return updatedSuggestion;
+            }
+            return s;
+        }));
+    }, [debouncedValidateSuggestionNameBackend]);
+    
+    const handleFirstNameChange = useCallback((index, newFirstName) => {
+        setEditableSuggestions(prev => prev.map((s, idx) => {
+            if (idx === index) {
+                // Construct the new full name by replacing the first word
+                const originalParts = s.currentName.split(' ');
+                const newFullName = [newFirstName, ...originalParts.slice(1)].join(' ');
+
+                const updatedSuggestion = { ...s, currentName: newFullName, currentFirstName: newFirstName, isEdited: true };
+
+                // Recalculate all live numerology values for the new full name
                 updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
                 updatedSuggestion.expressionNumber = calculateExpressionNumber(newFullName);
                 updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
@@ -533,7 +567,8 @@ function App() {
             return s;
         }));
     }, [debouncedValidateSuggestionNameBackend]);
-    
+
+
     // --- Pagination Logic ---
     const SUGGESTIONS_PER_PAGE = 5; 
     const pageCount = Math.ceil(editableSuggestions.length / SUGGESTIONS_PER_PAGE);
@@ -647,31 +682,42 @@ function App() {
                         </p>
                         <div className="pseudo-table-responsive">
                             <div className="pseudo-table-header">
-                                <div className="pseudo-table-cell header">Name</div>
-                                <div className="pseudo-table-cell header">FNV</div>
-                                <div className="pseudo-table-cell header">EN</div>
+                                <div className="pseudo-table-cell header">Full Suggested Name</div>
+                                <div className="pseudo-table-cell header">First Name Value</div>
+                                <div className="pseudo-table-cell header">Expression Number</div>
                                 <div className="pseudo-table-cell header">Valid</div>
                                 <div className="pseudo-table-cell header">Actions</div>
                             </div>
                             <div className="pseudo-table-body">
                                 {paginatedSuggestions.map((s) => (
                                     <div key={s.id} className="pseudo-table-row">
-                                        <div className="pseudo-table-cell name-cell">
-                                            <span className="cell-label">Name:</span>
+                                        <div className="pseudo-table-cell name-editing-cell">
+                                            <span className="cell-label">Full Suggested Name:</span>
                                             <input
                                                 type="text"
                                                 value={s.currentName}
-                                                onChange={(e) => handleNameTableCellChange(s.id, e.target.value)}
-                                                className="pseudo-table-input"
-                                                aria-label={`Edit name for ${s.originalName}`}
+                                                onChange={(e) => handleNameChange(s.id, e.target.value)}
+                                                className="pseudo-table-input full-name-input"
+                                                aria-label={`Edit full name for ${s.originalName}`}
                                             />
+                                            <div className="first-name-edit-section">
+                                                <span className="cell-label">Edit First Name:</span>
+                                                <input
+                                                    type="text"
+                                                    value={s.currentFirstName}
+                                                    onChange={(e) => handleFirstNameChange(s.id, e.target.value)}
+                                                    className="pseudo-table-input first-name-input"
+                                                    aria-label={`Edit first name for ${s.originalName}`}
+                                                />
+                                                <span className="first-name-score">Score: {calculateFirstNameValue(s.currentFirstName)}</span>
+                                            </div>
                                         </div>
                                         <div className="pseudo-table-cell">
-                                            <span className="cell-label">FNV:</span>
+                                            <span className="cell-label">First Name Value:</span>
                                             {s.firstNameValue}
                                         </div>
                                         <div className="pseudo-table-cell">
-                                            <span className="cell-label">EN:</span>
+                                            <span className="cell-label">Expression Number:</span>
                                             {s.expressionNumber}
                                         </div>
                                         <div className="pseudo-table-cell">
@@ -775,5 +821,3 @@ function App() {
 
 export default App;
 // END OF App.js - DO NOT DELETE THIS LINE
-
-

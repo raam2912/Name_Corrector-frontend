@@ -164,15 +164,10 @@ body::before {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  /* Adjusted padding for wider screen */
-  padding: var(--space-xl) var(--space-2xl); /* Reduced top/bottom, kept side padding */
+  padding: var(--space-xl) var(--space-2xl);
   min-height: 100vh;
   position: relative;
-  /* No more fullscreen-active transformation */
 }
-
-/* Removed app-container.fullscreen-active styles */
-
 
 /* ✦ ENHANCED MAIN CONTENT WRAPPER ✦ */
 .main-content-wrapper {
@@ -921,7 +916,7 @@ p,
 .pseudo-table-header {
   display: grid;
   /* Define column widths for wide screens */
-  grid-template-columns: 35% 12% 12% 12% 29%; /* Name, FNV, EN, Valid, Actions */
+  grid-template-columns: 40% 15% 15% 10% 20%; /* Adjusted widths */
   background-color: var(--aurora-violet);
   color: var(--pure-white);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -959,7 +954,7 @@ p,
 .pseudo-table-row {
   display: grid;
   /* Inherit column widths from header for alignment */
-  grid-template-columns: 35% 12% 12% 12% 29%; 
+  grid-template-columns: 40% 15% 15% 10% 20%; /* Adjusted widths */
   border-bottom: 1px solid var(--mist-white);
   background-color: var(--pure-white);
   transition: background-color var(--transition-fast);
@@ -997,10 +992,13 @@ p,
     display: none; /* Hide labels by default on wide screens */
 }
 
-.pseudo-table-cell.name-cell {
-  text-align: left;
-  justify-content: flex-start; /* Align name input to the left */
-  white-space: normal; /* Allow name input to wrap */
+/* Specific styling for the name editing cell */
+.pseudo-table-cell.name-editing-cell {
+  flex-direction: column; /* Stack elements vertically */
+  align-items: flex-start; /* Align content to the left */
+  justify-content: flex-start;
+  padding: var(--space-md) var(--space-xl); /* Reduced padding for more content space */
+  white-space: normal; /* Allow text to wrap */
   overflow: visible; /* Allow content to overflow if needed for input */
   text-overflow: unset;
 }
@@ -1024,6 +1022,38 @@ p,
   border-color: var(--aurora-violet);
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
 }
+
+/* Full name input specific style */
+.pseudo-table-input.full-name-input {
+  margin-bottom: var(--space-md); /* Space below the full name input */
+  font-weight: 600; /* Make it slightly bolder */
+}
+
+/* First name editing section */
+.first-name-edit-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px dashed var(--mist-white); /* Separator */
+}
+
+.first-name-edit-section .pseudo-table-input.first-name-input {
+  margin-bottom: var(--space-sm);
+}
+
+.first-name-score {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-violet);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--stardust);
+  border-radius: var(--radius-sm);
+  align-self: flex-end; /* Align score to the right within its container */
+}
+
 
 .pseudo-table-cell.actions-cell {
   display: flex;
@@ -1140,6 +1170,15 @@ button:disabled, .primary-btn.disabled-btn {
   .pagination-controls {
     background: var(--cloud-white);
     color: var(--text-secondary);
+  }
+
+  .first-name-edit-section {
+    border-top-color: var(--mist-white); /* Dark mode border for first name section */
+  }
+
+  .first-name-score {
+    background: var(--nebula-violet); /* Dark mode background for score */
+    color: var(--celestial-light);
   }
 }
 
@@ -1268,6 +1307,35 @@ button:disabled, .primary-btn.disabled-btn {
     padding: 2px 6px;
     min-width: 60px;
     min-height: 32px;
+  }
+
+  /* Specific mobile adjustments for name-editing-cell */
+  .pseudo-table-cell.name-editing-cell {
+    padding: var(--space-md) 0; /* Adjust padding for mobile */
+  }
+
+  .first-name-edit-section {
+    margin-top: var(--space-md);
+    padding-top: var(--space-sm);
+    flex-direction: row; /* Keep first name input and score in a row */
+    justify-content: space-between; /* Space them out */
+    align-items: center; /* Vertically align */
+    flex-wrap: wrap; /* Allow wrapping if space is tight */
+  }
+  
+  .first-name-edit-section .cell-label {
+      flex-basis: auto; /* Allow label to shrink */
+      padding-right: var(--space-sm);
+  }
+
+  .first-name-edit-section .pseudo-table-input.first-name-input {
+      flex-grow: 1;
+      margin-bottom: 0; /* Remove bottom margin */
+  }
+
+  .first-name-score {
+      align-self: center; /* Center vertically */
+      margin-left: var(--space-sm); /* Space from input */
   }
 
   .pagination-controls {
