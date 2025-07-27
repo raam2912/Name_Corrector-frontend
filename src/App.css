@@ -26,9 +26,10 @@ body {
     justify-content: center; /* Horizontally center the main content wrapper */
     padding: 20px; /* Padding around the main content wrapper */
     min-height: 100vh; /* Ensure it takes full viewport height */
+    overflow-y: auto; /* Enable scrolling for the whole page if content overflows */
 }
 
-/* Main Content Wrapper (The big white card) */
+/* Main Content Wrapper (The big white card that contains everything) */
 .main-content-wrapper {
     background-color: #ffffff;
     padding: 30px; /* Default padding for smaller screens */
@@ -48,13 +49,11 @@ body {
 @media (min-width: 769px) { /* Adjust padding for laptop and larger screens */
     .main-content-wrapper {
         padding: 40px; /* More generous padding for larger screens */
-        /* IMPORTANT: NO flex-direction: row here. It remains column. */
     }
 }
 
-
 /*
-    The .column styles are now removed as the HTML structure no longer uses them.
+    All .column styles are removed as the HTML structure no longer uses them.
     All sections are direct children of .main-content-wrapper.
 */
 
@@ -64,8 +63,38 @@ body {
     padding: 28px; /* Padding inside each card */
     border-radius: 12px; /* Rounded corners for cards */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow for cards */
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transitions */
+    
+    /* Aesthetic Transition for Appearance */
+    opacity: 0; /* Start hidden */
+    transform: translateY(20px); /* Start slightly below */
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out, box-shadow 0.2s ease-in-out; /* Smooth transitions */
+    
+    /* Add a class to trigger the animation */
+    /* This class will be added by React when the component mounts or data loads */
+    animation: fadeInSlideUp 0.5s ease-out forwards;
 }
+
+/* Keyframes for the fade-in and slide-up animation */
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Apply animation delay to make cards appear sequentially */
+/* You might need to adjust these delays based on how many cards appear at once */
+.section-card:nth-child(1) { animation-delay: 0.1s; }
+.section-card:nth-child(2) { animation-delay: 0.2s; }
+.section-card:nth-child(3) { animation-delay: 0.3s; }
+.section-card:nth-child(4) { animation-delay: 0.4s; }
+.section-card:nth-child(5) { animation-delay: 0.5s; }
+.section-card:nth-child(6) { animation-delay: 0.6s; }
+
 
 .section-card:hover {
     transform: translateY(-3px); /* Slight lift effect on hover */
@@ -513,10 +542,7 @@ body {
     .main-content-wrapper {
         padding: 20px; /* Smaller padding inside the main card */
         gap: 20px; /* Reduce gap between sections */
-        /* It's already flex-direction: column by default, no change needed here */
     }
-
-    /* No .column styles needed as they are removed from HTML */
 
     .section-card {
         padding: 20px; /* Smaller padding inside each card */

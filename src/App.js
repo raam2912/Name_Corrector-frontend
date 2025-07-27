@@ -784,7 +784,6 @@ function App() {
                                                     <p className="validation-status">
                                                         <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
                                                     </p>
-                                                    {/* Rationale removed from here as per user request */}
                                                 </div>
                                             )}
                                             <div className="button-group">
@@ -796,7 +795,6 @@ function App() {
                                     ) : (
                                         <>
                                             <h3>{s.currentName} (Expression: {s.expressionNumber})</h3>
-                                            {/* Rationale is hidden for initial suggestions as per request */}
                                             {/* Live values displayed constantly */}
                                             <div className="live-values">
                                                 <p>First Name Value: <b>{s.firstNameValue}</b></p>
