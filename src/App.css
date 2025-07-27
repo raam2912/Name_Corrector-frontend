@@ -1053,6 +1053,7 @@ p,
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 2px solid var(--celestial-light); /* Stronger border below header */
+  white-space: nowrap; /* Prevent text wrapping in headers */
 }
 
 .name-suggestion-table td {
@@ -1065,6 +1066,7 @@ p,
   background-color: var(--pure-white); /* Default cell background */
   color: var(--text-primary); /* Changed to text-primary for better contrast */
   transition: background-color var(--transition-fast);
+  white-space: nowrap; /* Prevent text wrapping in cells */
 }
 
 .name-suggestion-table tbody tr:nth-of-type(even) td {
@@ -1135,6 +1137,7 @@ p,
 }
 
 /* ✦ FULLSCREEN TABLE MODE ✦ */
+/* The main container for the table when in fullscreen */
 .suggestions-display-card.table-fullscreen {
     position: fixed; /* Position relative to the viewport */
     top: 50%;
@@ -1156,38 +1159,122 @@ p,
     transition: all 0.3s ease-in-out; /* Smooth transition */
 }
 
+/* Header and controls within the fullscreen table */
 .suggestions-display-card.table-fullscreen .table-header-controls {
     width: 100%;
-    max-width: 1000px; /* Match main content wrapper max-width */
+    max-width: 1000px; /* Constrain header width */
     padding: var(--space-lg) var(--space-2xl);
     background: var(--cosmic-navy); /* Darker header background for fullscreen */
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     margin-bottom: var(--space-md);
     box-shadow: var(--shadow-medium);
     color: var(--text-white); /* Ensure header text is visible */
+    display: flex; /* Ensure flex behavior for title and button */
+    justify-content: space-between; /* Space between title and button */
+    align-items: center; /* Vertically align */
 }
 
+/* "Exit Fullscreen" button specific styles for visibility */
+.suggestions-display-card.table-fullscreen .table-header-controls .secondary-btn {
+    background-color: var(--pure-gold); /* Bright background */
+    color: var(--deep-space); /* Dark text */
+    border: 1px solid var(--royal-gold);
+    box-shadow: var(--shadow-soft);
+    font-weight: 700;
+    padding: var(--space-sm) var(--space-lg); /* Smaller padding for button */
+}
+
+.suggestions-display-card.table-fullscreen .table-header-controls .secondary-btn:hover {
+    background-color: var(--bright-gold);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-gold);
+}
+
+
+/* Table responsive container within fullscreen */
 .suggestions-display-card.table-fullscreen .table-responsive {
     width: 100%;
-    max-width: 1000px; /* Match main content wrapper max-width */
-    height: calc(100% - 180px); /* Adjust height to fit screen, considering header/footer */
+    max-width: 1000px; /* Constrain table width */
+    height: calc(100% - 180px); /* Adjust height to fit screen, considering header/pagination */
     overflow-y: auto; /* Enable scrolling for table content */
     margin-bottom: var(--space-md);
     box-shadow: var(--shadow-large);
 }
 
+/* Actual table within fullscreen */
 .suggestions-display-card.table-fullscreen .name-suggestion-table {
     width: 100%; /* Ensure table fills its container */
+    table-layout: fixed; /* Fix table layout to respect column widths */
 }
 
+/* Table headers within fullscreen - specific widths */
+.suggestions-display-card.table-fullscreen .name-suggestion-table th {
+    padding: var(--space-lg) var(--space-md); /* Adjust padding for better fit */
+    font-size: var(--text-sm); /* Keep font size consistent */
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for long text */
+}
+
+/* Table data cells within fullscreen - specific widths */
+.suggestions-display-card.table-fullscreen .name-suggestion-table td {
+    padding: var(--space-lg) var(--space-md); /* Adjust padding for better fit */
+    font-size: var(--text-base); /* Keep font size consistent */
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for long text */
+}
+
+/* Specific column widths for better layout in fullscreen */
+.suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(1),
+.suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(1) {
+    width: 35%; /* Name column */
+}
+.suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(2),
+.suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(2) {
+    width: 15%; /* FNV column */
+}
+.suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(3),
+.suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(3) {
+    width: 15%; /* EN column */
+}
+.suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(4),
+.suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(4) {
+    width: 10%; /* Valid column */
+}
+.suggestions-display-card.table-fullscreen .name-suggestion-table th:nth-child(5),
+.suggestions-display-card.table-fullscreen .name-suggestion-table td:nth-child(5) {
+    width: 25%; /* Actions column */
+}
+
+
+/* Input field within table cells in fullscreen */
+.suggestions-display-card.table-fullscreen .table-input {
+    padding: var(--space-xs) var(--space-sm); /* Smaller padding for inputs in fullscreen */
+    font-size: var(--text-sm); /* Smaller font size for inputs in fullscreen */
+}
+
+/* Actions cell within fullscreen table */
+.suggestions-display-card.table-fullscreen .actions-cell {
+    gap: var(--space-sm); /* Reduce gap between buttons in fullscreen */
+    flex-wrap: nowrap; /* Prevent wrapping of buttons */
+}
+.suggestions-display-card.table-fullscreen .actions-cell .small-btn {
+    padding: var(--space-xs) var(--space-sm); /* Even smaller buttons in fullscreen */
+    font-size: var(--text-xs); /* Smaller font for buttons */
+}
+
+
+/* Pagination controls within fullscreen */
 .suggestions-display-card.table-fullscreen .pagination-controls {
     width: 100%;
-    max-width: 1000px; /* Match main content wrapper max-width */
+    max-width: 1000px; /* Constrain pagination width */
     margin-top: var(--space-md);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     background: var(--cosmic-navy); /* Darker pagination background for fullscreen */
     box-shadow: var(--shadow-medium);
     color: var(--text-white); /* Ensure pagination text is visible */
+    padding: var(--space-md) var(--space-xl); /* Adjust padding */
 }
 
 /* ✦ MODAL & LOADING ✦ */
