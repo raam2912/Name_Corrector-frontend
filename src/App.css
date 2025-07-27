@@ -164,7 +164,8 @@ body::before {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: var(--space-2xl);
+  /* Adjusted padding for wider screen */
+  padding: var(--space-xl) var(--space-2xl); /* Reduced top/bottom, kept side padding */
   min-height: 100vh;
   position: relative;
   /* Add transition for fullscreen effect */
@@ -191,8 +192,8 @@ body::before {
   border-radius: var(--radius-2xl);
   padding: var(--space-4xl);
   box-shadow: var(--shadow-large);
-  width: 100%;
-  max-width: 1000px;
+  width: 95vw; /* Make it take 95% of viewport width */
+  max-width: 1600px; /* Allow it to stretch significantly, but not infinitely */
   position: relative;
   overflow: hidden;
 }
@@ -1558,6 +1559,8 @@ button:disabled, .primary-btn.disabled-btn {
   
   .main-content-wrapper {
     padding: var(--space-2xl);
+    width: 100%; /* Ensure it's full width on small screens */
+    max-width: none; /* Remove max-width on small screens */
   }
   
   .section-card {
