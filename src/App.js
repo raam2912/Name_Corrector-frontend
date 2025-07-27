@@ -200,8 +200,24 @@ function App() {
 
     // --- Fullscreen Toggle Function ---
     const toggleTableFullscreen = useCallback(() => {
-        setIsTableFullscreen(prev => !prev);
+        setIsTableFullscreen(prev => {
+            // Toggle body class for visual effect on main content
+            if (!prev) {
+                document.body.classList.add('fullscreen-active');
+            } else {
+                document.body.classList.remove('fullscreen-active');
+            }
+            return !prev;
+        });
     }, []);
+
+    // Clean up body class on component unmount
+    useEffect(() => {
+        return () => {
+            document.body.classList.remove('fullscreen-active');
+        };
+    }, []);
+
 
     // --- formatProfileData Function ---
     const formatProfileData = useCallback((profile) => {
@@ -753,7 +769,7 @@ function App() {
                 </div>
             )}
 
-            {/* Custom Modal for Alerts */}\
+            {/* Custom Modal for Alerts */}
             {modal.isOpen && (
                 <div className="custom-modal">
                     <div className="modal-content">

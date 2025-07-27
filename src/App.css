@@ -1127,8 +1127,9 @@ p,
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(10, 13, 31, 0.95); /* Deep space background with transparency */
-    backdrop-filter: blur(20px) saturate(150%);
+    /* Changed background to a more translucent cosmic navy */
+    background: rgba(20, 24, 50, 0.9); /* cosmic-navy with 90% opacity */
+    backdrop-filter: blur(15px) saturate(120%); /* Slightly less blur for more visibility */
     z-index: 100; /* Ensure it's on top of everything */
     display: flex;
     flex-direction: column;
@@ -1174,10 +1175,17 @@ p,
 }
 
 /* Ensure other elements are hidden or styled appropriately in fullscreen mode */
-.table-fullscreen ~ .section-card:not(.suggestions-display-card),
-.table-fullscreen ~ .loading-overlay,
-.table-fullscreen ~ .custom-modal {
-    display: none !important;
+/* We will target the main-content-wrapper directly to make it translucent */
+body.fullscreen-active .main-content-wrapper {
+    opacity: 0.3; /* Make the main content translucent */
+    pointer-events: none; /* Disable interactions with background content */
+    filter: blur(5px); /* Add a slight blur to the background content */
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* Add a class to the body when fullscreen is active */
+body.fullscreen-active {
+    overflow: hidden; /* Prevent scrolling on the main page when fullscreen is active */
 }
 
 
