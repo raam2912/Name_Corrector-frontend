@@ -8,6 +8,7 @@ html, body, #root, .app-container {
     width: 100%;
     margin: 0;
     padding: 0;
+    overflow-x: hidden; /* Prevent horizontal scroll on small screens */
 }
 
 body {
@@ -34,13 +35,12 @@ body {
     border-radius: 15px; /* Rounded corners for the main card */
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
     width: 100%; /* Always take 100% of parent's width (minus padding) */
-    
-    /* Default to column layout for mobile */
-    display: flex; 
-    flex-direction: column; 
-    
-    gap: 30px; /* Space between sections/cards */
     max-width: 1000px; /* Adjusted for a comfortable reading width on laptops */
+    
+    /* Default to block flow for mobile, grid will be applied in media query */
+    display: block; 
+    /* Removed flex properties from default to avoid conflicts */
+    gap: 30px; /* Space between sections/cards */
 }
 
 @media (min-width: 769px) { /* Apply grid for laptop and larger screens */
@@ -51,9 +51,6 @@ body {
         gap: 40px; /* Space between columns */
         /* Ensure no conflicting flex properties from mobile default */
         flex-direction: unset; 
-
-        /* REMOVED DEBUGGING BORDERS */
-        /* border: 5px solid blue; */ 
     }
 }
 
@@ -63,8 +60,7 @@ body {
     display: flex; /* Make columns flex containers for their contents */
     flex-direction: column;
     gap: 25px; /* Space between cards within a column */
-    /* REMOVED DEBUGGING BORDERS */
-    /* border: 2px solid green; */
+    min-width: 0; /* Allow columns to shrink within the grid */
 }
 
 /* No specific background or shadow for columns themselves, let cards handle it */
@@ -272,7 +268,7 @@ body {
 .suggestions-list-item h3 {
     font-size: 19px;
     font-weight: 600;
-    color: #8a2be2; /* Muted purple */
+    color: #8a63d2; /* Muted purple */
     margin-bottom: 8px;
 }
 
@@ -294,7 +290,7 @@ body {
     width: calc(100% - 20px); /* Adjust width for padding */
     padding: 8px 10px;
     margin-bottom: 5px; /* Space between input and highlighted display */
-    border: 1px solid #ddd;
+    border: 1px solid #ced4da; /* Soft gray border */
     border-radius: 8px;
     font-size: 16px;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
@@ -538,8 +534,8 @@ body {
         gap: 20px; /* Reduce gap between sections */
         flex-direction: column; /* Ensure column layout on small screens */
         /* Remove grid properties on mobile */
-        display: flex;
-        grid-template-columns: unset;
+        display: flex; /* Use flex for column layout on mobile */
+        grid-template-columns: unset; /* Ensure grid is unset on mobile */
     }
 
     .column:last-child { /* Remove specific background for right column on mobile */
