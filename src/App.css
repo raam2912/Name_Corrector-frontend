@@ -28,7 +28,7 @@ body {
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
     width: 100%; /* Always take 100% of parent's width (minus padding) */
     display: flex;
-    flex-direction: column; /* Always a single column */
+    flex-direction: column; /* Always a single column by default */
     gap: 30px; /* Space between sections/cards */
 
     /* NEW: Max-width for laptop/desktop screens to create 'landscaped' feel */
@@ -89,9 +89,6 @@ body {
 
 .report-generation-card { background-color: #ffe6e6; } /* Light red */
 .report-generation-card h2 { color: #f44336; } /* Medium red */
-
-.chat-interface-card { background-color: #fcfcfc; } /* Very light gray */
-.chat-interface-card h2 { color: #607d8b; } /* Medium gray-blue */
 
 /* Input Field Styles */
 .input-group {
@@ -325,9 +322,10 @@ body {
     margin-bottom: 5px;
 }
 
-.validation-rationale {
+/* Rationale removed from here as per user request */
+/* .validation-rationale {
     color: #555;
-}
+} */
 
 .expression-display {
     font-size: 16px;
@@ -335,59 +333,6 @@ body {
     margin-bottom: 10px;
 }
 
-
-/* Chat Interface Specifics */
-.chat-messages {
-    height: 280px;
-    overflow-y: auto;
-    padding: 15px;
-    background-color: #ffffff;
-    border-radius: 10px;
-    border: 1px solid #dee2e6;
-    margin-bottom: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.chat-message {
-    padding: 10px 15px;
-    border-radius: 10px;
-    max-width: 85%;
-    word-wrap: break-word;
-    white-space: pre-wrap; /* Preserve whitespace and line breaks */
-}
-
-.chat-message.user {
-    background-color: #d1e7fd; /* Light blue for user messages */
-    align-self: flex-end;
-    margin-left: auto;
-}
-
-.chat-message.ai {
-    background-color: #e9ecef; /* Lighter gray for AI messages */
-    align-self: flex-start;
-    margin-right: auto;
-}
-
-.chat-message.system {
-    background-color: #f0f2f5;
-    color: #6c757d;
-    font-style: italic;
-    text-align: center;
-    align-self: center;
-    max-width: 95%;
-}
-
-.chat-input-wrapper {
-    display: flex;
-    gap: 10px;
-}
-
-.chat-input-wrapper .input-field {
-    flex-grow: 1;
-    margin-bottom: 0;
-}
 
 /* Report Preview Area Specifics (Markdown rendering) */
 .report-preview-area {
@@ -583,16 +528,6 @@ body {
         font-size: 14px; /* Smaller suggestion rationale */
     }
 
-    .chat-messages {
-        height: 200px; /* Shorter chat window on mobile */
-        padding: 10px;
-    }
-
-    .chat-message {
-        padding: 8px 12px;
-        font-size: 14px;
-    }
-
     .main-title {
         font-size: 28px; /* Smaller main title */
         margin-bottom: 20px;
@@ -645,10 +580,6 @@ body {
 
     .suggestions-list-item p {
         font-size: 13px;
-    }
-
-    .chat-messages {
-        height: 180px;
     }
 }
 /* END OF App.css - DO NOT DELETE THIS LINE */

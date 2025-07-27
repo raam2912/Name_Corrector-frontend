@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { marked } from 'marked'; // For rendering Markdown in report preview
 import debounce from 'lodash.debounce'; // Correctly imported debounce
@@ -175,93 +175,21 @@ function App() {
     const [backendValidationResult, setBackendValidationResult] = useState(null); // For custom validation section
 
     const [reportPreviewContent, setReportPreviewContent] = useState('');
-    const [chatInput, setChatInput] = useState('');
-    const [chatHistory, setChatHistory] = useState([]); // Stores messages for chat context
-    const [isValidationChatMode, setIsValidationChatMode] = useState(false);
-    const [validationChatSuggestedName, setValidationChatSuggestedName] = useState(''); // The name being validated in chat
-    const chatMessagesEndRef = useRef(null); // Ref for auto-scrolling chat messages
 
     const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
 
-    // --- Effects ---
-    // Scroll to bottom of chat messages
-    useEffect(() => {
-        if (chatMessagesEndRef.current) {
-            chatMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [chatHistory]);
-
-    // Initialize editableSuggestions when suggestions from backend are received
-    useEffect(() => {
-        if (suggestions.length > 0) {
-            const initialEditable = suggestions.map(s => {
-                // Calculate initial live values for each suggestion
-                const firstNameValue = calculateFirstNameValue(s.name);
-                const expressionNumber = calculateExpressionNumber(s.name);
-                const soulUrgeNumber = calculateSoulUrgeNumber(s.name);
-                const personalityNumber = calculatePersonalityNumber(s.name);
-                const karmicDebtPresent = checkKarmicDebt(s.name);
-
-                return {
-                    ...s,
-                    currentName: s.name, // The name the user can edit
-                    originalName: s.name, // The original name suggested by LLM
-                    firstNameValue,
-                    expressionNumber,
-                    soulUrgeNumber,
-                    personalityNumber,
-                    karmicDebtPresent,
-                    isEdited: false, // Flag to track if user has edited this suggestion
-                    validationResult: null // Clear any previous validation results
-                };
-            });
-            setEditableSuggestions(initialEditable);
-        }
-    }, [suggestions]);
-
-    // Live calculation for custom name input
-    useEffect(() => {
-        if (customNameInput) {
-            const firstNameValue = calculateFirstNameValue(customNameInput);
-            const expressionNumber = calculateExpressionNumber(customNameInput);
-            const soulUrgeNumber = calculateSoulUrgeNumber(customNameInput);
-            const personalityNumber = calculatePersonalityNumber(customNameInput);
-            const karmicDebtPresent = checkKarmicDebt(customNameInput);
-
-            // Fetch other profile-dependent numbers for live display in custom validation
-            const birthDayNum = calculateBirthDayNumber(birthDate);
-            const lifePathNum = calculateLifePathNumber(birthDate);
-            const loShu = calculateLoShuGrid(birthDate, expressionNumber);
-
-            setLiveValidationOutput({
-                firstNameValue,
-                expressionNumber,
-                soulUrgeNumber,
-                personalityNumber,
-                karmicDebtPresent,
-                birthDayNumber: birthDayNum,
-                lifePathNumber: lifePathNum,
-                loShuGridCounts: loShu.grid_counts,
-                loShuMissingNumbers: loShu.missing_numbers,
-            });
-        } else {
-            setLiveValidationOutput(null);
-        }
-    }, [customNameInput, birthDate]); // Depend on birthDate for other profile numbers
-
-
     // --- Modal Functions ---
-    const openModal = useCallback((message) => { // Wrapped in useCallback
+    const openModal = useCallback((message) => {
         setModal({ isOpen: true, message });
-    }, []); // No dependencies
+    }, []);
 
-    const closeModal = useCallback(() => { // Wrapped in useCallback
-        setModal({ isOpen: false, message: '' }); // Corrected: Directly set isOpen to false
-    }, []); // No dependencies
+    const closeModal = useCallback(() => {
+        setModal({ isOpen: false, message: '' });
+    }, []);
 
-    // --- formatProfileData Function (Fix 2: Re-added) ---
-    const formatProfileData = useCallback((profile) => { // Wrapped in useCallback
+    // --- formatProfileData Function ---
+    const formatProfileData = useCallback((profile) => {
         // IMPORTANT: If 'profile' contains any user-controlled or untrusted data,
         // using dangerouslySetInnerHTML can expose your app to XSS attacks.
         // For a production environment, consider sanitizing HTML content using a library like DOMPurify.
@@ -303,12 +231,11 @@ function App() {
             <p><b>Current Personal Year:</b> ${profile.timing_recommendations?.current_personal_year || 'N/A'}</p>
             <p><b>Success Areas:</b> ${profile.success_areas?.combined_strengths?.join(', ') || 'N/A'}</p>
         `;
-    }, []); // No dependencies
-
+    }, []);
 
     // --- API Call Functions (Wrapped in useCallback for stability) ---
 
-    const handleGetSuggestions = useCallback(async () => {
+    const getInitialSuggestions = useCallback(async () => {
         if (!fullName || !birthDate || !desiredOutcome) {
             openModal("Please fill in Full Name, Birth Date, and Desired Outcome to get suggestions.");
             return;
@@ -326,16 +253,13 @@ function App() {
             setSuggestions(response.data.suggestions); // This triggers the useEffect to populate editableSuggestions
             setClientProfile(response.data.profile_data);
             setConfirmedSuggestions([]); // Clear confirmed suggestions on new request
-            setChatHistory([]); // Clear chat history on new request
-            setValidationChatSuggestedName(''); // Clear validation chat context
-            setIsValidationChatMode(false); // Reset chat mode
         } catch (error) {
             console.error('Error fetching suggestions:', error);
             openModal(error.response?.data?.error || 'Failed to get suggestions. Please try again.');
         } finally {
             setIsLoading(false);
         }
-    }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal]); // Dependencies
+    }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal]);
 
     const handleValidateName = useCallback(async (nameToValidate, isCustom = false, suggestionIndex = null) => {
         if (!clientProfile) {
@@ -343,7 +267,13 @@ function App() {
             return;
         }
         if (!nameToValidate) {
-            openModal("Please enter a name to validate.");
+            if (!isCustom) { // Only clear validation if it's a suggestion and name is empty
+                setEditableSuggestions(prev => prev.map((s, idx) => 
+                    idx === suggestionIndex ? { ...s, validationResult: null } : s
+                ));
+            } else { // For custom input, clear its specific result
+                setBackendValidationResult(null);
+            }
             return;
         }
 
@@ -356,7 +286,6 @@ function App() {
             if (isCustom) {
                 setBackendValidationResult(response.data);
             } else {
-                // For suggestions list validation, update the specific suggestion's validation status
                 setEditableSuggestions(prev => prev.map((s, idx) =>
                     idx === suggestionIndex ? { ...s, validationResult: response.data } : s
                 ));
@@ -367,7 +296,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, openModal]); // Dependencies
+    }, [clientProfile, openModal]);
 
     const handleGenerateReport = useCallback(async () => {
         if (!clientProfile || confirmedSuggestions.length === 0) {
@@ -416,78 +345,186 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, confirmedSuggestions, openModal]); // Dependencies
+    }, [clientProfile, confirmedSuggestions, openModal]);
 
-    const handleChatSubmit = useCallback(async (e) => {
-        e.preventDefault();
-        const message = chatInput.trim();
-        if (!message && !isValidationChatMode) return; // Only return if general chat and no message
+    // --- Effects ---
+    // Initialize editableSuggestions when suggestions from backend are received
+    useEffect(() => {
+        if (suggestions.length > 0) {
+            const initialEditable = suggestions.map(s => {
+                // Calculate initial live values for each suggestion
+                const firstNameValue = calculateFirstNameValue(s.name);
+                const expressionNumber = calculateExpressionNumber(s.name);
+                const soulUrgeNumber = calculateSoulUrgeNumber(s.name);
+                const personalityNumber = calculatePersonalityNumber(s.name);
+                const karmicDebtPresent = checkKarmicDebt(s.name);
 
-        // Add user message to history immediately for responsiveness
-        setChatHistory(prev => [...prev, { type: 'user', message: message }]);
-        setChatInput('');
-        setIsLoading(true);
-
-        try {
-            let response;
-            if (isValidationChatMode) {
-                if (!clientProfile || !validationChatSuggestedName) {
-                    openModal("Please ensure a client profile is loaded and a suggested name is selected for validation chat.");
-                    setIsLoading(false);
-                    return;
-                }
-                response = await axios.post(`${BACKEND_URL}/chat`, {
-                    message: message,
-                    type: 'validation_chat',
-                    original_profile: clientProfile,
-                    suggested_name: validationChatSuggestedName,
-                    chat_history: chatHistory.map(msg => ({ type: msg.type === 'user' ? 'human' : 'ai', content: msg.message })), // Pass history in LangChain format
-                    current_message: message, // Pass the current message separately
-                });
-            } else {
-                response = await axios.post(`${BACKEND_URL}/chat`, {
-                    message: message,
-                    type: 'general_chat',
-                });
-            }
-            setChatHistory(prev => [...prev, { type: 'ai', message: response.data.response }]);
-        } catch (error) {
-            console.error('Error sending chat message:', error);
-            openModal(error.response?.data?.error || 'Failed to get chat response. Please try again.');
-        } finally {
-            setIsLoading(false);
+                return {
+                    ...s,
+                    currentName: s.name, // The name the user can edit
+                    originalName: s.name, // The original name suggested by LLM
+                    firstNameValue,
+                    expressionNumber,
+                    soulUrgeNumber,
+                    personalityNumber,
+                    karmicDebtPresent,
+                    isEdited: false, // Flag to track if user has edited this suggestion
+                    validationResult: null // Clear any previous validation results
+                };
+            });
+            setEditableSuggestions(initialEditable);
         }
-    }, [chatInput, isValidationChatMode, clientProfile, validationChatSuggestedName, chatHistory, openModal]); // Dependencies
+    }, [suggestions]);
+
+    // Core logic for live validation display (not debounced)
+    const updateLiveValidationDisplayCore = useCallback((name, profile) => {
+        if (!name.trim() || !profile) {
+            setLiveValidationOutput(null);
+            setBackendValidationResult(null);
+            return;
+        }
+
+        // Client-side calculations for immediate feedback
+        const expNum = calculateExpressionNumber(name);
+        const birthDateStr = profile.birth_date;
+        const loShu = calculateLoShuGrid(birthDateStr, expNum);
+        const birthDayNum = calculateBirthDayNumber(birthDateStr);
+        const lifePathNum = calculateLifePathNumber(birthDateStr);
+        const soulUrgeNum = calculateSoulUrgeNumber(name);
+        const personalityNum = calculatePersonalityNumber(name);
+        const karmicDebtPresent = checkKarmicDebt(name);
+
+        setLiveValidationOutput({
+            name,
+            firstNameValue: calculateFirstNameValue(name), // Live first name value
+            expressionNumber: expNum,
+            soulUrgeNumber: soulUrgeNum,
+            personalityNumber: personalityNum,
+            karmicDebtPresent: karmicDebtPresent,
+            birthDayNumber: birthDayNum,
+            lifePathNumber: lifePathNum,
+            loShuGridCounts: loShu.grid_counts,
+            loShuMissingNumbers: loShu.missing_numbers,
+        });
+
+        // Trigger backend validation for comprehensive rules
+        handleValidateName(name, true);
+    }, [handleValidateName]); // Dependencies for core logic
+
+    // Debounced version of updateLiveValidationDisplayCore
+    const debouncedUpdateLiveValidationDisplay = useRef(
+        debounce((name, profile) => updateLiveValidationDisplayCore(name, profile), 300)
+    ).current;
+
+    // Effect to trigger live validation when customNameInput or clientProfile changes
+    useEffect(() => {
+        if (clientProfile) {
+            debouncedUpdateLiveValidationDisplay(customNameInput, clientProfile);
+        } else {
+            setLiveValidationOutput(null);
+            setBackendValidationResult(null);
+        }
+    }, [customNameInput, clientProfile, debouncedUpdateLiveValidationDisplay]);
 
 
-    // --- Live Editing and Calculation for Suggested Names ---
+    // --- Highlighting Logic ---
+    const simpleRenderHighlightedName = useCallback((originalText, currentText) => {
+        const originalChars = originalText.split('');
+        const currentChars = currentText.split('');
+        const maxLength = Math.max(originalChars.length, currentChars.length);
+
+        return Array.from({ length: maxLength }).map((_, i) => {
+            const originalChar = originalChars[i];
+            const currentChar = currentChars[i];
+
+            if (originalChar === currentChar) {
+                return <span key={i}>{currentChar}</span>;
+            } else {
+                // If characters differ or one is missing, highlight the current one
+                // Use a non-breaking space if currentChar is undefined to maintain layout
+                return <u key={i} className="highlighted-char">{currentChar || '\u00A0'}</u>;
+            }
+        });
+    }, []);
+
+    // --- Confirmation Logic ---
+    const handleConfirmSuggestion = useCallback((suggestion) => {
+        // Use the editedName if available, otherwise the original name
+        const nameToConfirm = suggestion.isEdited ? suggestion.currentName : suggestion.originalName;
+        
+        const isAlreadyConfirmed = confirmedSuggestions.some(
+            (s) => s.name === nameToConfirm
+        );
+
+        if (isAlreadyConfirmed) {
+            openModal(`'${nameToConfirm}' is already in your confirmed list.`);
+            return;
+        }
+
+        // Add the current edited name and its original rationale to confirmed list
+        // The rationale is stored with the original suggestion and passed along
+        const originalSuggestionData = suggestions.find(s => s.originalName === suggestion.originalName);
+        
+        // Use the live calculated expression number
+        const expressionToConfirm = suggestion.expressionNumber;
+
+        if (originalSuggestionData) {
+             setConfirmedSuggestions(prev => [
+                ...prev,
+                {
+                    name: nameToConfirm, // Use the current edited name or original
+                    expression_number: expressionToConfirm, // Use the live calculated expression
+                    rationale: originalSuggestionData.rationale, // Use the original rationale from LLM
+                }
+            ]);
+            openModal(`'${nameToConfirm}' has been added to your confirmed list.`);
+        } else {
+            openModal("Could not find original rationale for this suggestion. Please try again.");
+        }
+    }, [confirmedSuggestions, suggestions, openModal]);
+
+    const handleRemoveConfirmedSuggestion = useCallback((nameToRemove) => {
+        setConfirmedSuggestions(prev => prev.filter(s => s.name !== nameToRemove));
+        openModal(`'${nameToRemove}' has been removed from confirmed list.`);
+    }, [openModal]);
+
+
+    // --- New Handlers for Editable Suggestions ---
     const handleEditSuggestion = useCallback((index) => {
         setEditableSuggestions(prev => prev.map((s, idx) => 
             idx === index ? { ...s, isEditing: true, currentName: s.currentName, validationResult: null } : { ...s, isEditing: false } // Only one can be edited at a time
         ));
-    }, []); // No external dependencies needed for this simple state toggle
+    }, []);
 
-    // Debounced function for live validation display and backend call (for editable suggestions)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedValidateSuggestionNameBackend = useCallback(
-        debounce((name, index) => {
-            handleValidateName(name, false, index); // Call the main validation handler
-        }, 500), // Debounce for 500ms
-        [handleValidateName] // Dependency
-    );
+    // Core logic for backend suggestion validation (not debounced)
+    const validateSuggestionNameBackendCore = useCallback((name, index) => {
+        handleValidateName(name, false, index); // Call the main validation handler
+    }, [handleValidateName]);
+
+    // Debounced version of validateSuggestionNameBackendCore
+    const debouncedValidateSuggestionNameBackend = useRef(
+        debounce((name, index) => validateSuggestionNameBackendCore(name, index), 500)
+    ).current;
 
     const handleEditedNameChange = useCallback((index, newName) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
             if (idx === index) {
                 // Update the current name
                 const updatedSuggestion = { ...s, currentName: newName, isEdited: true };
+                // Recalculate live numerology values for the edited name
+                updatedSuggestion.firstNameValue = calculateFirstNameValue(newName);
+                updatedSuggestion.expressionNumber = calculateExpressionNumber(newName);
+                updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newName);
+                updatedSuggestion.personalityNumber = calculatePersonalityNumber(newName);
+                updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newName);
+
                 // Trigger debounced validation for the updated name
                 debouncedValidateSuggestionNameBackend(newName, index);
                 return updatedSuggestion;
             }
             return s;
         }));
-    }, [debouncedValidateSuggestionNameBackend]); // Dependency
+    }, [debouncedValidateSuggestionNameBackend]);
 
     const handleSaveEdit = useCallback((index) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
@@ -514,7 +551,7 @@ function App() {
             return s;
         }));
         openModal("Name updated successfully!");
-    }, [openModal]); // Dependency
+    }, [openModal]);
 
     const handleCancelEdit = useCallback((index) => {
         setEditableSuggestions(prev => prev.map((s, idx) => 
@@ -532,104 +569,7 @@ function App() {
             } : s
         ));
         openModal("Edit cancelled. Name reverted to original suggestion.");
-    }, [openModal]); // Dependency
-
-    // --- Highlighting Logic ---
-    const simpleRenderHighlightedName = useCallback((originalText, currentText) => {
-        const originalChars = originalText.split('');
-        const currentChars = currentText.split('');
-        const maxLength = Math.max(originalChars.length, currentChars.length);
-
-        return Array.from({ length: maxLength }).map((_, i) => {
-            const originalChar = originalChars[i];
-            const currentChar = currentChars[i];
-
-            if (originalChar === currentChar) {
-                return <span key={i}>{currentChar}</span>;
-            } else {
-                // If characters differ or one is missing, highlight the current one
-                // Use a non-breaking space if currentChar is undefined to maintain layout
-                return <u key={i} className="highlighted-char">{currentChar || '\u00A0'}</u>;
-            }
-        });
-    }, []); // No external dependencies needed
-
-    // --- Confirmation Logic ---
-    const handleConfirmSuggestion = useCallback((suggestion) => {
-        // Find if this suggestion (by its original name or current edited name) is already confirmed
-        const nameToConfirm = suggestion.isEdited ? suggestion.currentName : suggestion.originalName; // Use s.currentName for edited, s.originalName for original
-
-        const isAlreadyConfirmed = confirmedSuggestions.some(
-            (s) => s.name === nameToConfirm
-        );
-
-        if (isAlreadyConfirmed) {
-            openModal(`'${nameToConfirm}' is already in your confirmed list.`);
-            return;
-        }
-
-        // Add the current edited name and its original rationale to confirmed list
-        // The rationale is stored with the original suggestion and passed along
-        const originalSuggestionData = suggestions.find(s => s.name === suggestion.originalName);
-        
-        // Use the live calculated expression number
-        const expressionToConfirm = suggestion.expressionNumber;
-
-        if (originalSuggestionData) {
-             setConfirmedSuggestions(prev => [
-                ...prev,
-                {
-                    name: nameToConfirm, // Use the current edited name or original
-                    expression_number: expressionToConfirm, // Use the live calculated expression
-                    rationale: originalSuggestionData.rationale, // Use the original rationale from LLM
-                }
-            ]);
-            openModal(`'${nameToConfirm}' has been added to your confirmed list.`);
-        } else {
-            openModal("Could not find original rationale for this suggestion. Please try again.");
-        }
-        
-        // Set this name as the context for validation chat and switch mode
-        setValidationChatSuggestedName(nameToConfirm);
-        setIsValidationChatMode(true);
-        setChatInput(`Tell me more about the numerological implications of "${nameToConfirm}".`);
-        setChatHistory(prev => [...prev, { type: 'system', message: `Switched to Validation Chat for "${nameToConfirm}".` }]);
-    }, [confirmedSuggestions, suggestions, openModal, setValidationChatSuggestedName, setIsValidationChatMode, setChatInput, setChatHistory]); // Dependencies
-
-    // eslint-disable-next-line no-unused-vars
-    const handleRemoveConfirmedSuggestion = useCallback((nameToRemove) => {
-        // This function is used to remove a confirmed suggestion. The ESLint warning can be ignored.
-        setConfirmedSuggestions(prev => prev.filter(s => s.name !== nameToRemove));
-        openModal(`'${nameToRemove}' has been removed from confirmed list.`);
-    }, [openModal]); // Dependencies
-
-    const toggleChatMode = useCallback(() => {
-        setIsValidationChatMode(prevMode => {
-            const newMode = !prevMode;
-            if (newMode) {
-                // If switching to validation chat, try to set a default name if available
-                if (!validationChatSuggestedName && confirmedSuggestions.length > 0) {
-                    setValidationChatSuggestedName(confirmedSuggestions[0].name); // Default to first confirmed
-                    openModal("Switched to Validation Chat. Discussing your first confirmed name.");
-                } else if (!validationChatSuggestedName && customNameInput.trim()) {
-                    setValidationChatSuggestedName(customNameInput.trim()); // Or the custom typed name
-                    openModal("Switched to Validation Chat. Discussing your custom entered name.");
-                } else if (!validationChatSuggestedName) {
-                    // If no name context, prevent switching and alert
-                    openModal("Please confirm a name or enter one in the custom validation section to start a validation chat.");
-                    return prevMode; // Stay in general chat if no name context
-                }
-                setChatInput(`Tell me more about "${validationChatSuggestedName}".`);
-                setChatHistory(prev => [...prev, { type: 'system', message: `Switched to Validation Chat for "${validationChatSuggestedName}".` }]);
-            } else {
-                // If switching to general chat, clear validation context
-                setValidationChatSuggestedName('');
-                setChatInput('');
-                setChatHistory(prev => [...prev, { type: 'system', message: "Switched to General Numerology Chat." }]);
-            }
-            return newMode;
-        });
-    }, [validationChatSuggestedName, confirmedSuggestions, customNameInput, openModal, setValidationChatSuggestedName, setIsValidationChatMode, setChatInput, setChatHistory]); // Dependencies
+    }, [openModal]);
 
 
     return (
@@ -663,7 +603,7 @@ function App() {
                             <label htmlFor="desiredOutcome" className="input-label">Desired Outcome:</label>
                             <input type="text" id="desiredOutcome" placeholder="e.g., Success, Love, Career" className="input-field" value={desiredOutcome} onChange={(e) => setDesiredOutcome(e.target.value)} />
                         </div>
-                        <button onClick={handleGetSuggestions} className="primary-btn">Get Initial Suggestions</button>
+                        <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
                     </div>
 
                     {/* Profile Display */}
@@ -720,7 +660,7 @@ function App() {
                     )}
                 </div>
 
-                {/* Right Column: Suggestions, Reports, Chat */}
+                {/* Right Column: Suggestions, Reports */}
                 <div className="column">
                     {/* Initial Suggestions Display */}
                     {editableSuggestions.length > 0 && (
@@ -759,9 +699,7 @@ function App() {
                                                         <p className="validation-status">
                                                             <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
                                                         </p>
-                                                        <p className="validation-rationale">
-                                                            <b>Rationale:</b> {s.validationResult.rationale}
-                                                        </p>
+                                                        {/* Rationale removed from here as per user request */}
                                                     </div>
                                                 )}
                                                 <div className="button-group">
@@ -774,7 +712,6 @@ function App() {
                                             <>
                                                 <h3>{s.currentName} (Expression: {s.expressionNumber})</h3>
                                                 {/* Rationale is hidden for initial suggestions as per request */}
-                                                {/* <p>{s.rationale}</p> */} 
                                                 <div className="button-group">
                                                     <button onClick={() => handleEditSuggestion(index)} className="secondary-btn small-btn">Edit Name</button>
                                                     <button
@@ -785,11 +722,6 @@ function App() {
                                                         {confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'Confirmed!' : 'Confirm This Name'}
                                                     </button>
                                                     <button onClick={() => handleValidateName(s.currentName, false, index)} className="secondary-btn small-btn">Validate</button>
-                                                    <button onClick={() => {
-                                                        setValidationChatSuggestedName(s.currentName);
-                                                        setIsValidationChatMode(true);
-                                                        openModal(`Switched to Validation Chat for: ${s.currentName}`);
-                                                    }} className="secondary-btn small-btn">Chat about this name</button>
                                                 </div>
                                             </>
                                         )}
@@ -806,51 +738,28 @@ function App() {
                             <div className="text-sm text-gray-700 mb-3">
                                 Confirmed Names for Report: {confirmedSuggestions.map(s => s.name).join(', ') || 'None'}
                             </div>
+                            {confirmedSuggestions.length > 0 && (
+                                <div className="confirmed-suggestions-list mt-4 mb-4">
+                                    <h3 className="font-bold text-lg mb-2">Your Confirmed Names:</h3>
+                                    {confirmedSuggestions.map((s, index) => (
+                                        <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg mb-2">
+                                            <span>{s.name} (Exp: {s.expression_number})</span>
+                                            <button 
+                                                onClick={() => handleRemoveConfirmedSuggestion(s.name)} 
+                                                className="secondary-btn small-btn"
+                                                style={{width: 'auto', margin: '0'}} // Override default button styles
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                             <button onClick={handleGenerateReport} className="primary-btn">Generate Comprehensive Report (PDF & Preview)</button>
                             {reportPreviewContent && (
-                                // IMPORTANT: Using dangerouslySetInnerHTML. Ensure content from backend is sanitized
-                                // or consider building JSX elements directly for better security.
                                 <div className="report-preview-area" dangerouslySetInnerHTML={{ __html: marked.parse(String(reportPreviewContent || '')) }}>
                                 </div>
                             )}
-                        </div>
-                    )}
-
-                    {/* Chat Interface */}
-                    {clientProfile && (
-                        <div className="section-card chat-interface-card">
-                            <h2>Numerology Chat Assistant</h2>
-                            <div ref={chatMessagesEndRef} className="chat-messages">
-                                {chatHistory.map((msg, index) => (
-                                    <div key={index} className={`chat-message ${msg.type}`}>
-                                        {/* IMPORTANT: Using dangerouslySetInnerHTML for chat messages if they contain Markdown.
-                                            Ensure content from backend is sanitized or consider building JSX elements directly for better security. */}
-                                        <span dangerouslySetInnerHTML={{ __html: marked.parse(String(msg.message || '')) }}></span>
-                                    </div>
-                                ))}
-                            </div>
-                            <form onSubmit={handleChatSubmit} className="chat-input-wrapper">
-                                <input
-                                    type="text"
-                                    placeholder={isValidationChatMode ? `Ask about "${validationChatSuggestedName || ''}"...` : "Ask a general numerology question..."}
-                                    className="input-field"
-                                    value={chatInput}
-                                    onChange={(e) => setChatInput(e.target.value)}
-                                    disabled={isLoading}
-                                />
-                                <button type="submit" className="primary-btn" style={{width: 'auto', flexShrink: 0}} disabled={isLoading}>Send</button>
-                            </form>
-                            <div style={{marginTop: '8px'}}>
-                                <button onClick={toggleChatMode} className="secondary-btn">
-                                    {isValidationChatMode ? 'Switch to General Chat' : 'Switch to Validation Chat'}
-                                </button>
-                                {isValidationChatMode && !validationChatSuggestedName && (
-                                    <p className="text-red-500 text-sm mt-1">Please confirm a name or enter one in the custom validation section to use validation chat.</p>
-                                )}
-                                {isValidationChatMode && validationChatSuggestedName && (
-                                    <p className="text-green-600 text-sm mt-1">Validation Chat active for: <b>{validationChatSuggestedName}</b></p>
-                                )}
-                            </div>
                         </div>
                     )}
                 </div>
