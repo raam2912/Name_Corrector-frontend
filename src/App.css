@@ -49,7 +49,7 @@ body {
         display: grid; /* Use grid for two-column layout */
         grid-template-columns: 1fr 1fr; /* Two equal columns */
         gap: 40px; /* Space between columns */
-        /* Remove flex properties as grid will manage layout */
+        /* Ensure no conflicting flex properties from mobile default */
         flex-direction: unset; 
     }
 }

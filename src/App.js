@@ -381,10 +381,14 @@ function App() {
                 const personalityNumber = calculatePersonalityNumber(s.name);
                 const karmicDebtPresent = checkKarmicDebt(s.name);
 
+                // Add currentFirstName state for separate editing
+                const initialFirstName = s.name.split(' ')[0] || '';
+
                 return {
                     ...s,
-                    currentName: s.name, // The name the user can edit
-                    originalName: s.name, // The original name suggested by LLM
+                    currentName: s.name, // The full name the user can edit
+                    currentFirstName: initialFirstName, // The first name part for separate editing
+                    originalName: s.name, // The original full name suggested by LLM
                     firstNameValue,
                     expressionNumber,
                     soulUrgeNumber,
@@ -399,7 +403,7 @@ function App() {
     }, [suggestions, setEditableSuggestions]);
 
     // Core logic for live validation display (not debounced)
-    // This function now takes currentClientProfile as an argument
+    // This function now takes currentClientProfile directly
     const updateLiveValidationDisplayCore = useCallback((name, currentClientProfile) => {
         if (!name.trim() || !currentClientProfile) {
             setLiveValidationOutput(null);
@@ -518,7 +522,7 @@ function App() {
     // --- New Handlers for Editable Suggestions ---
     const handleEditSuggestion = useCallback((index) => {
         setEditableSuggestions(prev => prev.map((s, idx) => 
-            idx === index ? { ...s, isEditing: true, currentName: s.currentName, validationResult: null } : { ...s, isEditing: false } // Only one can be edited at a time
+            idx === index ? { ...s, isEditing: true, currentName: s.currentName, currentFirstName: s.currentName.split(' ')[0] || '', validationResult: null } : { ...s, isEditing: false } // Only one can be edited at a time
         ));
     }, [setEditableSuggestions]);
 
@@ -534,28 +538,30 @@ function App() {
         }
     }, [handleValidateName, openModal]); // clientProfile is removed from dependency
 
-    // Debounced version of validateSuggestionNameBackendCore
+    // Debounced version of validateSuggestionNameBackendCore - DECLARED BEFORE USAGE
     const debouncedValidateSuggestionNameBackend = useRef(
         debounce((name, index) => validateSuggestionNameBackendCore(name, index), 500)
     ).current;
 
-    const handleEditedNameChange = useCallback((index, newName) => {
+
+    // This function handles changes to the FULL name input
+    const handleEditedNameChange = useCallback((index, newFullName) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
             if (idx === index) {
-                // Update the current name
-                const updatedSuggestion = { ...s, currentName: newName, isEdited: true };
-                // Recalculate live numerology values for the edited name
-                updatedSuggestion.firstNameValue = calculateFirstNameValue(newName);
-                updatedSuggestion.expressionNumber = calculateExpressionNumber(newName);
-                updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newName);
-                updatedSuggestion.personalityNumber = calculatePersonalityNumber(newName);
-                updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newName);
+                const updatedSuggestion = { ...s, currentName: newFullName, isEdited: true };
+                // Update first name part based on full name change
+                updatedSuggestion.currentFirstName = newFullName.split(' ')[0] || '';
 
-                // IMPORTANT FIX: Only trigger backend validation if the name is NOT empty or just whitespace
-                if (newName.trim()) {
-                    debouncedValidateSuggestionNameBackend(newName, index);
+                // Recalculate all live numerology values for the new full name
+                updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
+                updatedSuggestion.expressionNumber = calculateExpressionNumber(newFullName);
+                updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
+                updatedSuggestion.personalityNumber = calculatePersonalityNumber(newFullName);
+                updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newFullName);
+
+                if (newFullName.trim()) {
+                    debouncedValidateSuggestionNameBackend(newFullName, index);
                 } else {
-                    // If the name becomes empty, clear the validation result immediately on the frontend
                     updatedSuggestion.validationResult = null;
                 }
                 return updatedSuggestion;
@@ -563,6 +569,36 @@ function App() {
             return s;
         }));
     }, [debouncedValidateSuggestionNameBackend, setEditableSuggestions]);
+
+    // This new function handles changes to the FIRST name input
+    const handleEditedFirstNameChange = useCallback((index, newFirstName) => {
+        setEditableSuggestions(prev => prev.map((s, idx) => {
+            if (idx === index) {
+                // Construct the new full name by replacing the first part
+                const currentParts = s.currentName.split(' ');
+                currentParts[0] = newFirstName;
+                const newFullName = currentParts.join(' ').trim(); // Reconstruct full name
+
+                const updatedSuggestion = { ...s, currentFirstName: newFirstName, currentName: newFullName, isEdited: true };
+                
+                // Recalculate all live numerology values for the new full name
+                updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
+                updatedSuggestion.expressionNumber = calculateExpressionNumber(newFullName);
+                updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
+                updatedSuggestion.personalityNumber = calculatePersonalityNumber(newFullName);
+                updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newFullName);
+
+                if (newFullName.trim()) {
+                    debouncedValidateSuggestionNameBackend(newFullName, index);
+                } else {
+                    updatedSuggestion.validationResult = null;
+                }
+                return updatedSuggestion;
+            }
+            return s;
+        }));
+    }, [debouncedValidateSuggestionNameBackend, setEditableSuggestions]);
+
 
     const handleSaveEdit = useCallback((index) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
@@ -596,6 +632,7 @@ function App() {
             idx === index ? { 
                 ...s, 
                 currentName: s.originalName, // Revert to original LLM suggested name
+                currentFirstName: s.originalName.split(' ')[0] || '', // Revert first name too
                 firstNameValue: calculateFirstNameValue(s.originalName),
                 expressionNumber: calculateExpressionNumber(s.originalName),
                 soulUrgeNumber: calculateSoulUrgeNumber(s.originalName),
@@ -716,7 +753,7 @@ function App() {
                                         {s.isEditing ? (
                                             <>
                                                 <div className="name-input-wrapper">
-                                                    <label htmlFor={`editedName-${index}`} className="input-label">Edit Name:</label>
+                                                    <label htmlFor={`editedName-${index}`} className="input-label">Edit Full Name:</label>
                                                     <input
                                                         type="text"
                                                         id={`editedName-${index}`}
@@ -728,6 +765,18 @@ function App() {
                                                         {simpleRenderHighlightedName(s.originalName, s.currentName)}
                                                     </div>
                                                 </div>
+                                                {/* New First Name Input */}
+                                                <div className="name-input-wrapper mt-3">
+                                                    <label htmlFor={`editedFirstName-${index}`} className="input-label">Edit First Name (only):</label>
+                                                    <input
+                                                        type="text"
+                                                        id={`editedFirstName-${index}`}
+                                                        className="input-field editable-name-input"
+                                                        value={s.currentFirstName} // Use currentFirstName for editing
+                                                        onChange={(e) => handleEditedFirstNameChange(index, e.target.value)}
+                                                    />
+                                                </div>
+
                                                 {/* Live values displayed constantly, so no need for conditional rendering here */}
                                                 <div className="live-values">
                                                     <p>First Name Value: <b>{s.firstNameValue}</b></p>
