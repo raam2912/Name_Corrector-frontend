@@ -52,9 +52,8 @@ body {
         /* Ensure no conflicting flex properties from mobile default */
         flex-direction: unset; 
 
-        /* --- DEBUGGING BORDER (TEMPORARY) --- */
-        border: 5px solid blue; /* Add a thick blue border to see if this media query is active */
-        /* --- END DEBUGGING --- */
+        /* REMOVED DEBUGGING BORDERS */
+        /* border: 5px solid blue; */ 
     }
 }
 
@@ -64,17 +63,13 @@ body {
     display: flex; /* Make columns flex containers for their contents */
     flex-direction: column;
     gap: 25px; /* Space between cards within a column */
-    /* flex: 1; removed as grid handles sizing on desktop, and flex-direction column is default for mobile */
+    /* REMOVED DEBUGGING BORDERS */
+    /* border: 2px solid green; */
 }
 
 /* No specific background or shadow for columns themselves, let cards handle it */
 /* Ensure cards within the right column still have their styling */
 @media (min-width: 769px) {
-    .column {
-        /* --- DEBUGGING BORDER (TEMPORARY) --- */
-        border: 2px solid green; /* Add a green border to see if columns are rendering as grid items */
-        /* --- END DEBUGGING --- */
-    }
     .column:last-child { /* Targets the second column (right one) */
         padding: 0; /* No padding on the column itself */
         box-shadow: none; /* No shadow on the column itself */
@@ -109,21 +104,36 @@ body {
     color: #2c3e50; /* Dark, professional heading color */
 }
 
-/* Specific Section Backgrounds and Heading Colors */
-.input-form-card { background-color: #eaf6ff; } /* Light blue */
-.input-form-card h2 { color: #2196f3; } /* Medium blue */
+/* Aesthetic Color Palette */
+.input-form-card { 
+    background-color: #f8faff; /* Very light blue */
+    border: 1px solid #dbe9ff; /* Soft blue border */
+} 
+.input-form-card h2 { color: #4a90e2; } /* Muted blue */
 
-.profile-display-card { background-color: #e6ffee; } /* Light green */
-.profile-display-card h2 { color: #4caf50; } /* Medium green */
+.profile-display-card { 
+    background-color: #f7fff8; /* Very light green */
+    border: 1px solid #d9f7e8; /* Soft green border */
+} 
+.profile-display-card h2 { color: #5cb85c; } /* Muted green */
 
-.custom-validation-card { background-color: #fffbe6; } /* Light yellow */
-.custom-validation-card h2 { color: #ff9800; } /* Medium orange */
+.custom-validation-card { 
+    background-color: #fffdf7; /* Very light yellow */
+    border: 1px solid #ffeeb3; /* Soft yellow border */
+} 
+.custom-validation-card h2 { color: #f5a623; } /* Muted orange */
 
-.suggestions-display-card { background-color: #f7e6ff; } /* Light purple */
-.suggestions-display-card h2 { color: #9c27b0; } /* Medium purple */
+.suggestions-display-card { 
+    background-color: #fcf7ff; /* Very light purple */
+    border: 1px solid #edd9ff; /* Soft purple border */
+} 
+.suggestions-display-card h2 { color: #8a63d2; } /* Muted purple */
 
-.report-generation-card { background-color: #ffe6e6; } /* Light red */
-.report-generation-card h2 { color: #f44336; } /* Medium red */
+.report-generation-card { 
+    background-color: #fff7f7; /* Very light red */
+    border: 1px solid #ffd9d9; /* Soft red border */
+} 
+.report-generation-card h2 { color: #e74c3c; } /* Muted red */
 
 /* Input Field Styles */
 .input-group {
@@ -251,7 +261,7 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e0c2f7;
+    border: 1px solid #e0c2f7; /* Keep a subtle border for definition */
     margin-bottom: 15px;
 }
 
@@ -262,7 +272,7 @@ body {
 .suggestions-list-item h3 {
     font-size: 19px;
     font-weight: 600;
-    color: #8a2be2;
+    color: #8a2be2; /* Muted purple */
     margin-bottom: 8px;
 }
 
@@ -627,4 +637,3 @@ body {
     }
 }
 /* END OF App.css - DO NOT DELETE THIS LINE */
-
