@@ -53,30 +53,10 @@ body {
 }
 
 
-/* Column Styles (These now simply act as containers for sections within the single main column) */
-.column {
-    /* Remove flex-grow/shrink/basis to prevent horizontal stretching/arrangement */
-    flex: none; 
-    width: 100%; /* Ensure it takes full width within the main-content-wrapper */
-    display: flex;
-    flex-direction: column; /* Contents within the column are still stacked vertically */
-    gap: 25px; /* Space between cards within a column */
-    box-sizing: border-box; /* Include padding/border in element's total width/height */
-}
-
-/* No specific background or shadow for columns themselves, let cards handle it */
-/* This rule is now redundant for layout but kept for consistency with card styling */
-@media (min-width: 769px) {
-    .column:last-child { /* Targets the second column (which is now just part of the single flow) */
-        padding: 0; /* No padding on the column itself */
-        box-shadow: none; /* No shadow on the column itself */
-        background-color: transparent; /* Ensure transparent background */
-    }
-    .column:last-child .section-card {
-        background-color: #ffffff; /* Ensure white background for cards */
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Re-apply card shadow */
-    }
-}
+/*
+    The .column styles are now removed as the HTML structure no longer uses them.
+    All sections are direct children of .main-content-wrapper.
+*/
 
 
 /* Section Card Styles (Individual colored boxes) */
@@ -536,14 +516,7 @@ body {
         /* It's already flex-direction: column by default, no change needed here */
     }
 
-    
-
-    /* This rule is now redundant as there's only one logical column flow */
-    .column:last-child { 
-        background-color: #ffffff; /* Ensure white background for cards */
-        padding: 28px; /* Revert to default card padding */
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Revert to default card shadow */
-    }
+    /* No .column styles needed as they are removed from HTML */
 
     .section-card {
         padding: 20px; /* Smaller padding inside each card */

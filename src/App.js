@@ -255,7 +255,7 @@ function App() {
             });
             setSuggestions(response.data.suggestions);
             
-            // CRITICAL FIX: Ensure profile_data is present and an object before setting clientProfile
+            // Ensure profile_data is present and an object before setting clientProfile
             if (response.data.profile_data && typeof response.data.profile_data === 'object') {
                 setClientProfile(response.data.profile_data); 
                 console.log("Client Profile set successfully:", response.data.profile_data);
@@ -275,7 +275,7 @@ function App() {
 
     // handleValidateName now accepts the currentClientProfile directly
     const handleValidateName = useCallback(async (nameToValidate, currentClientProfile, isCustom = false, suggestionIndex = null) => {
-        // CRITICAL FIX: Use the passed currentClientProfile
+        // Use the passed currentClientProfile
         if (!currentClientProfile) {
             openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
             console.error("Validation attempted with null clientProfile. Aborting API call.");
@@ -318,7 +318,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [openModal, setEditableSuggestions, setBackendValidationResult, setIsLoading]); // clientProfile is removed from dependency
+    }, [openModal, setEditableSuggestions, setBackendValidationResult, setIsLoading]);
 
     const handleGenerateReport = useCallback(async () => {
         if (!clientProfile || confirmedSuggestions.length === 0) {
@@ -536,7 +536,7 @@ function App() {
             console.warn("Cannot validate suggestion: clientProfile is null. Please get initial suggestions first.");
             openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
         }
-    }, [handleValidateName, openModal]); // clientProfile is removed from dependency
+    }, [handleValidateName, openModal]);
 
     // Debounced version of validateSuggestionNameBackendCore - DECLARED BEFORE USAGE
     const debouncedValidateSuggestionNameBackend = useRef(
@@ -650,225 +650,218 @@ function App() {
     return (
         <div className="app-container">
             <div className="main-content-wrapper">
+                <h1 className="main-title">Sheelaa's Numerology Portal</h1>
 
-                {/* Left Column: Input Form & Profile Display */}
-                <div className="column">
-                    <h1 className="main-title">Sheelaa's Numerology Portal</h1>
-
-                    {/* Input Form */}
-                    <div className="section-card input-form-card">
-                        <h2>Client Information</h2>
-                        <div className="input-group">
-                            <label htmlFor="fullName" className="input-label">Full Name:</label>
-                            <input type="text" id="fullName" placeholder="e.g., John Doe" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                        </div>
-                        <div className="input-group">
-                            <label htmlFor="birthDate" className="input-label">Birth Date:</label>
-                            <input type="date" id="birthDate" className="input-field" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
-                        </div>
-                        <div className="input-group">
-                            <label htmlFor="birthTime" className="input-label">Birth Time (optional):</label>
-                            <input type="time" id="birthTime" placeholder="HH:MM" className="input-field" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
-                        </div>
-                        <div className="input-group">
-                            <label htmlFor="birthPlace" className="input-label">Birth Place (optional):</label>
-                            <input type="text" id="birthPlace" placeholder="City, Country" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
-                        </div>
-                        <div className="input-group">
-                            <label htmlFor="desiredOutcome" className="input-label">Desired Outcome:</label>
-                            <input type="text" id="desiredOutcome" placeholder="e.g., Success, Love, Career" className="input-field" value={desiredOutcome} onChange={(e) => setDesiredOutcome(e.target.value)} />
-                        </div>
-                        <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
+                {/* Input Form */}
+                <div className="section-card input-form-card">
+                    <h2>Client Information</h2>
+                    <div className="input-group">
+                        <label htmlFor="fullName" className="input-label">Full Name:</label>
+                        <input type="text" id="fullName" placeholder="e.g., John Doe" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} />
                     </div>
+                    <div className="input-group">
+                        <label htmlFor="birthDate" className="input-label">Birth Date:</label>
+                        <input type="date" id="birthDate" className="input-field" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+                    </div>
+                    <div className="input-group">
+                        <label htmlFor="birthTime" className="input-label">Birth Time (optional):</label>
+                        <input type="time" id="birthTime" placeholder="HH:MM" className="input-field" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
+                    </div>
+                    <div className="input-group">
+                        <label htmlFor="birthPlace" className="input-label">Birth Place (optional):</label>
+                        <input type="text" id="birthPlace" placeholder="City, Country" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
+                    </div>
+                    <div className="input-group">
+                        <label htmlFor="desiredOutcome" className="input-label">Desired Outcome:</label>
+                        <input type="text" id="desiredOutcome" placeholder="e.g., Success, Love, Career" className="input-field" value={desiredOutcome} onChange={(e) => setDesiredOutcome(e.target.value)} />
+                    </div>
+                    <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
+                </div>
 
-                    {/* Profile Display */}
-                    {clientProfile ? ( // Display profile if available
-                        <div className="section-card profile-display-card">
-                            <h2>Client Numerology Profile</h2>
-                            <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
-                            </div>
+                {/* Profile Display */}
+                {clientProfile ? ( // Display profile if available
+                    <div className="section-card profile-display-card">
+                        <h2>Client Numerology Profile</h2>
+                        <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
                         </div>
-                    ) : ( // Show message if profile is not loaded
-                        <div className="section-card profile-display-card">
-                            <h2>Client Numerology Profile</h2>
-                            <p className="text-gray-600">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
-                        </div>
-                    )}
+                    </div>
+                ) : ( // Show message if profile is not loaded
+                    <div className="section-card profile-display-card">
+                        <h2>Client Numerology Profile</h2>
+                        <p className="text-gray-600">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
+                    </div>
+                )}
 
-                    {/* Custom Name Validation */}
-                    {clientProfile && ( // Only show this section if clientProfile is available
-                        <div className="section-card custom-validation-card">
-                            <h2>Validate Custom Name</h2>
-                            <div className="input-group">
-                                <label htmlFor="customNameInput" className="input-label">Name to Validate:</label>
-                                <input
-                                    type="text"
-                                    id="customNameInput"
-                                    placeholder="Enter a name to validate..."
-                                    className="input-field"
-                                    value={customNameInput}
-                                    onChange={(e) => setCustomNameInput(e.target.value)}
-                                />
+                {/* Custom Name Validation */}
+                {clientProfile && ( // Only show this section if clientProfile is available
+                    <div className="section-card custom-validation-card">
+                        <h2>Validate Custom Name</h2>
+                        <div className="input-group">
+                            <label htmlFor="customNameInput" className="input-label">Name to Validate:</label>
+                            <input
+                                type="text"
+                                id="customNameInput"
+                                placeholder="Enter a name to validate..."
+                                className="input-field"
+                                value={customNameInput}
+                                onChange={(e) => setCustomNameInput(e.target.value)}
+                            />
+                        </div>
+                        {liveValidationOutput && (
+                            <div className="live-validation-output section-card" style={{backgroundColor: '#ffffff', border: '1px solid #e9eceb', boxShadow: 'none'}}>
+                                <p className="font-bold">Live Calculated Values:</p>
+                                <p><b>Name:</b> {customNameInput}</p>
+                                <p><b>First Name Value:</b> {liveValidationOutput.firstNameValue}</p>
+                                <p><b>Expression Number:</b> {liveValidationOutput.expressionNumber}</p>
+                                <p><b>Soul Urge Number:</b> {liveValidationOutput.soulUrgeNumber}</p>
+                                <p><b>Personality Number:</b> {liveValidationOutput.personalityNumber}</p>
+                                <p><b>Karmic Debt Present:</b> {liveValidationOutput.karmicDebtPresent ? 'Yes ⚠️' : 'No'}</p>
+                                <hr className="my-2" />
+                                <p><b>Birth Day Number:</b> {liveValidationOutput.birthDayNumber}</p>
+                                <p><b>Life Path Number:</b> {liveValidationOutput.lifePathNumber}</p>
+                                <p><b>Lo Shu Grid Counts:</b> {JSON.stringify(liveValidationOutput.loShuGridCounts)}</p>
+                                <p><b>Missing Lo Shu:</b> {liveValidationOutput.loShuMissingNumbers.join(', ') || 'None'}</p>
+                                {backendValidationResult && (
+                                    <>
+                                        <hr className="my-2" />
+                                        <p><b>Backend Validation:</b> <span className={backendValidationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{backendValidationResult.is_valid ? 'VALID' : 'INVALID'}</span></p>
+                                        <p><b>Rationale:</b> {backendValidationResult.rationale}</p>
+                                    </>
+                                )}
                             </div>
-                            {liveValidationOutput && (
-                                <div className="live-validation-output section-card" style={{backgroundColor: '#ffffff', border: '1px solid #e9eceb', boxShadow: 'none'}}>
-                                    <p className="font-bold">Live Calculated Values:</p>
-                                    <p><b>Name:</b> {customNameInput}</p>
-                                    <p><b>First Name Value:</b> {liveValidationOutput.firstNameValue}</p>
-                                    <p><b>Expression Number:</b> {liveValidationOutput.expressionNumber}</p>
-                                    <p><b>Soul Urge Number:</b> {liveValidationOutput.soulUrgeNumber}</p>
-                                    <p><b>Personality Number:</b> {liveValidationOutput.personalityNumber}</p>
-                                    <p><b>Karmic Debt Present:</b> {liveValidationOutput.karmicDebtPresent ? 'Yes ⚠️' : 'No'}</p>
-                                    <hr className="my-2" />
-                                    <p><b>Birth Day Number:</b> {liveValidationOutput.birthDayNumber}</p>
-                                    <p><b>Life Path Number:</b> {liveValidationOutput.lifePathNumber}</p>
-                                    <p><b>Lo Shu Grid Counts:</b> {JSON.stringify(liveValidationOutput.loShuGridCounts)}</p>
-                                    <p><b>Missing Lo Shu:</b> {liveValidationOutput.loShuMissingNumbers.join(', ') || 'None'}</p>
-                                    {backendValidationResult && (
+                        )}
+                        <button onClick={() => handleValidateName(customNameInput, clientProfileRef.current, true, null)} className="primary-btn" disabled={!clientProfile || !customNameInput.trim()}>Validate Custom Name</button>
+                    </div>
+                )}
+
+                {/* Initial Suggestions Display */}
+                {editableSuggestions.length > 0 && (
+                    <div className="section-card suggestions-display-card">
+                        <h2>Suggested Name Variations</h2>
+                        <p className="text-sm text-gray-700 mb-3">
+                            {suggestions[0]?.reasoning || 'Overall reasoning for suggestions.'}
+                        </p>
+                        <div className="suggestions-list-content">
+                            {editableSuggestions.map((s, index) => (
+                                <div key={index} className="suggestions-list-item">
+                                    {s.isEditing ? (
                                         <>
-                                            <hr className="my-2" />
-                                            <p><b>Backend Validation:</b> <span className={backendValidationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{backendValidationResult.is_valid ? 'VALID' : 'INVALID'}</span></p>
-                                            <p><b>Rationale:</b> {backendValidationResult.rationale}</p>
+                                            <div className="name-input-wrapper">
+                                                <label htmlFor={`editedName-${index}`} className="input-label">Edit Full Name:</label>
+                                                <input
+                                                    type="text"
+                                                    id={`editedName-${index}`}
+                                                    className="input-field editable-name-input"
+                                                    value={s.currentName} // Use currentName for editing
+                                                    onChange={(e) => handleEditedNameChange(index, e.target.value)}
+                                                />
+                                                <div className="highlighted-name-display">
+                                                    {simpleRenderHighlightedName(s.originalName, s.currentName)}
+                                                </div>
+                                            </div>
+                                            {/* New First Name Input */}
+                                            <div className="name-input-wrapper mt-3">
+                                                <label htmlFor={`editedFirstName-${index}`} className="input-label">Edit First Name (only):</label>
+                                                <input
+                                                    type="text"
+                                                    id={`editedFirstName-${index}`}
+                                                    className="input-field editable-name-input"
+                                                    value={s.currentFirstName} // Use currentFirstName for editing
+                                                    onChange={(e) => handleEditedFirstNameChange(index, e.target.value)}
+                                                />
+                                            </div>
+
+                                            {/* Live values displayed constantly, so no need for conditional rendering here */}
+                                            <div className="live-values">
+                                                <p>First Name Value: <b>{s.firstNameValue}</b></p>
+                                                <p>Expression: <b>{s.expressionNumber}</b></p>
+                                                <p>Soul Urge: <b>{s.soulUrgeNumber}</b></p>
+                                                <p>Personality: <b>{s.personalityNumber}</b></p>
+                                                {s.karmicDebtPresent && <p className="karmic-debt-flag">⚠️ Karmic Debt Present</p>}
+                                            </div>
+                                            {s.validationResult && (
+                                                <div className={`validation-result ${s.validationResult.is_valid ? 'valid' : 'invalid'}`}>
+                                                    <p className="validation-status">
+                                                        <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
+                                                    </p>
+                                                    {/* Rationale removed from here as per user request */}
+                                                </div>
+                                            )}
+                                            <div className="button-group">
+                                                <button onClick={() => handleSaveEdit(index)} className="primary-btn small-btn">Save</button>
+                                                <button onClick={() => handleCancelEdit(index)} className="secondary-btn small-btn">Cancel</button>
+                                                <button onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, index)} className="secondary-btn small-btn" disabled={!clientProfile || !s.currentName.trim()}>Re-Validate</button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <h3>{s.currentName} (Expression: {s.expressionNumber})</h3>
+                                            {/* Rationale is hidden for initial suggestions as per request */}
+                                            {/* Live values displayed constantly */}
+                                            <div className="live-values">
+                                                <p>First Name Value: <b>{s.firstNameValue}</b></p>
+                                                <p>Expression: <b>{s.expressionNumber}</b></p>
+                                                <p>Soul Urge: <b>{s.soulUrgeNumber}</b></p>
+                                                <p>Personality: <b>{s.personalityNumber}</b></p>
+                                                {s.karmicDebtPresent && <p className="karmic-debt-flag">⚠️ Karmic Debt Present</p>}
+                                            </div>
+                                            {s.validationResult && (
+                                                <div className={`validation-result ${s.validationResult.is_valid ? 'valid' : 'invalid'}`}>
+                                                    <p className="validation-status">
+                                                        <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
+                                                    </p>
+                                                </div>
+                                            )}
+                                            <div className="button-group">
+                                                <button onClick={() => handleEditSuggestion(index)} className="secondary-btn small-btn">Edit Name</button>
+                                                <button
+                                                    onClick={() => handleConfirmSuggestion(s)}
+                                                    className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'disabled-btn' : ''}`}
+                                                    disabled={confirmedSuggestions.some(cs => cs.name === s.currentName)}
+                                                >
+                                                    {confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'Confirmed!' : 'Confirm This Name'}
+                                                </button>
+                                                <button onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, index)} className="secondary-btn small-btn" disabled={!clientProfile}>Validate</button>
+                                            </div>
                                         </>
                                     )}
                                 </div>
-                            )}
-                            <button onClick={() => handleValidateName(customNameInput, clientProfileRef.current, true, null)} className="primary-btn" disabled={!clientProfile || !customNameInput.trim()}>Validate Custom Name</button>
+                            ))}
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
 
-                {/* Right Column: Suggestions, Reports */}
-                <div className="column">
-                    {/* Initial Suggestions Display */}
-                    {editableSuggestions.length > 0 && (
-                        <div className="section-card suggestions-display-card">
-                            <h2>Suggested Name Variations</h2>
-                            <p className="text-sm text-gray-700 mb-3">
-                                {suggestions[0]?.reasoning || 'Overall reasoning for suggestions.'}
-                            </p>
-                            <div className="suggestions-list-content">
-                                {editableSuggestions.map((s, index) => (
-                                    <div key={index} className="suggestions-list-item">
-                                        {s.isEditing ? (
-                                            <>
-                                                <div className="name-input-wrapper">
-                                                    <label htmlFor={`editedName-${index}`} className="input-label">Edit Full Name:</label>
-                                                    <input
-                                                        type="text"
-                                                        id={`editedName-${index}`}
-                                                        className="input-field editable-name-input"
-                                                        value={s.currentName} // Use currentName for editing
-                                                        onChange={(e) => handleEditedNameChange(index, e.target.value)}
-                                                    />
-                                                    <div className="highlighted-name-display">
-                                                        {simpleRenderHighlightedName(s.originalName, s.currentName)}
-                                                    </div>
-                                                </div>
-                                                {/* New First Name Input */}
-                                                <div className="name-input-wrapper mt-3">
-                                                    <label htmlFor={`editedFirstName-${index}`} className="input-label">Edit First Name (only):</label>
-                                                    <input
-                                                        type="text"
-                                                        id={`editedFirstName-${index}`}
-                                                        className="input-field editable-name-input"
-                                                        value={s.currentFirstName} // Use currentFirstName for editing
-                                                        onChange={(e) => handleEditedFirstNameChange(index, e.target.value)}
-                                                    />
-                                                </div>
-
-                                                {/* Live values displayed constantly, so no need for conditional rendering here */}
-                                                <div className="live-values">
-                                                    <p>First Name Value: <b>{s.firstNameValue}</b></p>
-                                                    <p>Expression: <b>{s.expressionNumber}</b></p>
-                                                    <p>Soul Urge: <b>{s.soulUrgeNumber}</b></p>
-                                                    <p>Personality: <b>{s.personalityNumber}</b></p>
-                                                    {s.karmicDebtPresent && <p className="karmic-debt-flag">⚠️ Karmic Debt Present</p>}
-                                                </div>
-                                                {s.validationResult && (
-                                                    <div className={`validation-result ${s.validationResult.is_valid ? 'valid' : 'invalid'}`}>
-                                                        <p className="validation-status">
-                                                            <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
-                                                        </p>
-                                                        {/* Rationale removed from here as per user request */}
-                                                    </div>
-                                                )}
-                                                <div className="button-group">
-                                                    <button onClick={() => handleSaveEdit(index)} className="primary-btn small-btn">Save</button>
-                                                    <button onClick={() => handleCancelEdit(index)} className="secondary-btn small-btn">Cancel</button>
-                                                    <button onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, index)} className="secondary-btn small-btn" disabled={!clientProfile || !s.currentName.trim()}>Re-Validate</button>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <h3>{s.currentName} (Expression: {s.expressionNumber})</h3>
-                                                {/* Rationale is hidden for initial suggestions as per request */}
-                                                {/* Live values displayed constantly */}
-                                                <div className="live-values">
-                                                    <p>First Name Value: <b>{s.firstNameValue}</b></p>
-                                                    <p>Expression: <b>{s.expressionNumber}</b></p>
-                                                    <p>Soul Urge: <b>{s.soulUrgeNumber}</b></p>
-                                                    <p>Personality: <b>{s.personalityNumber}</b></p>
-                                                    {s.karmicDebtPresent && <p className="karmic-debt-flag">⚠️ Karmic Debt Present</p>}
-                                                </div>
-                                                {s.validationResult && (
-                                                    <div className={`validation-result ${s.validationResult.is_valid ? 'valid' : 'invalid'}`}>
-                                                        <p className="validation-status">
-                                                            <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
-                                                        </p>
-                                                    </div>
-                                                )}
-                                                <div className="button-group">
-                                                    <button onClick={() => handleEditSuggestion(index)} className="secondary-btn small-btn">Edit Name</button>
-                                                    <button
-                                                        onClick={() => handleConfirmSuggestion(s)}
-                                                        className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'disabled-btn' : ''}`}
-                                                        disabled={confirmedSuggestions.some(cs => cs.name === s.currentName)}
-                                                    >
-                                                        {confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'Confirmed!' : 'Confirm This Name'}
-                                                    </button>
-                                                    <button onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, index)} className="secondary-btn small-btn" disabled={!clientProfile}>Validate</button>
-                                                </div>
-                                            </>
-                                        )}
+                {/* Report Generation */}
+                {clientProfile && (
+                    <div className="section-card report-generation-card">
+                        <h2>Generate Reports</h2>
+                        <div className="text-sm text-gray-700 mb-3">
+                            Confirmed Names for Report: {confirmedSuggestions.map(s => s.name).join(', ') || 'None'}
+                        </div>
+                        {confirmedSuggestions.length > 0 && (
+                            <div className="confirmed-suggestions-list mt-4 mb-4">
+                                <h3 className="font-bold text-lg mb-2">Your Confirmed Names:</h3>
+                                {confirmedSuggestions.map((s, index) => (
+                                    <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg mb-2">
+                                        <span>{s.name} (Exp: {s.expression_number})</span>
+                                        <button 
+                                            onClick={() => handleRemoveConfirmedSuggestion(s.name)} 
+                                            className="secondary-btn small-btn"
+                                            style={{width: 'auto', margin: '0'}} // Override default button styles
+                                        >
+                                            Remove
+                                        </button>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    )}
-
-                    {/* Report Generation */}
-                    {clientProfile && (
-                        <div className="section-card report-generation-card">
-                            <h2>Generate Reports</h2>
-                            <div className="text-sm text-gray-700 mb-3">
-                                Confirmed Names for Report: {confirmedSuggestions.map(s => s.name).join(', ') || 'None'}
+                        )}
+                        <button onClick={handleGenerateReport} className="primary-btn" disabled={!clientProfile || confirmedSuggestions.length === 0}>Generate Comprehensive Report (PDF & Preview)</button>
+                        {reportPreviewContent && (
+                            <div className="report-preview-area" dangerouslySetInnerHTML={{ __html: marked.parse(String(reportPreviewContent || '')) }}>
                             </div>
-                            {confirmedSuggestions.length > 0 && (
-                                <div className="confirmed-suggestions-list mt-4 mb-4">
-                                    <h3 className="font-bold text-lg mb-2">Your Confirmed Names:</h3>
-                                    {confirmedSuggestions.map((s, index) => (
-                                        <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg mb-2">
-                                            <span>{s.name} (Exp: {s.expression_number})</span>
-                                            <button 
-                                                onClick={() => handleRemoveConfirmedSuggestion(s.name)} 
-                                                className="secondary-btn small-btn"
-                                                style={{width: 'auto', margin: '0'}} // Override default button styles
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            <button onClick={handleGenerateReport} className="primary-btn" disabled={!clientProfile || confirmedSuggestions.length === 0}>Generate Comprehensive Report (PDF & Preview)</button>
-                            {reportPreviewContent && (
-                                <div className="report-preview-area" dangerouslySetInnerHTML={{ __html: marked.parse(String(reportPreviewContent || '')) }}>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Loading Overlay */}
