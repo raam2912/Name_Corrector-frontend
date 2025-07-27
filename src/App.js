@@ -248,13 +248,13 @@ function App() {
             });
             setSuggestions(response.data.suggestions);
             
-            // CRITICAL FIX: Ensure profile_data is present before setting clientProfile
-            if (response.data.profile_data) {
+            // CRITICAL FIX: Ensure profile_data is present and an object before setting clientProfile
+            if (response.data.profile_data && typeof response.data.profile_data === 'object') {
                 setClientProfile(response.data.profile_data); 
                 console.log("Client Profile set:", response.data.profile_data);
             } else {
-                console.error("Backend did not return profile_data in initial_suggestions response.");
-                openModal("Failed to load client profile. Please try again or contact support.");
+                console.error("Backend did not return valid profile_data in initial_suggestions response:", response.data.profile_data);
+                openModal("Failed to load client profile due to invalid data from backend. Please try again or contact support.");
             }
             setConfirmedSuggestions([]);
         } catch (error) {
@@ -432,7 +432,8 @@ function App() {
 
     // Effect to trigger live validation when customNameInput or clientProfile changes
     useEffect(() => {
-        if (clientProfile) { // Only trigger if clientProfile is available
+        // Only trigger if clientProfile is available AND customNameInput is not empty
+        if (clientProfile && customNameInput.trim()) { 
             debouncedUpdateLiveValidationDisplay(customNameInput, clientProfile);
         } else {
             setLiveValidationOutput(null);
@@ -683,7 +684,7 @@ function App() {
                                     )}
                                 </div>
                             )}
-                            <button onClick={() => handleValidateName(customNameInput, true)} className="primary-btn">Validate Custom Name</button>
+                            <button onClick={() => handleValidateName(customNameInput, true)} className="primary-btn" disabled={!clientProfile}>Validate Custom Name</button>
                         </div>
                     )}
                 </div>
