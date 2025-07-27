@@ -222,7 +222,7 @@ function App() {
             <h3 class="font-bold">Insights & Forecast:</h3>
             <p><b>Compatibility Insights:</b> ${profile.compatibility_insights?.description || 'N/A'}</p>
             <p><b>Karmic Lessons:</b> ${profile.karmic_lessons?.lessons_summary?.map(l => l.lesson).join('; ') || 'None'}</p>
-            <p><b>Karmic Debts (Birth Date):</b> ${profile.karmic_lessons?.birth_date_karmic_debts?.join(', ') || 'None'}</p>
+            <p><b>Karmic Debts (Birth Date):</b> ${profile.karmic_lessons?.birth_date_karmic_debts?.join('; ') || 'None'}</p>
             <p><b>Edge Cases:</b> ${profile.edge_cases?.map(ec => ec.type).join('; ') || 'None'}</p>
             <p><b>Current Personal Year:</b> ${profile.timing_recommendations?.current_personal_year || 'N/A'}</p>
             <p><b>Success Areas:</b> ${profile.success_areas?.combined_strengths?.join(', ') || 'N/A'}</p>
@@ -251,7 +251,8 @@ function App() {
             setConfirmedSuggestions([]);
         } catch (error) {
             console.error('Error fetching suggestions:', error);
-            openModal(error.response?.data?.error || 'Failed to get suggestions. Please try again.');
+            // Display specific error from backend if available, otherwise a generic one
+            openModal(error.response?.data?.error || 'Failed to get suggestions. Please check your backend server.');
         } finally {
             setIsLoading(false);
         }
@@ -280,7 +281,7 @@ function App() {
         try {
             const response = await axios.post(`${BACKEND_URL}/validate_name`, {
                 suggested_name: nameToValidate,
-                client_profile: clientProfile,
+                client_profile: clientProfile, // clientProfile should be available here
             });
             if (isCustom) {
                 setBackendValidationResult(response.data);
@@ -291,7 +292,8 @@ function App() {
             }
         } catch (error) {
             console.error('Error validating name:', error);
-            openModal(error.response?.data?.error || 'Failed to validate name. Please try again.');
+            // Display specific error from backend if available, otherwise a generic one
+            openModal(error.response?.data?.error || 'Failed to validate name. Please check your backend server.');
         } finally {
             setIsLoading(false);
         }
@@ -340,7 +342,7 @@ function App() {
 
         } catch (error) {
             console.error('Error generating report:', error);
-            openModal(error.response?.data?.error || 'Failed to generate report. Please try again.');
+            openModal(error.response?.data?.error || 'Failed to generate report. Please check your backend server.');
         } finally {
             setIsLoading(false);
         }
@@ -517,11 +519,11 @@ function App() {
                 updatedSuggestion.personalityNumber = calculatePersonalityNumber(newName);
                 updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newName);
 
-                // IMPORTANT FIX: Only trigger backend validation if the name is not empty
+                // IMPORTANT FIX: Only trigger backend validation if the name is NOT empty or just whitespace
                 if (newName.trim()) {
                     debouncedValidateSuggestionNameBackend(newName, index);
                 } else {
-                    // If the name becomes empty, clear the validation result immediately
+                    // If the name becomes empty, clear the validation result immediately on the frontend
                     updatedSuggestion.validationResult = null;
                 }
                 return updatedSuggestion;

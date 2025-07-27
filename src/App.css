@@ -1,10 +1,13 @@
-/* General Body and Root Container Styles */
+/* Global box-sizing for consistency */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 html, body, #root, .app-container {
-    height: 100%; /* Ensure full height for flexbox to work */
-    width: 100%; /* Ensure full width */
+    height: 100%; /* Important for flexbox to fill viewport */
+    width: 100%;
     margin: 0;
     padding: 0;
-    box-sizing: border-box; /* Global box-sizing */
 }
 
 body {
@@ -31,8 +34,8 @@ body {
     border-radius: 15px; /* Rounded corners for the main card */
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
     width: 100%; /* Always take 100% of parent's width (minus padding) */
-    display: flex;
-    flex-direction: column; /* Always a single column by default */
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Default to column on small screens */
     gap: 30px; /* Space between sections/cards */
     max-width: 1000px; /* Adjusted for a comfortable reading width on laptops */
     /* Removed temporary lightcoral background */
@@ -50,7 +53,7 @@ body {
 /* Column Styles (These will now effectively be just containers for sections) */
 .column {
     flex: 1; /* Allow columns to grow and shrink */
-    display: flex;
+    display: flex; /* Make columns flex containers for their contents */
     flex-direction: column;
     gap: 25px; /* Space between cards within a column */
 }
