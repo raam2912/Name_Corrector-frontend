@@ -59,10 +59,17 @@ body {
 /* Specific background for the right column on desktop for debugging layout */
 @media (min-width: 769px) {
     .column:last-child { /* Targets the second column (right one) */
-        background-color: #f8f9fa; /* Light grey background for visual separation */
+        /* Removed background color for a cleaner look as per user feedback implied by "clean white background" */
+        /* background-color: #f8f9fa; */ 
         border-radius: 12px; /* Maintain rounded corners */
-        padding: 25px; /* Add padding to make background visible */
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.05); /* Subtle inner shadow */
+        padding: 0; /* Remove padding here, let inner cards handle it */
+        box-shadow: none; /* Remove inner shadow here */
+    }
+    /* Ensure cards within the right column still have their styling */
+    .column:last-child .section-card {
+        padding: 28px; /* Re-apply card padding */
+        background-color: #ffffff; /* Ensure white background for cards */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Re-apply card shadow */
     }
 }
 

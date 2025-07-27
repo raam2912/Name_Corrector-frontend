@@ -247,7 +247,15 @@ function App() {
                 desired_outcome: desiredOutcome,
             });
             setSuggestions(response.data.suggestions);
-            setClientProfile(response.data.profile_data); // CRITICAL: Set clientProfile here
+            
+            // CRITICAL FIX: Ensure profile_data is present before setting clientProfile
+            if (response.data.profile_data) {
+                setClientProfile(response.data.profile_data); 
+                console.log("Client Profile set:", response.data.profile_data);
+            } else {
+                console.error("Backend did not return profile_data in initial_suggestions response.");
+                openModal("Failed to load client profile. Please try again or contact support.");
+            }
             setConfirmedSuggestions([]);
         } catch (error) {
             console.error('Error fetching suggestions:', error);
@@ -262,7 +270,7 @@ function App() {
         // CRITICAL FIX: Ensure clientProfile is NOT null before proceeding
         if (!clientProfile) {
             openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
-            console.error("Validation attempted with null clientProfile.");
+            console.error("Validation attempted with null clientProfile. Aborting API call.");
             return;
         }
         
@@ -282,7 +290,7 @@ function App() {
         setIsLoading(true);
         try {
             console.log(`Sending validation request for: "${nameToValidate}"`);
-            console.log('Client Profile for validation:', clientProfile); // Log clientProfile here
+            console.log('Client Profile for validation (sent to backend):', clientProfile); // Log clientProfile here
             const response = await axios.post(`${BACKEND_URL}/validate_name`, {
                 suggested_name: nameToValidate,
                 client_profile: clientProfile, // clientProfile should be available here
@@ -424,7 +432,7 @@ function App() {
 
     // Effect to trigger live validation when customNameInput or clientProfile changes
     useEffect(() => {
-        if (clientProfile) {
+        if (clientProfile) { // Only trigger if clientProfile is available
             debouncedUpdateLiveValidationDisplay(customNameInput, clientProfile);
         } else {
             setLiveValidationOutput(null);
@@ -508,7 +516,7 @@ function App() {
         if (clientProfile) {
             handleValidateName(name, false, index); // Call the main validation handler
         } else {
-            console.warn("Cannot validate suggestion: clientProfile is null.");
+            console.warn("Cannot validate suggestion: clientProfile is null. Please get initial suggestions first.");
             openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
         }
     }, [handleValidateName, clientProfile, openModal]); // clientProfile is a dependency
@@ -624,13 +632,16 @@ function App() {
                     </div>
 
                     {/* Profile Display */}
-                    {clientProfile && (
+                    {clientProfile ? ( // Display profile if available
                         <div className="section-card profile-display-card">
                             <h2>Client Numerology Profile</h2>
-                            {/* IMPORTANT: Using dangerouslySetInnerHTML. Ensure data from backend is sanitized
-                                or consider building JSX elements directly for better security. */}
                             <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
                             </div>
+                        </div>
+                    ) : ( // Show message if profile is not loaded
+                        <div className="section-card profile-display-card">
+                            <h2>Client Numerology Profile</h2>
+                            <p className="text-gray-600">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
                         </div>
                     )}
 
@@ -723,7 +734,7 @@ function App() {
                                                 <div className="button-group">
                                                     <button onClick={() => handleSaveEdit(index)} className="primary-btn small-btn">Save</button>
                                                     <button onClick={() => handleCancelEdit(index)} className="secondary-btn small-btn">Cancel</button>
-                                                    <button onClick={() => handleValidateName(s.currentName, false, index)} className="secondary-btn small-btn">Re-Validate</button>
+                                                    <button onClick={() => handleValidateName(s.currentName, false, index)} className="secondary-btn small-btn" disabled={!clientProfile}>Re-Validate</button>
                                                 </div>
                                             </>
                                         ) : (
@@ -754,7 +765,7 @@ function App() {
                                                     >
                                                         {confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'Confirmed!' : 'Confirm This Name'}
                                                     </button>
-                                                    <button onClick={() => handleValidateName(s.currentName, false, index)} className="secondary-btn small-btn">Validate</button>
+                                                    <button onClick={() => handleValidateName(s.currentName, false, index)} className="secondary-btn small-btn" disabled={!clientProfile}>Validate</button>
                                                 </div>
                                             </>
                                         )}
@@ -788,7 +799,7 @@ function App() {
                                     ))}
                                 </div>
                             )}
-                            <button onClick={handleGenerateReport} className="primary-btn">Generate Comprehensive Report (PDF & Preview)</button>
+                            <button onClick={handleGenerateReport} className="primary-btn" disabled={!clientProfile || confirmedSuggestions.length === 0}>Generate Comprehensive Report (PDF & Preview)</button>
                             {reportPreviewContent && (
                                 <div className="report-preview-area" dangerouslySetInnerHTML={{ __html: marked.parse(String(reportPreviewContent || '')) }}>
                                 </div>
