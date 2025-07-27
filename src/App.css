@@ -18,6 +18,7 @@ body {
     justify-content: center; /* Horizontally center the main content wrapper */
     padding: 20px; /* Padding around the main content wrapper */
     box-sizing: border-box; /* Include padding in element's total width and height */
+    border: 2px dashed #a0a0a0; /* VISIBLE CHANGE: Added for testing, remove later if desired */
 }
 
 /* Main Content Wrapper (The big white card) */
@@ -470,7 +471,7 @@ body {
     font-size: 32px; /* Large font size */
     font-weight: 700; /* Extra bold */
     text-align: center;
-    color: #2c3e50; /* Dark heading color */
+    color: #1a5276; /* VISIBLE CHANGE: Slightly different dark blue */
     margin-bottom: 30px; /* Space below title */
     padding-bottom: 10px;
     border-bottom: 3px solid rgba(0, 0, 0, 0.1); /* Stronger separator */
