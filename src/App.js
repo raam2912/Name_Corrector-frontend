@@ -206,6 +206,8 @@ function App() {
             if (appContainer) {
                 if (!prev) {
                     appContainer.classList.add('fullscreen-active');
+                    // Scroll to top when entering fullscreen to ensure table is visible
+                    window.scrollTo(0, 0); 
                 } else {
                     appContainer.classList.remove('fullscreen-active');
                 }
@@ -676,6 +678,9 @@ function App() {
                                 {isTableFullscreen ? 'Exit Fullscreen' : 'View Fullscreen'}
                             </button>
                         </div>
+                        {isTableFullscreen && (
+                            <p className="fullscreen-exit-instruction">Press ESC to exit fullscreen</p>
+                        )}
                         <p className="text-sm text-gray-700 mb-3">
                            Here are the suggested names. You can edit, validate, and confirm them directly in the table.
                         </p>
