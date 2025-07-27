@@ -43,24 +43,25 @@ body {
     gap: 30px; /* Space between sections/cards */
 }
 
-@media (min-width: 769px) { /* Apply grid for laptop and larger screens */
+@media (min-width: 769px) { /* Apply flex for laptop and larger screens */
     .main-content-wrapper {
         padding: 40px; /* More generous padding for larger screens */
-        display: grid; /* Use grid for two-column layout */
-        grid-template-columns: 1fr 1fr; /* Two equal columns */
+        display: flex; /* Use flex for two-column layout */
+        flex-direction: row; /* Arrange items in a row */
+        justify-content: space-between; /* Space out columns */
+        align-items: flex-start; /* Align items to the top */
         gap: 40px; /* Space between columns */
-        /* Ensure no conflicting flex properties from mobile default */
-        flex-direction: unset; 
     }
 }
 
 
-/* Column Styles (These will now be grid items on desktop, flex columns on mobile) */
+/* Column Styles */
 .column {
     display: flex; /* Make columns flex containers for their contents */
     flex-direction: column;
     gap: 25px; /* Space between cards within a column */
-    min-width: 0; /* Allow columns to shrink within the grid */
+    flex: 1; /* Allow columns to grow and shrink equally */
+    min-width: 0; /* Important for flex items to prevent overflow */
 }
 
 /* No specific background or shadow for columns themselves, let cards handle it */
@@ -533,9 +534,16 @@ body {
         padding: 20px; /* Smaller padding inside the main card */
         gap: 20px; /* Reduce gap between sections */
         flex-direction: column; /* Ensure column layout on small screens */
-        /* Remove grid properties on mobile */
-        display: flex; /* Use flex for column layout on mobile */
-        grid-template-columns: unset; /* Ensure grid is unset on mobile */
+        /* Remove desktop-specific flex properties */
+        display: flex; 
+        flex-direction: column;
+        justify-content: unset;
+        align-items: unset;
+    }
+
+    .column {
+        flex: unset; /* Unset flex property for mobile */
+        width: 100%; /* Ensure full width on mobile */
     }
 
     .column:last-child { /* Remove specific background for right column on mobile */
