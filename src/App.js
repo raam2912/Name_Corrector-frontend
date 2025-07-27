@@ -187,6 +187,7 @@ function App() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
+    const [isTableFullscreen, setIsTableFullscreen] = useState(false); // New state for fullscreen table
 
     // --- Modal Functions ---
     const openModal = useCallback((message) => {
@@ -196,6 +197,11 @@ function App() {
     const closeModal = useCallback(() => {
         setModal({ isOpen: false, message: '' });
     }, [setModal]);
+
+    // --- Fullscreen Toggle Function ---
+    const toggleTableFullscreen = useCallback(() => {
+        setIsTableFullscreen(prev => !prev);
+    }, []);
 
     // --- formatProfileData Function ---
     const formatProfileData = useCallback((profile) => {
@@ -629,8 +635,13 @@ function App() {
 
                 {/* --- NEW PAGINATED SUGGESTIONS TABLE --- */}
                 {editableSuggestions.length > 0 && (
-                    <div className="section-card suggestions-display-card">
-                        <h2>Suggested Name Variations</h2>
+                    <div className={`section-card suggestions-display-card ${isTableFullscreen ? 'table-fullscreen' : ''}`}>
+                        <div className="table-header-controls">
+                            <h2>Suggested Name Variations</h2>
+                            <button onClick={toggleTableFullscreen} className="secondary-btn small-btn">
+                                {isTableFullscreen ? 'Exit Fullscreen' : 'View Fullscreen'}
+                            </button>
+                        </div>
                         <p className="text-sm text-gray-700 mb-3">
                            Here are the suggested names. You can edit, validate, and confirm them directly in the table.
                         </p>
@@ -742,7 +753,7 @@ function App() {
                 </div>
             )}
 
-            {/* Custom Modal for Alerts */}
+            {/* Custom Modal for Alerts */}\
             {modal.isOpen && (
                 <div className="custom-modal">
                     <div className="modal-content">

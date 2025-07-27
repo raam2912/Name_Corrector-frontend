@@ -983,7 +983,28 @@ p,
   font-weight: 700;
   color: var(--pure-gold);
 }
+.confirmed-suggestions-list > div:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+  border-color: var(--bright-gold);
+}
+
+.confirmed-suggestions-list span {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  margin-left: var(--space-2xl);
+}
+
 /* ✦ ENHANCED SUGGESTIONS TABLE ✦ */
+
+.table-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+}
 
 .table-responsive {
   width: 100%;
@@ -1098,6 +1119,67 @@ p,
   font-size: var(--text-sm);
   min-height: 36px; /* Ensure consistent button height */
 }
+
+/* ✦ FULLSCREEN TABLE MODE ✦ */
+.table-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 13, 31, 0.95); /* Deep space background with transparency */
+    backdrop-filter: blur(20px) saturate(150%);
+    z-index: 100; /* Ensure it's on top of everything */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-xl); /* Add some padding around the fullscreen content */
+    border-radius: 0 !important; /* Remove border-radius in fullscreen */
+    box-shadow: none !important; /* Remove shadows in fullscreen */
+    overflow-y: auto; /* Allow scrolling if content overflows in fullscreen */
+    transition: all 0.3s ease-in-out; /* Smooth transition */
+}
+
+.table-fullscreen .table-header-controls {
+    width: 100%;
+    max-width: 1000px; /* Match main content wrapper max-width */
+    padding: var(--space-lg) var(--space-2xl);
+    background: var(--cosmic-navy); /* Darker header background for fullscreen */
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-medium);
+}
+
+.table-fullscreen .table-responsive {
+    width: 100%;
+    max-width: 1000px; /* Match main content wrapper max-width */
+    height: calc(100vh - 180px); /* Adjust height to fit screen, considering header/footer */
+    overflow-y: auto; /* Enable scrolling for table content */
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-large);
+}
+
+.table-fullscreen .name-suggestion-table {
+    width: 100%; /* Ensure table fills its container */
+}
+
+.table-fullscreen .pagination-controls {
+    width: 100%;
+    max-width: 1000px; /* Match main content wrapper max-width */
+    margin-top: var(--space-md);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background: var(--cosmic-navy); /* Darker pagination background for fullscreen */
+    box-shadow: var(--shadow-medium);
+}
+
+/* Ensure other elements are hidden or styled appropriately in fullscreen mode */
+.table-fullscreen ~ .section-card:not(.suggestions-display-card),
+.table-fullscreen ~ .loading-overlay,
+.table-fullscreen ~ .custom-modal {
+    display: none !important;
+}
+
 
 /* ✦ MODAL & LOADING ✦ */
 .custom-modal, .loading-overlay {
@@ -1527,4 +1609,3 @@ body::after {
   opacity: 0.02;
   z-index: -2;
 }
-
