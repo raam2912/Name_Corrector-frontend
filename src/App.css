@@ -35,41 +35,39 @@ body {
     border-radius: 15px; /* Rounded corners for the main card */
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
     width: 100%; /* Always take 100% of parent's width (minus padding) */
-    max-width: 1000px; /* Adjusted for a comfortable reading width on laptops */
     
-    /* Default to flex column for mobile */
+    /* This is the key for the "complete page" feel with controlled width */
+    max-width: 850px; /* Adjusted for a comfortable reading width on laptops */
+    
+    /* Always a single column layout */
     display: flex; 
     flex-direction: column; 
     gap: 30px; /* Space between sections/cards */
 }
 
-@media (min-width: 769px) { /* Apply flex for laptop and larger screens */
+@media (min-width: 769px) { /* Adjust padding for laptop and larger screens */
     .main-content-wrapper {
         padding: 40px; /* More generous padding for larger screens */
-        display: flex; /* Use flex for two-column layout */
-        flex-direction: row; /* Arrange items in a row */
-        justify-content: space-between; /* Space out columns */
-        align-items: flex-start; /* Align items to the top */
-        gap: 40px; /* Space between columns */
-        /* REMOVED DEBUGGING BACKGROUND */
-        background-color: #ffffff; /* Ensure white background for the main wrapper */
+        /* IMPORTANT: NO flex-direction: row here. It remains column. */
     }
 }
 
 
-/* Column Styles */
+/* Column Styles (These now simply act as containers for sections within the single main column) */
 .column {
-    display: flex; /* Make columns flex containers for their contents */
-    flex-direction: column;
+    /* Remove flex-grow/shrink/basis to prevent horizontal stretching/arrangement */
+    flex: none; 
+    width: 100%; /* Ensure it takes full width within the main-content-wrapper */
+    display: flex;
+    flex-direction: column; /* Contents within the column are still stacked vertically */
     gap: 25px; /* Space between cards within a column */
-    flex: 1; /* Allow columns to grow and shrink equally */
-    min-width: 0; /* Important for flex items to prevent overflow */
+    box-sizing: border-box; /* Include padding/border in element's total width/height */
 }
 
 /* No specific background or shadow for columns themselves, let cards handle it */
-/* Ensure cards within the right column still have their styling */
+/* This rule is now redundant for layout but kept for consistency with card styling */
 @media (min-width: 769px) {
-    .column:last-child { /* Targets the second column (right one) */
+    .column:last-child { /* Targets the second column (which is now just part of the single flow) */
         padding: 0; /* No padding on the column itself */
         box-shadow: none; /* No shadow on the column itself */
         background-color: transparent; /* Ensure transparent background */
@@ -535,21 +533,14 @@ body {
     .main-content-wrapper {
         padding: 20px; /* Smaller padding inside the main card */
         gap: 20px; /* Reduce gap between sections */
-        flex-direction: column; /* Ensure column layout on small screens */
-        /* Remove desktop-specific flex properties */
-        display: flex; 
-        flex-direction: column;
-        justify-content: unset;
-        align-items: unset;
+        /* It's already flex-direction: column by default, no change needed here */
     }
 
-    .column {
-        flex: unset; /* Unset flex property for mobile */
-        width: 100%; /* Ensure full width on mobile */
-    }
+    
 
-    .column:last-child { /* Remove specific background for right column on mobile */
-        background-color: #ffffff;
+    /* This rule is now redundant as there's only one logical column flow */
+    .column:last-child { 
+        background-color: #ffffff; /* Ensure white background for cards */
         padding: 28px; /* Revert to default card padding */
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Revert to default card shadow */
     }
