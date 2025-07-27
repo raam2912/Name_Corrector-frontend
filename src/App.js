@@ -187,7 +187,7 @@ function App() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
-    const [isTableFullscreen, setIsTableFullscreen] = useState(false); // New state for fullscreen table
+    // Removed isTableFullscreen state and related logic
 
     // --- Modal Functions ---
     const openModal = useCallback((message) => {
@@ -198,45 +198,7 @@ function App() {
         setModal({ isOpen: false, message: '' });
     }, [setModal]);
 
-    // --- Fullscreen Toggle Function ---
-    const toggleTableFullscreen = useCallback(() => {
-        setIsTableFullscreen(prev => {
-            // Toggle 'fullscreen-active' class on the app-container for visual effect
-            const appContainer = document.querySelector('.app-container');
-            if (appContainer) {
-                if (!prev) {
-                    appContainer.classList.add('fullscreen-active');
-                    // Scroll to top when entering fullscreen to ensure table is visible
-                    window.scrollTo(0, 0); 
-                } else {
-                    appContainer.classList.remove('fullscreen-active');
-                }
-            }
-            return !prev;
-        });
-    }, []);
-
-    // Effect to handle Esc key to exit fullscreen
-    useEffect(() => {
-        const handleKeyDown = (event) => {
-            if (event.key === 'Escape' && isTableFullscreen) {
-                toggleTableFullscreen();
-            }
-        };
-
-        document.addEventListener('keydown', handleKeyDown);
-
-        // Clean up event listener on component unmount or when fullscreen state changes
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-            // Also ensure app-container class is removed if component unmounts while fullscreen
-            const appContainer = document.querySelector('.app-container');
-            if (appContainer) {
-                appContainer.classList.remove('fullscreen-active');
-            }
-        };
-    }, [isTableFullscreen, toggleTableFullscreen]);
-
+    // Removed toggleTableFullscreen and its useEffect for Esc key
 
     // --- formatProfileData Function ---
     const formatProfileData = useCallback((profile) => {
@@ -589,8 +551,8 @@ function App() {
     };
 
     return (
-        // Apply fullscreen-active class to app-container
-        <div className={`app-container ${isTableFullscreen ? 'fullscreen-active' : ''}`}>
+        // Removed fullscreen-active class
+        <div className="app-container">
             <div className="main-content-wrapper">
                 <h1 className="main-title">Sheelaa's Numerology Portal</h1>
 
@@ -671,16 +633,11 @@ function App() {
 
                 {/* --- NEW PAGINATED SUGGESTIONS TABLE --- */}
                 {editableSuggestions.length > 0 && (
-                    <div className={`section-card suggestions-display-card ${isTableFullscreen ? 'table-fullscreen' : ''}`}>
+                    <div className="section-card suggestions-display-card"> {/* Removed table-fullscreen class here */}
                         <div className="table-header-controls">
                             <h2>Suggested Name Variations</h2>
-                            <button onClick={toggleTableFullscreen} className="secondary-btn small-btn">
-                                {isTableFullscreen ? 'Exit Fullscreen' : 'View Fullscreen'}
-                            </button>
+                            {/* Removed Fullscreen button */}
                         </div>
-                        {isTableFullscreen && (
-                            <p className="fullscreen-exit-instruction">Press ESC to exit fullscreen</p>
-                        )}
                         <p className="text-sm text-gray-700 mb-3">
                            Here are the suggested names. You can edit, validate, and confirm them directly in the table.
                         </p>
@@ -807,3 +764,4 @@ function App() {
 
 export default App;
 // END OF App.js - DO NOT DELETE THIS LINE
+ 
