@@ -2452,273 +2452,282 @@ p {
 .table-responsive::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, var(--celestial-light) 0%, var(--aurora-violet) 100%);
 }
-.fullscreen-table-overlay * {
-  color: #ffffff !important;
-  background: transparent !important;
-}
-
-.fullscreen-table-overlay .name-suggestion-table {
-  background: #1a1a2e !important;
-}
-
-.fullscreen-table-overlay .name-suggestion-table td {
-  color: #ffffff !important;
-  background: #16213e !important;
-  border: 1px solid #333 !important;
-  min-height: 50px !important;
-}
-
-.fullscreen-table-overlay .name-suggestion-table td:nth-child(even) {
-  background: #0f1419 !important;
-}
-
-.fullscreen-table-overlay .table-input {
-  background: #2a2a3e !important;
-  color: #ffffff !important;
-  border: 1px solid #555 !important;
-}
-
-.fullscreen-table-overlay button {
-  background: #6366f1 !important;
-  color: #ffffff !important;
-  border: 1px solid #4338ca !important;
-}
-/* ===== DEFINITIVE FULLSCREEN TABLE FIX ===== */
-/* Add this CSS at the very end of your App.css file */
-
-/* Force override all fullscreen table styles */
+/* 1. FORCE FULLSCREEN OVERLAY VISIBILITY */
 .fullscreen-table-overlay {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
-  z-index: 1000 !important;
+  background: linear-gradient(135deg, #0a0d1f 0%, #1e293b 50%, #334155 100%) !important;
+  z-index: 9999 !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
+  animation: fullscreenFadeIn 0.3s ease-out !important;
 }
 
-/* Fix header visibility */
+@keyframes fullscreenFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 2. FORCE HEADER VISIBILITY */
 .fullscreen-table-header {
-  background: rgba(255, 255, 255, 0.95) !important;
-  padding: 20px !important;
-  border-bottom: 2px solid #6366f1 !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  padding: 20px 30px !important;
+  border-bottom: 3px solid #6366f1 !important;
   flex-shrink: 0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
 }
 
 .fullscreen-table-header h2 {
   color: #1e293b !important;
   margin: 0 !important;
-  font-size: 24px !important;
-  font-weight: bold !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  font-family: 'Playfair Display', serif !important;
 }
 
-/* Fix close button */
 .fullscreen-close-btn {
   background: #dc2626 !important;
   color: white !important;
   border: none !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 48px !important;
+  height: 48px !important;
   border-radius: 50% !important;
-  font-size: 20px !important;
+  font-size: 24px !important;
   cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
 }
 
-/* Fix table container */
+.fullscreen-close-btn:hover {
+  background: #b91c1c !important;
+  transform: scale(1.05) !important;
+}
+
+/* 3. FORCE CONTENT AREA VISIBILITY */
 .fullscreen-table-content {
   flex: 1 !important;
-  padding: 20px !important;
+  padding: 30px !important;
   overflow: auto !important;
   background: transparent !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-/* Fix main table */
+/* 4. FORCE MAIN TABLE CONTAINER VISIBILITY */
 .fullscreen-table {
   background: white !important;
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   overflow: auto !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
-  height: 100% !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+  flex: 1 !important;
+  display: block !important;
+  border: 2px solid #e5e7eb !important;
 }
 
-/* Force table structure visibility */
+/* 5. CRITICAL: FORCE TABLE STRUCTURE TO DISPLAY */
 .fullscreen-table .name-suggestion-table {
   width: 100% !important;
-  border-collapse: collapse !important;
+  min-width: 1200px !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
   background: white !important;
   color: #1f2937 !important;
   font-size: 14px !important;
   table-layout: fixed !important;
+  display: table !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* Fix table headers */
+/* 6. FORCE TABLE HEAD VISIBILITY */
 .fullscreen-table .name-suggestion-table thead {
+  display: table-header-group !important;
   position: sticky !important;
   top: 0 !important;
-  z-index: 10 !important;
+  z-index: 100 !important;
+}
+
+.fullscreen-table .name-suggestion-table thead tr {
+  display: table-row !important;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
 }
 
 .fullscreen-table .name-suggestion-table th {
-  background: #6366f1 !important;
+  display: table-cell !important;
+  background: transparent !important;
   color: white !important;
-  padding: 15px 10px !important;
+  padding: 16px 12px !important;
   text-align: center !important;
-  font-weight: bold !important;
-  font-size: 12px !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
   text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
   border: 1px solid #4f46e5 !important;
-  position: sticky !important;
-  top: 0 !important;
-}
-
-/* Force table cells to show */
-.fullscreen-table .name-suggestion-table td {
-  padding: 12px 8px !important;
-  border: 1px solid #e5e7eb !important;
-  background: white !important;
-  color: #1f2937 !important;
-  font-size: 14px !important;
-  text-align: center !important;
+  position: relative !important;
   vertical-align: middle !important;
-  min-height: 45px !important;
-  word-break: break-word !important;
+  white-space: nowrap !important;
+  font-family: 'Space Grotesk', sans-serif !important;
 }
 
-/* Alternate row colors */
-.fullscreen-table .name-suggestion-table tbody tr:nth-child(even) td {
+/* 7. CRITICAL: FORCE TABLE BODY AND ROWS TO DISPLAY */
+.fullscreen-table .name-suggestion-table tbody {
+  display: table-row-group !important;
+  background: white !important;
+}
+
+.fullscreen-table .name-suggestion-table tbody tr {
+  display: table-row !important;
+  background: white !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  transition: all 0.15s ease !important;
+  min-height: 60px !important;
+  height: auto !important;
+}
+
+.fullscreen-table .name-suggestion-table tbody tr:nth-child(even) {
   background: #f9fafb !important;
 }
 
-/* Hover effect */
-.fullscreen-table .name-suggestion-table tbody tr:hover td {
+.fullscreen-table .name-suggestion-table tbody tr:hover {
   background: #e0e7ff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1) !important;
 }
 
-/* Fix first column (name) */
-.fullscreen-table .name-suggestion-table td:first-child {
-  text-align: left !important;
+/* 8. CRITICAL: FORCE TABLE CELLS TO DISPLAY WITH CONTENT */
+.fullscreen-table .name-suggestion-table td {
+  display: table-cell !important;
+  padding: 14px 10px !important;
+  border: 1px solid #e5e7eb !important;
+  background: transparent !important;
+  color: #1f2937 !important;
+  font-size: 14px !important;
   font-weight: 500 !important;
-  padding-left: 15px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  min-height: 50px !important;
+  word-break: break-word !important;
+  box-sizing: border-box !important;
+  position: relative !important;
 }
 
-/* Fix input fields in table */
+/* 9. SPECIAL HANDLING FOR FIRST COLUMN (NAME) */
+.fullscreen-table .name-suggestion-table td:first-child,
+.fullscreen-table .name-suggestion-table th:first-child {
+  text-align: left !important;
+  font-weight: 600 !important;
+  padding-left: 20px !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow: visible !important;
+}
+
+/* 10. FORCE EMPTY CELLS TO SHOW PLACEHOLDER */
+.fullscreen-table .name-suggestion-table td:empty {
+  position: relative !important;
+}
+
+.fullscreen-table .name-suggestion-table td:empty::before {
+  content: "—" !important;
+  color: #9ca3af !important;
+  font-style: italic !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* 11. FORCE INPUT FIELDS TO DISPLAY */
 .fullscreen-table .table-input {
   width: 100% !important;
-  padding: 6px 8px !important;
-  border: 1px solid #d1d5db !important;
-  border-radius: 4px !important;
+  padding: 8px 10px !important;
+  border: 2px solid #d1d5db !important;
+  border-radius: 6px !important;
   background: white !important;
   color: #1f2937 !important;
   font-size: 13px !important;
+  font-family: 'Inter', sans-serif !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  display: block !important;
+  box-sizing: border-box !important;
 }
 
 .fullscreen-table .table-input:focus {
-  outline: none !important;
   border-color: #6366f1 !important;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+  background: #ffffff !important;
 }
 
-/* Fix action buttons */
+/* 12. FORCE ACTION BUTTONS TO DISPLAY */
 .fullscreen-table .actions-cell {
   display: flex !important;
-  gap: 5px !important;
+  gap: 8px !important;
   justify-content: center !important;
   align-items: center !important;
   flex-wrap: wrap !important;
+  padding: 10px !important;
 }
 
 .fullscreen-table .actions-cell button {
-  padding: 6px 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 14px !important;
   border: none !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
   font-size: 12px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   cursor: pointer !important;
-  min-width: 70px !important;
+  min-width: 80px !important;
+  min-height: 36px !important;
+  transition: all 0.2s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.025em !important;
 }
 
 .fullscreen-table .primary-btn {
-  background: #6366f1 !important;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
   color: white !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2) !important;
+}
+
+.fullscreen-table .primary-btn:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
 }
 
 .fullscreen-table .secondary-btn {
   background: #f3f4f6 !important;
   color: #374151 !important;
-  border: 1px solid #d1d5db !important;
-}
-
-.fullscreen-table .primary-btn:hover {
-  background: #4f46e5 !important;
+  border: 2px solid #d1d5db !important;
 }
 
 .fullscreen-table .secondary-btn:hover {
   background: #e5e7eb !important;
+  border-color: #9ca3af !important;
+  transform: translateY(-1px) !important;
 }
 
-/* Fix pagination */
-.fullscreen-pagination {
-  background: rgba(255, 255, 255, 0.95) !important;
-  padding: 15px 20px !important;
-  border-top: 1px solid #e5e7eb !important;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  flex-shrink: 0 !important;
-}
-
-.fullscreen-pagination span {
-  color: #374151 !important;
-  font-weight: 500 !important;
-}
-
-.fullscreen-pagination button {
-  padding: 8px 16px !important;
-  background: #6366f1 !important;
+.fullscreen-table .primary-btn.disabled-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
   color: white !important;
-  border: none !important;
-  border-radius: 6px !important;
-  cursor: pointer !important;
-  font-weight: 500 !important;
+  cursor: default !important;
 }
 
-.fullscreen-pagination button:disabled {
-  background: #9ca3af !important;
-  cursor: not-allowed !important;
-}
-
-.fullscreen-pagination button:hover:not(:disabled) {
-  background: #4f46e5 !important;
-}
-
-/* Show empty cells with placeholder */
-.fullscreen-table .name-suggestion-table td:empty::after {
-  content: "—" !important;
-  color: #9ca3af !important;
-  font-style: italic !important;
-}
-
-/* Force minimum height for rows */
-.fullscreen-table .name-suggestion-table tr {
-  min-height: 50px !important;
-}
-
-/* Debug: Show table structure */
-.fullscreen-table .name-suggestion-table {
-  border: 2px solid #dc2626 !important;
-}
-
-.fullscreen-table .name-suggestion-table td,
-.fullscreen-table .name-suggestion-table th {
-  border: 1px solid #6b7280 !important;
-}
-
-/* Column widths */
+/* 13. FORCE COLUMN WIDTHS */
 .fullscreen-table .name-suggestion-table th:nth-child(1),
-.fullscreen-table .name-suggestion-table td:nth-child(1) { width: 25% !important; }
+.fullscreen-table .name-suggestion-table td:nth-child(1) { width: 28% !important; }
 .fullscreen-table .name-suggestion-table th:nth-child(2),
 .fullscreen-table .name-suggestion-table td:nth-child(2) { width: 10% !important; }
 .fullscreen-table .name-suggestion-table th:nth-child(3),
@@ -2732,12 +2741,121 @@ p {
 .fullscreen-table .name-suggestion-table th:nth-child(7),
 .fullscreen-table .name-suggestion-table td:nth-child(7) { width: 8% !important; }
 .fullscreen-table .name-suggestion-table th:nth-child(8),
-.fullscreen-table .name-suggestion-table td:nth-child(8) { width: 15% !important; }
+.fullscreen-table .name-suggestion-table td:nth-child(8) { width: 12% !important; }
 
-/* Force visibility of all elements */
+/* 14. FORCE PAGINATION TO DISPLAY */
+.fullscreen-pagination {
+  background: rgba(255, 255, 255, 0.98) !important;
+  padding: 20px 30px !important;
+  border-top: 2px solid #e5e7eb !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05) !important;
+  margin-top: auto !important;
+}
+
+.fullscreen-pagination span {
+  color: #374151 !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  background: white !important;
+  padding: 12px 20px !important;
+  border-radius: 8px !important;
+  border: 1px solid #d1d5db !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fullscreen-pagination button {
+  padding: 12px 24px !important;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  min-width: 100px !important;
+  transition: all 0.2s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.025em !important;
+}
+
+.fullscreen-pagination button:disabled {
+  background: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+.fullscreen-pagination button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+}
+
+/* 15. SCROLLBAR STYLING */
+.fullscreen-table::-webkit-scrollbar {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.fullscreen-table::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+  border-radius: 6px !important;
+}
+
+.fullscreen-table::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  border-radius: 6px !important;
+}
+
+.fullscreen-table::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+}
+
+/* 16. RESPONSIVE ADJUSTMENTS */
+@media (max-width: 1400px) {
+  .fullscreen-table .name-suggestion-table {
+    min-width: 1000px !important;
+  }
+  
+  .fullscreen-table .name-suggestion-table th:nth-child(1),
+  .fullscreen-table .name-suggestion-table td:nth-child(1) { width: 25% !important; }
+  .fullscreen-table .name-suggestion-table th:nth-child(8),
+  .fullscreen-table .name-suggestion-table td:nth-child(8) { width: 15% !important; }
+}
+
+@media (max-width: 1200px) {
+  .fullscreen-table-header {
+    padding: 15px 20px !important;
+  }
+  
+  .fullscreen-table-content {
+    padding: 20px !important;
+  }
+  
+  .fullscreen-table .name-suggestion-table th,
+  .fullscreen-table .name-suggestion-table td {
+    padding: 10px 8px !important;
+    font-size: 13px !important;
+  }
+  
+  .fullscreen-table .actions-cell {
+    flex-direction: column !important;
+    gap: 5px !important;
+  }
+  
+  .fullscreen-table .actions-cell button {
+    width: 100% !important;
+    min-width: 70px !important;
+  }
+}
+
+/* 17. FORCE VISIBILITY - NUCLEAR OPTION */
 .fullscreen-table-overlay * {
   visibility: visible !important;
-  display: block !important;
+  opacity: 1 !important;
 }
 
 .fullscreen-table-overlay table {
@@ -2761,32 +2879,81 @@ p {
   display: table-cell !important;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-  .fullscreen-table .name-suggestion-table {
-    font-size: 12px !important;
-  }
-  
-  .fullscreen-table .name-suggestion-table th,
-  .fullscreen-table .name-suggestion-table td {
-    padding: 8px 6px !important;
-  }
+/* 18. DEBUG MODE - TEMPORARY BORDERS */
+.fullscreen-table-overlay.debug-mode .name-suggestion-table {
+  border: 3px solid red !important;
 }
 
-/* Final override - if nothing else works */
+.fullscreen-table-overlay.debug-mode .name-suggestion-table td,
+.fullscreen-table-overlay.debug-mode .name-suggestion-table th {
+  border: 2px solid blue !important;
+}
+
+.fullscreen-table-overlay.debug-mode .name-suggestion-table tr {
+  border: 2px solid green !important;
+}
+
+/* 19. ENSURE TABLE CONTENT IS NEVER HIDDEN */
+.fullscreen-table .name-suggestion-table tbody tr:empty {
+  display: none !important;
+}
+
+.fullscreen-table .name-suggestion-table tbody tr {
+  display: table-row !important;
+}
+
+.fullscreen-table .name-suggestion-table tbody tr td {
+  display: table-cell !important;
+  min-height: 50px !important;
+}
+
+/* 20. FINAL OVERRIDE - LAST RESORT */
+.fullscreen-table-overlay {
+  --fullscreen-bg: white !important;
+  --fullscreen-text: #1f2937 !important;
+  --fullscreen-border: #e5e7eb !important;
+}
+
 .fullscreen-table-overlay .name-suggestion-table tbody tr {
-  background: white !important;
-  color: black !important;
-  border: 2px solid red !important;
+  background: var(--fullscreen-bg) !important;
+  color: var(--fullscreen-text) !important;
+  border: 1px solid var(--fullscreen-border) !important;
+  height: 60px !important;
   min-height: 60px !important;
 }
 
 .fullscreen-table-overlay .name-suggestion-table tbody td {
-  background: white !important;
-  color: black !important;
-  border: 1px solid #333 !important;
-  padding: 15px !important;
-  font-size: 16px !important;
-  font-weight: bold !important;
+  background: var(--fullscreen-bg) !important;
+  color: var(--fullscreen-text) !important;
+  border: 1px solid var(--fullscreen-border) !important;
+  padding: 15px 10px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
 }
+
+/* 21. ANIMATION PERFORMANCE */
+.fullscreen-table-overlay {
+  will-change: opacity !important;
+  transform: translateZ(0) !important;
+}
+
+.fullscreen-table {
+  will-change: scroll-position !important;
+  transform: translateZ(0) !important;
+}
+
+/* 22. ENSURE Z-INDEX STACKING */
+.fullscreen-table-overlay {
+  z-index: 999999 !important;
+}
+
+.fullscreen-table-header {
+  z-index: 1000000 !important;
+}
+
+.fullscreen-table .name-suggestion-table thead {
+  z-index: 1000001 !important;
+}
+
+/* END OF DEFINITIVE FIX */
 /* ✨ Enhanced Celestial Numerology Portal Complete ✨ */
