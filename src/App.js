@@ -182,11 +182,11 @@ function App() {
     // --- Modal Functions ---
     const openModal = useCallback((message) => {
         setModal({ isOpen: true, message });
-    }, []);
+    }, [setModal]); // Add setModal to dependency array
 
     const closeModal = useCallback(() => {
         setModal({ isOpen: false, message: '' });
-    }, []);
+    }, [setModal]); // Add setModal to dependency array
 
     // --- formatProfileData Function ---
     const formatProfileData = useCallback((profile) => {
@@ -259,10 +259,12 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal]);
+    }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading]);
 
     const handleValidateName = useCallback(async (nameToValidate, isCustom = false, suggestionIndex = null) => {
-        if (!clientProfile) {
+        // IMPORTANT FIX: Only show modal if clientProfile is null AND it's a custom validation or initial suggestion fetch.
+        // For editing existing suggestions, clientProfile should already be present.
+        if (!clientProfile && (isCustom || suggestionIndex === null)) { 
             openModal("Please get initial suggestions first to generate your numerology profile.");
             return;
         }
@@ -296,7 +298,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, openModal]);
+    }, [clientProfile, openModal, setEditableSuggestions, setBackendValidationResult, setIsLoading]); // Added setters to dependencies
 
     const handleGenerateReport = useCallback(async () => {
         if (!clientProfile || confirmedSuggestions.length === 0) {
@@ -345,7 +347,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, confirmedSuggestions, openModal]);
+    }, [clientProfile, confirmedSuggestions, openModal, setReportPreviewContent, setIsLoading]); // Added setters to dependencies
 
     // --- Effects ---
     // Initialize editableSuggestions when suggestions from backend are received
@@ -374,7 +376,7 @@ function App() {
             });
             setEditableSuggestions(initialEditable);
         }
-    }, [suggestions]);
+    }, [suggestions, setEditableSuggestions]); // Added setEditableSuggestions to dependencies
 
     // Core logic for live validation display (not debounced)
     const updateLiveValidationDisplayCore = useCallback((name, profile) => {
@@ -409,7 +411,7 @@ function App() {
 
         // Trigger backend validation for comprehensive rules
         handleValidateName(name, true);
-    }, [handleValidateName]); // Dependencies for core logic
+    }, [handleValidateName, setLiveValidationOutput, setBackendValidationResult]); // Added setters to dependencies
 
     // Debounced version of updateLiveValidationDisplayCore
     const debouncedUpdateLiveValidationDisplay = useRef(
@@ -424,7 +426,7 @@ function App() {
             setLiveValidationOutput(null);
             setBackendValidationResult(null);
         }
-    }, [customNameInput, clientProfile, debouncedUpdateLiveValidationDisplay]);
+    }, [customNameInput, clientProfile, debouncedUpdateLiveValidationDisplay, setLiveValidationOutput, setBackendValidationResult]); // Added setters to dependencies
 
 
     // --- Highlighting Logic ---
@@ -481,12 +483,12 @@ function App() {
         } else {
             openModal("Could not find original rationale for this suggestion. Please try again.");
         }
-    }, [confirmedSuggestions, suggestions, openModal]);
+    }, [confirmedSuggestions, suggestions, openModal, setConfirmedSuggestions]); // Added setters to dependencies
 
     const handleRemoveConfirmedSuggestion = useCallback((nameToRemove) => {
         setConfirmedSuggestions(prev => prev.filter(s => s.name !== nameToRemove));
         openModal(`'${nameToRemove}' has been removed from confirmed list.`);
-    }, [openModal]);
+    }, [openModal, setConfirmedSuggestions]); // Added setters to dependencies
 
 
     // --- New Handlers for Editable Suggestions ---
@@ -494,12 +496,12 @@ function App() {
         setEditableSuggestions(prev => prev.map((s, idx) => 
             idx === index ? { ...s, isEditing: true, currentName: s.currentName, validationResult: null } : { ...s, isEditing: false } // Only one can be edited at a time
         ));
-    }, []);
+    }, [setEditableSuggestions]); // Added setEditableSuggestions to dependencies
 
     // Core logic for backend suggestion validation (not debounced)
     const validateSuggestionNameBackendCore = useCallback((name, index) => {
         handleValidateName(name, false, index); // Call the main validation handler
-    }, [handleValidateName]);
+    }, [handleValidateName]); // Dependency
 
     // Debounced version of validateSuggestionNameBackendCore
     const debouncedValidateSuggestionNameBackend = useRef(
@@ -524,7 +526,7 @@ function App() {
             }
             return s;
         }));
-    }, [debouncedValidateSuggestionNameBackend]);
+    }, [debouncedValidateSuggestionNameBackend, setEditableSuggestions]); // Added setEditableSuggestions to dependencies
 
     const handleSaveEdit = useCallback((index) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
@@ -551,7 +553,7 @@ function App() {
             return s;
         }));
         openModal("Name updated successfully!");
-    }, [openModal]);
+    }, [openModal, setEditableSuggestions]); // Added setEditableSuggestions to dependencies
 
     const handleCancelEdit = useCallback((index) => {
         setEditableSuggestions(prev => prev.map((s, idx) => 
@@ -569,7 +571,7 @@ function App() {
             } : s
         ));
         openModal("Edit cancelled. Name reverted to original suggestion.");
-    }, [openModal]);
+    }, [openModal, setEditableSuggestions]); // Added setEditableSuggestions to dependencies
 
 
     return (
@@ -687,6 +689,7 @@ function App() {
                                                         {simpleRenderHighlightedName(s.originalName, s.currentName)}
                                                     </div>
                                                 </div>
+                                                {/* Live values displayed constantly, so no need for conditional rendering here */}
                                                 <div className="live-values">
                                                     <p>First Name Value: <b>{s.firstNameValue}</b></p>
                                                     <p>Expression: <b>{s.expressionNumber}</b></p>
@@ -712,6 +715,21 @@ function App() {
                                             <>
                                                 <h3>{s.currentName} (Expression: {s.expressionNumber})</h3>
                                                 {/* Rationale is hidden for initial suggestions as per request */}
+                                                {/* Live values displayed constantly */}
+                                                <div className="live-values">
+                                                    <p>First Name Value: <b>{s.firstNameValue}</b></p>
+                                                    <p>Expression: <b>{s.expressionNumber}</b></p>
+                                                    <p>Soul Urge: <b>{s.soulUrgeNumber}</b></p>
+                                                    <p>Personality: <b>{s.personalityNumber}</b></p>
+                                                    {s.karmicDebtPresent && <p className="karmic-debt-flag">⚠️ Karmic Debt Present</p>}
+                                                </div>
+                                                {s.validationResult && (
+                                                    <div className={`validation-result ${s.validationResult.is_valid ? 'valid' : 'invalid'}`}>
+                                                        <p className="validation-status">
+                                                            <b>Validation:</b> <span className={s.validationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{s.validationResult.is_valid ? 'VALID' : 'INVALID'}</span>
+                                                        </p>
+                                                    </div>
+                                                )}
                                                 <div className="button-group">
                                                     <button onClick={() => handleEditSuggestion(index)} className="secondary-btn small-btn">Edit Name</button>
                                                     <button
