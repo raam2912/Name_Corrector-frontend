@@ -2452,5 +2452,36 @@ p {
 .table-responsive::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, var(--celestial-light) 0%, var(--aurora-violet) 100%);
 }
+.fullscreen-table-overlay * {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+.fullscreen-table-overlay .name-suggestion-table {
+  background: #1a1a2e !important;
+}
+
+.fullscreen-table-overlay .name-suggestion-table td {
+  color: #ffffff !important;
+  background: #16213e !important;
+  border: 1px solid #333 !important;
+  min-height: 50px !important;
+}
+
+.fullscreen-table-overlay .name-suggestion-table td:nth-child(even) {
+  background: #0f1419 !important;
+}
+
+.fullscreen-table-overlay .table-input {
+  background: #2a2a3e !important;
+  color: #ffffff !important;
+  border: 1px solid #555 !important;
+}
+
+.fullscreen-table-overlay button {
+  background: #6366f1 !important;
+  color: #ffffff !important;
+  border: 1px solid #4338ca !important;
+}
 
 /* ✨ Enhanced Celestial Numerology Portal Complete ✨ */
