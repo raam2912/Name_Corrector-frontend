@@ -37,9 +37,9 @@ body {
     width: 100%; /* Always take 100% of parent's width (minus padding) */
     max-width: 1000px; /* Adjusted for a comfortable reading width on laptops */
     
-    /* Default to block flow for mobile, grid will be applied in media query */
-    display: block; 
-    /* Removed flex properties from default to avoid conflicts */
+    /* Default to flex column for mobile */
+    display: flex; 
+    flex-direction: column; 
     gap: 30px; /* Space between sections/cards */
 }
 
