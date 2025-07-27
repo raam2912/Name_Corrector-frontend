@@ -166,6 +166,13 @@ function App() {
     const [desiredOutcome, setDesiredOutcome] = useState('');
 
     const [clientProfile, setClientProfile] = useState(null);
+    // Use a ref to always have the latest clientProfile available in callbacks
+    const clientProfileRef = useRef(clientProfile);
+    useEffect(() => {
+        clientProfileRef.current = clientProfile;
+    }, [clientProfile]);
+
+
     const [suggestions, setSuggestions] = useState([]); // Original suggestions from backend
     const [editableSuggestions, setEditableSuggestions] = useState([]); // Suggestions with edit state and live calculated values
     const [confirmedSuggestions, setConfirmedSuggestions] = useState([]);
@@ -266,11 +273,10 @@ function App() {
         }
     }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading]);
 
-    const handleValidateName = useCallback(async (nameToValidate, isCustom = false, suggestionIndex = null) => {
-        // CRITICAL FIX: Use a ref or a direct check on the *current* clientProfile value
-        // The clientProfile state might not be immediately updated due to async nature.
-        // We ensure we have a valid profile before making the backend call.
-        if (!clientProfile) {
+    // handleValidateName now accepts the currentClientProfile directly
+    const handleValidateName = useCallback(async (nameToValidate, currentClientProfile, isCustom = false, suggestionIndex = null) => {
+        // CRITICAL FIX: Use the passed currentClientProfile
+        if (!currentClientProfile) {
             openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
             console.error("Validation attempted with null clientProfile. Aborting API call.");
             return;
@@ -292,10 +298,10 @@ function App() {
         setIsLoading(true);
         try {
             console.log(`Sending validation request for: "${nameToValidate}"`);
-            console.log('Client Profile for validation (sent to backend):', clientProfile); // Log clientProfile here
+            console.log('Client Profile for validation (sent to backend):', currentClientProfile); // Log currentClientProfile here
             const response = await axios.post(`${BACKEND_URL}/validate_name`, {
                 suggested_name: nameToValidate,
-                client_profile: clientProfile, // clientProfile should be available here
+                client_profile: currentClientProfile, // Use the passed currentClientProfile
             });
             if (isCustom) {
                 setBackendValidationResult(response.data);
@@ -312,7 +318,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, openModal, setEditableSuggestions, setBackendValidationResult, setIsLoading]); // clientProfile is a dependency
+    }, [openModal, setEditableSuggestions, setBackendValidationResult, setIsLoading]); // clientProfile is removed from dependency
 
     const handleGenerateReport = useCallback(async () => {
         if (!clientProfile || confirmedSuggestions.length === 0) {
@@ -393,8 +399,9 @@ function App() {
     }, [suggestions, setEditableSuggestions]);
 
     // Core logic for live validation display (not debounced)
-    const updateLiveValidationDisplayCore = useCallback((name, profile) => {
-        if (!name.trim() || !profile) {
+    // This function now takes currentClientProfile as an argument
+    const updateLiveValidationDisplayCore = useCallback((name, currentClientProfile) => {
+        if (!name.trim() || !currentClientProfile) {
             setLiveValidationOutput(null);
             setBackendValidationResult(null);
             return;
@@ -402,7 +409,7 @@ function App() {
 
         // Client-side calculations for immediate feedback
         const expNum = calculateExpressionNumber(name);
-        const birthDateStr = profile.birth_date;
+        const birthDateStr = currentClientProfile.birth_date; // Use passed profile
         const loShu = calculateLoShuGrid(birthDateStr, expNum);
         const birthDayNum = calculateBirthDayNumber(birthDateStr);
         const lifePathNum = calculateLifePathNumber(birthDateStr);
@@ -424,8 +431,8 @@ function App() {
         });
 
         // Trigger backend validation for comprehensive rules
-        // Pass clientProfile explicitly here to ensure the latest value is used
-        handleValidateName(name, true, null); // custom validation doesn't need suggestion index
+        // Pass clientProfileRef.current to handleValidateName
+        handleValidateName(name, currentClientProfile, true, null); // custom validation doesn't need suggestion index
     }, [handleValidateName, setLiveValidationOutput, setBackendValidationResult]);
 
     // Debounced version of updateLiveValidationDisplayCore
@@ -436,13 +443,14 @@ function App() {
     // Effect to trigger live validation when customNameInput or clientProfile changes
     useEffect(() => {
         // Only trigger if clientProfile is available AND customNameInput is not empty
-        if (clientProfile && customNameInput.trim()) { 
-            debouncedUpdateLiveValidationDisplay(customNameInput, clientProfile);
+        // Use clientProfileRef.current to ensure the latest value is captured by the debounce
+        if (clientProfileRef.current && customNameInput.trim()) { 
+            debouncedUpdateLiveValidationDisplay(customNameInput, clientProfileRef.current);
         } else {
             setLiveValidationOutput(null);
             setBackendValidationResult(null);
         }
-    }, [customNameInput, clientProfile, debouncedUpdateLiveValidationDisplay, setLiveValidationOutput, setBackendValidationResult]);
+    }, [customNameInput, debouncedUpdateLiveValidationDisplay, setLiveValidationOutput, setBackendValidationResult]);
 
 
     // --- Highlighting Logic ---
@@ -515,15 +523,16 @@ function App() {
     }, [setEditableSuggestions]);
 
     // Core logic for backend suggestion validation (not debounced)
+    // This function now uses clientProfileRef.current
     const validateSuggestionNameBackendCore = useCallback((name, index) => {
-        // Ensure clientProfile is not null before calling handleValidateName
-        if (clientProfile) {
-            handleValidateName(name, false, index); // Call the main validation handler
+        // Ensure clientProfileRef.current is not null before calling handleValidateName
+        if (clientProfileRef.current) {
+            handleValidateName(name, clientProfileRef.current, false, index); // Pass clientProfileRef.current
         } else {
             console.warn("Cannot validate suggestion: clientProfile is null. Please get initial suggestions first.");
             openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
         }
-    }, [handleValidateName, clientProfile, openModal]); // clientProfile is a dependency
+    }, [handleValidateName, openModal]); // clientProfile is removed from dependency
 
     // Debounced version of validateSuggestionNameBackendCore
     const debouncedValidateSuggestionNameBackend = useRef(
@@ -687,7 +696,7 @@ function App() {
                                     )}
                                 </div>
                             )}
-                            <button onClick={() => handleValidateName(customNameInput, true, null)} className="primary-btn" disabled={!clientProfile || !customNameInput.trim()}>Validate Custom Name</button>
+                            <button onClick={() => handleValidateName(customNameInput, clientProfileRef.current, true, null)} className="primary-btn" disabled={!clientProfile || !customNameInput.trim()}>Validate Custom Name</button>
                         </div>
                     )}
                 </div>
@@ -738,7 +747,7 @@ function App() {
                                                 <div className="button-group">
                                                     <button onClick={() => handleSaveEdit(index)} className="primary-btn small-btn">Save</button>
                                                     <button onClick={() => handleCancelEdit(index)} className="secondary-btn small-btn">Cancel</button>
-                                                    <button onClick={() => handleValidateName(s.currentName, false, index)} className="secondary-btn small-btn" disabled={!clientProfile || !s.currentName.trim()}>Re-Validate</button>
+                                                    <button onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, index)} className="secondary-btn small-btn" disabled={!clientProfile || !s.currentName.trim()}>Re-Validate</button>
                                                 </div>
                                             </>
                                         ) : (
@@ -769,7 +778,7 @@ function App() {
                                                     >
                                                         {confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'Confirmed!' : 'Confirm This Name'}
                                                     </button>
-                                                    <button onClick={() => handleValidateName(s.currentName, false, index)} className="secondary-btn small-btn" disabled={!clientProfile}>Validate</button>
+                                                    <button onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, index)} className="secondary-btn small-btn" disabled={!clientProfile}>Validate</button>
                                                 </div>
                                             </>
                                         )}

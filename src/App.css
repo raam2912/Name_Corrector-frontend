@@ -34,8 +34,11 @@ body {
     border-radius: 15px; /* Rounded corners for the main card */
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Soft, deep shadow */
     width: 100%; /* Always take 100% of parent's width (minus padding) */
-    display: flex; /* Default to flex column for mobile */
-    flex-direction: column; /* Default to column on small screens */
+    
+    /* Default to column layout for mobile */
+    display: flex; 
+    flex-direction: column; 
+    
     gap: 30px; /* Space between sections/cards */
     max-width: 1000px; /* Adjusted for a comfortable reading width on laptops */
 }
@@ -52,22 +55,22 @@ body {
 }
 
 
-/* Column Styles (These will now be grid items) */
+/* Column Styles (These will now be grid items on desktop, flex columns on mobile) */
 .column {
     display: flex; /* Make columns flex containers for their contents */
     flex-direction: column;
     gap: 25px; /* Space between cards within a column */
-    /* flex: 1; removed as grid handles sizing */
+    /* flex: 1; removed as grid handles sizing on desktop, and flex-direction column is default for mobile */
 }
 
 /* No specific background or shadow for columns themselves, let cards handle it */
+/* Ensure cards within the right column still have their styling */
 @media (min-width: 769px) {
     .column:last-child { /* Targets the second column (right one) */
         padding: 0; /* No padding on the column itself */
         box-shadow: none; /* No shadow on the column itself */
         background-color: transparent; /* Ensure transparent background */
     }
-    /* Ensure cards within the right column still have their styling */
     .column:last-child .section-card {
         background-color: #ffffff; /* Ensure white background for cards */
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Re-apply card shadow */
