@@ -274,11 +274,14 @@ function App() {
             } else {
                 setBackendValidationResult(null);
             }
+            console.log(`Validation skipped: Name is empty or whitespace for ${isCustom ? 'custom input' : `suggestion ${suggestionIndex}`}`);
             return; // Exit function if name is empty
         }
 
         setIsLoading(true);
         try {
+            console.log(`Sending validation request for: "${nameToValidate}"`);
+            console.log('Client Profile for validation:', clientProfile);
             const response = await axios.post(`${BACKEND_URL}/validate_name`, {
                 suggested_name: nameToValidate,
                 client_profile: clientProfile, // clientProfile should be available here
@@ -290,6 +293,7 @@ function App() {
                     idx === suggestionIndex ? { ...s, validationResult: response.data } : s
                 ));
             }
+            console.log('Validation successful:', response.data);
         } catch (error) {
             console.error('Error validating name:', error);
             // Display specific error from backend if available, otherwise a generic one
