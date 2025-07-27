@@ -47,14 +47,12 @@ body {
     .main-content-wrapper {
         padding: 40px; /* More generous padding for larger screens */
         display: flex; /* Use flex for two-column layout */
-        flex-direction: row !important; /* Force row direction for desktop layout - TEMPORARY DEBUGGING AID */
+        flex-direction: row; /* Arrange items in a row */
         justify-content: space-between; /* Space out columns */
         align-items: flex-start; /* Align items to the top */
         gap: 40px; /* Space between columns */
-
-        /* TEMPORARY DEBUGGING AID: BRIGHT RED BACKGROUND */
-        background-color: #ff0000 !important; /* Make it undeniably red if media query is active */
-        /* REMOVE THIS LINE AND THE !important FROM flex-direction: row ONCE LAYOUT IS CONFIRMED */
+        /* REMOVED DEBUGGING BACKGROUND */
+        background-color: #ffffff; /* Ensure white background for the main wrapper */
     }
 }
 
