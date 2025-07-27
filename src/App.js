@@ -247,7 +247,7 @@ function App() {
                 desired_outcome: desiredOutcome,
             });
             setSuggestions(response.data.suggestions);
-            setClientProfile(response.data.profile_data);
+            setClientProfile(response.data.profile_data); // CRITICAL: Set clientProfile here
             setConfirmedSuggestions([]);
         } catch (error) {
             console.error('Error fetching suggestions:', error);
@@ -259,12 +259,13 @@ function App() {
     }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading]);
 
     const handleValidateName = useCallback(async (nameToValidate, isCustom = false, suggestionIndex = null) => {
-        // IMPORTANT FIX: Only show modal if clientProfile is null AND it's a custom validation or initial suggestion fetch.
-        // For editing existing suggestions, clientProfile should already be present.
-        if (!clientProfile && (isCustom || suggestionIndex === null)) {
-            openModal("Please get initial suggestions first to generate your numerology profile.");
+        // CRITICAL FIX: Ensure clientProfile is NOT null before proceeding
+        if (!clientProfile) {
+            openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
+            console.error("Validation attempted with null clientProfile.");
             return;
         }
+        
         // If nameToValidate is empty, clear the validation result and return without API call
         if (!nameToValidate.trim()) {
             if (!isCustom) {
@@ -281,7 +282,7 @@ function App() {
         setIsLoading(true);
         try {
             console.log(`Sending validation request for: "${nameToValidate}"`);
-            console.log('Client Profile for validation:', clientProfile);
+            console.log('Client Profile for validation:', clientProfile); // Log clientProfile here
             const response = await axios.post(`${BACKEND_URL}/validate_name`, {
                 suggested_name: nameToValidate,
                 client_profile: clientProfile, // clientProfile should be available here
@@ -301,7 +302,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, openModal, setEditableSuggestions, setBackendValidationResult, setIsLoading]);
+    }, [clientProfile, openModal, setEditableSuggestions, setBackendValidationResult, setIsLoading]); // clientProfile is a dependency
 
     const handleGenerateReport = useCallback(async () => {
         if (!clientProfile || confirmedSuggestions.length === 0) {
@@ -503,8 +504,14 @@ function App() {
 
     // Core logic for backend suggestion validation (not debounced)
     const validateSuggestionNameBackendCore = useCallback((name, index) => {
-        handleValidateName(name, false, index); // Call the main validation handler
-    }, [handleValidateName]);
+        // Ensure clientProfile is not null before calling handleValidateName
+        if (clientProfile) {
+            handleValidateName(name, false, index); // Call the main validation handler
+        } else {
+            console.warn("Cannot validate suggestion: clientProfile is null.");
+            openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
+        }
+    }, [handleValidateName, clientProfile, openModal]); // clientProfile is a dependency
 
     // Debounced version of validateSuggestionNameBackendCore
     const debouncedValidateSuggestionNameBackend = useRef(
@@ -628,7 +635,7 @@ function App() {
                     )}
 
                     {/* Custom Name Validation */}
-                    {clientProfile && (
+                    {clientProfile && ( // Only show this section if clientProfile is available
                         <div className="section-card custom-validation-card">
                             <h2>Validate Custom Name</h2>
                             <div className="input-group">
