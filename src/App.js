@@ -180,7 +180,6 @@ function App() {
     const [currentPage, setCurrentPage] = useState(0); // For paginating suggestions table
 
     const [customNameInput, setCustomNameInput] = useState('');
-    // FIX: Changed 'null' to 'useState(null)'
     const [liveValidationOutput, setLiveValidationOutput] = useState(null); // For live client-side calcs of custom input
     const [backendValidationResult, setBackendValidationResult] = useState(null); // For custom validation section
 

@@ -466,12 +466,6 @@ p,
   box-shadow: var(--shadow-medium);
 }
 
-.primary-btn {
-  background: var(--gradient-aurora);
-  color: var(--text-white);
-  border: 1px solid transparent;
-}
-
 .primary-btn::before {
   content: '';
   position: absolute;
@@ -1241,6 +1235,9 @@ p,
     text-align: center; /* Center header text */
     /* Add explicit border-box for consistency */
     box-sizing: border-box; 
+    position: sticky; /* Make headers sticky */
+    top: 0; /* Stick to the top of the scrollable area */
+    z-index: 10; /* Ensure headers are above scrolling content */
 }
 
 /* Table data cells within fullscreen - specific widths and styles */
