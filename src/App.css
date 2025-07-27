@@ -159,33 +159,33 @@ body::before {
   }
 }
 
-/* ✦ MAIN CONTAINER ✦ */
+/* ✦ MAIN CONTAINER - ENHANCED FOR LANDSCAPE ✦ */
 .app-container {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  /* Adjusted padding for wider screen */
-  padding: var(--space-xl) var(--space-2xl); /* Reduced top/bottom, kept side padding */
+  padding: var(--space-lg) var(--space-xl);
   min-height: 100vh;
   position: relative;
-  /* No more fullscreen-active transformation */
+  width: 100%;
 }
 
-/* Removed app-container.fullscreen-active styles */
+.app-container.fullscreen-active {
+  overflow: hidden;
+}
 
-
-/* ✦ ENHANCED MAIN CONTENT WRAPPER ✦ */
+/* ✦ ENHANCED MAIN CONTENT WRAPPER - OPTIMIZED FOR LANDSCAPE ✦ */
 .main-content-wrapper {
   background: var(--gradient-ethereal);
   backdrop-filter: blur(25px) saturate(120%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-2xl);
-  padding: var(--space-4xl);
+  padding: var(--space-3xl);
   box-shadow: var(--shadow-large);
-  width: 95vw; /* Make it take 95% of viewport width */
-  max-width: 1600px; /* Allow it to stretch significantly, but not infinitely */
+  width: 98vw;
+  max-width: 1800px;
   position: relative;
-  overflow: hidden; /* Keep overflow hidden for the main card itself */
+  overflow: visible;
 }
 
 .main-content-wrapper::before {
@@ -203,6 +203,219 @@ body::before {
 .main-content-wrapper > * {
   position: relative;
   z-index: 1;
+}
+
+/* ✦ FULLSCREEN TABLE OVERLAY ✦ */
+.fullscreen-table-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--gradient-cosmic);
+  backdrop-filter: blur(30px) saturate(130%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fullscreenFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fullscreenFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(30px) saturate(130%);
+  }
+}
+
+.fullscreen-table-header {
+  background: var(--gradient-ethereal);
+  border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+  padding: var(--space-xl) var(--space-2xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-medium);
+  flex-shrink: 0;
+}
+
+.fullscreen-table-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--mystic-purple) 0%, var(--aurora-violet) 50%, var(--pure-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+.fullscreen-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.fullscreen-instructions {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.fullscreen-close-btn {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: var(--text-error);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-medium);
+  line-height: 1;
+}
+
+.fullscreen-close-btn:hover {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: var(--text-error);
+  transform: scale(1.05);
+}
+
+.fullscreen-table-content {
+  flex: 1;
+  padding: var(--space-xl) var(--space-2xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullscreen-table {
+  flex: 1;
+  background: var(--pure-white);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: var(--shadow-large);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullscreen-table .name-suggestion-table {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullscreen-table .name-suggestion-table thead {
+  flex-shrink: 0;
+}
+
+.fullscreen-table .name-suggestion-table tbody {
+  flex: 1;
+  overflow-y: auto;
+  display: block;
+}
+
+.fullscreen-table .name-suggestion-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.fullscreen-pagination {
+  margin-top: var(--space-xl);
+  background: var(--pure-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: var(--shadow-medium);
+}
+
+/* ✦ FULLSCREEN BUTTON ✦ */
+.fullscreen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: linear-gradient(135deg, var(--aurora-violet) 0%, var(--mystic-purple) 100%);
+  color: var(--pure-white);
+  border: none;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-medium);
+  box-shadow: var(--shadow-medium);
+  position: relative;
+  overflow: hidden;
+}
+
+.fullscreen-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+  transition: left 0.6s ease;
+}
+
+.fullscreen-btn:hover::before {
+  left: 100%;
+}
+
+.fullscreen-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+  background: linear-gradient(135deg, var(--celestial-light) 0%, var(--aurora-violet) 100%);
+}
+
+.fullscreen-icon {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+/* ✦ TWO COLUMN LAYOUT - ENHANCED FOR LANDSCAPE ✦ */
+.two-column-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2xl);
+  margin-bottom: var(--space-2xl);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+}
+
+.form-grid .input-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.confirmed-names-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.validation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
 }
 
 /* ✦ CELESTIAL DECORATIVE ELEMENTS ✦ */
@@ -377,64 +590,6 @@ p,
   font-weight: 400;
 }
 
-/* Enhanced Name Input */
-.name-input-wrapper {
-  margin-bottom: var(--space-xl);
-}
-
-.name-input-wrapper .input-label,
-.name-input-wrapper label {
-  position: static;
-  display: block;
-  margin-bottom: var(--space-md);
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 600;
-  color: var(--text-violet);
-  background: linear-gradient(135deg, var(--pure-white) 0%, var(--gold-whisper) 100%);
-  padding: var(--space-md) var(--space-lg);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(217, 119, 6, 0.2);
-  box-shadow: var(--shadow-soft);
-  font-size: var(--text-base);
-}
-
-.editable-name-input {
-  width: 100%;
-  padding: var(--space-lg) var(--space-xl);
-  border: 2px solid rgba(226, 232, 240, 0.8);
-  border-radius: var(--radius-lg);
-  font-family: 'Inter', sans-serif;
-  font-size: var(--text-base);
-  font-weight: 500;
-  background: var(--pure-white);
-  color: var(--text-primary);
-  transition: all var(--transition-medium);
-  margin-bottom: var(--space-lg);
-  box-shadow: var(--shadow-soft);
-}
-
-.editable-name-input:focus {
-  border-color: var(--aurora-violet);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), var(--shadow-medium);
-  outline: none;
-}
-
-.highlighted-name-display {
-  font-family: 'Inter', sans-serif;
-  font-size: var(--text-base);
-  font-weight: 500;
-  color: var(--text-primary);
-  padding: var(--space-lg) var(--space-xl);
-  background: var(--pure-white);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  margin-bottom: var(--space-lg);
-  box-shadow: var(--shadow-soft);
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-}
-
 /* ✦ ENHANCED BUTTON SYSTEM ✦ */
 .primary-btn, .secondary-btn {
   position: relative;
@@ -455,6 +610,11 @@ p,
   min-height: 48px;
   letter-spacing: 0.01em;
   box-shadow: var(--shadow-medium);
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, var(--aurora-violet) 0%, var(--mystic-purple) 100%);
+  color: var(--pure-white);
 }
 
 .primary-btn::before {
@@ -505,6 +665,203 @@ p,
   min-height: 40px;
 }
 
+/* ✦ TABLE HEADER CONTROLS ✦ */
+.table-header-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.table-header-controls h2 {
+  margin-bottom: 0;
+}
+
+/* ✦ ENHANCED SUGGESTIONS TABLE - OPTIMIZED FOR LANDSCAPE ✦ */
+.table-responsive {
+  width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+  margin-bottom: var(--space-2xl);
+  border: 1px solid var(--mist-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-medium);
+}
+
+.name-suggestion-table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  table-layout: fixed;
+}
+
+.name-suggestion-table thead tr {
+  background-color: var(--aurora-violet);
+  color: var(--pure-white);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.name-suggestion-table th {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--pure-white);
+  background-color: var(--aurora-violet);
+  padding: var(--space-lg) var(--space-xl);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--celestial-light);
+  white-space: nowrap;
+  vertical-align: middle;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.name-suggestion-table td {
+  padding: var(--space-lg) var(--space-xl);
+  vertical-align: middle;
+  font-family: 'Inter', sans-serif;
+  font-size: var(--text-base);
+  font-weight: 500;
+  border-bottom: 1px solid var(--mist-white);
+  background-color: var(--pure-white);
+  color: var(--text-primary);
+  transition: background-color var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+/* Column width distribution for landscape optimization */
+.name-suggestion-table th:nth-child(1),
+.name-suggestion-table td:nth-child(1) {
+  width: 35%;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.name-suggestion-table th:nth-child(2),
+.name-suggestion-table td:nth-child(2) {
+  width: 12%;
+  text-align: center;
+}
+
+.name-suggestion-table th:nth-child(3),
+.name-suggestion-table td:nth-child(3) {
+  width: 12%;
+  text-align: center;
+}
+
+.name-suggestion-table th:nth-child(4),
+.name-suggestion-table td:nth-child(4) {
+  width: 12%;
+  text-align: center;
+}
+
+.name-suggestion-table th:nth-child(5),
+.name-suggestion-table td:nth-child(5) {
+  width: 12%;
+  text-align: center;
+}
+
+.name-suggestion-table th:nth-child(6),
+.name-suggestion-table td:nth-child(6) {
+  width: 12%;
+  text-align: center;
+}
+
+.name-suggestion-table th:nth-child(7),
+.name-suggestion-table td:nth-child(7) {
+  width: 10%;
+  text-align: center;
+}
+
+.name-suggestion-table th:nth-child(8),
+.name-suggestion-table td:nth-child(8) {
+  width: 20%;
+  text-align: center;
+}
+
+.name-suggestion-table tbody tr:nth-of-type(even) td {
+  background-color: var(--cloud-white);
+}
+
+.name-suggestion-table tbody tr:hover td {
+  background-color: var(--stardust);
+  color: var(--deep-space);
+}
+
+.name-suggestion-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-family: 'Inter', sans-serif;
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.table-input:focus {
+  outline: none;
+  background: var(--pure-white);
+  border-color: var(--aurora-violet);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.actions-cell {
+  text-align: center;
+  white-space: nowrap;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.actions-cell .secondary-btn,
+.actions-cell .primary-btn {
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-xs);
+  min-width: unset;
+  height: auto;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg) var(--space-xl);
+  background: var(--cloud-white);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-xl);
+  box-shadow: var(--shadow-soft);
+  color: var(--text-secondary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.pagination-controls button {
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--text-sm);
+  min-height: 36px;
+}
+
 /* ✦ ENHANCED LIVE VALUES DISPLAY ✦ */
 .live-values {
   background: var(--pure-white);
@@ -544,58 +901,6 @@ p,
   color: var(--text-violet);
   font-weight: 700;
   font-family: 'Space Grotesk', sans-serif;
-}
-
-/* ✦ ENHANCED SUGGESTIONS STYLING ✦ */
-/* This section is for individual suggestion cards, not the table itself */
-.suggestions-list-item {
-  background: var(--pure-white);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: var(--radius-lg);
-  padding: var(--space-xl);
-  margin-bottom: var(--space-lg);
-  box-shadow: var(--shadow-soft);
-  transition: all var(--transition-medium);
-  position: relative;
-  overflow: hidden;
-}
-
-.suggestions-list-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--gradient-gold);
-  transform: scaleY(0);
-  transition: transform var(--transition-medium);
-}
-
-.suggestions-list-item:hover::before {
-  transform: scaleY(1);
-}
-
-.suggestions-list-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-celestial);
-  border-color: rgba(99, 102, 241, 0.2);
-}
-
-.suggestions-list-item h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--text-violet);
-  margin-bottom: var(--space-md);
-}
-
-.suggestions-list-item p {
-  font-family: 'Inter', sans-serif;
-  font-size: var(--text-base);
-  font-weight: 400;
-  color: var(--text-secondary);
-  line-height: 1.6;
 }
 
 /* ✦ ENHANCED VALIDATION RESULTS ✦ */
@@ -859,59 +1164,9 @@ p,
   font-weight: 400;
 }
 
-.report-preview-area ul, .report-preview-area ol { 
-  margin-left: var(--space-xl); 
-  margin-bottom: var(--space-lg); 
-}
-
-.report-preview-area li { 
-  margin-bottom: var(--space-sm);
-  line-height: 1.6;
-  font-weight: 400;
-  color: var(--text-primary);
-}
-
 .report-preview-area b, .report-preview-area strong { 
   font-weight: 700; 
   color: var(--text-violet);
-}
-
-.report-preview-area i, .report-preview-area em { 
-  font-style: italic; 
-  color: var(--text-secondary);
-  font-weight: 400;
-}
-
-.report-preview-area hr { 
-  border: none;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--aurora-violet) 20%, var(--pure-gold) 80%, transparent 100%);
-  margin: var(--space-xl) 0;
-  border-radius: var(--radius-full);
-  opacity: 0.6;
-}
-
-.report-preview-area pre {
-  background: var(--cloud-white);
-  padding: var(--space-lg);
-  border-radius: var(--radius-md);
-  overflow-x: auto;
-  font-family: 'SF Mono', Monaco, monospace;
-  font-size: var(--text-sm);
-  margin-bottom: var(--space-lg);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: var(--shadow-soft);
-}
-
-.report-preview-area code {
-  font-family: 'SF Mono', Monaco, monospace;
-  background: var(--gold-whisper);
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text-primary);
-  border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 /* ✦ ENHANCED LIVE VALIDATION OUTPUT ✦ */
@@ -958,7 +1213,7 @@ p,
   color: var(--text-violet);
 }
 
-.confirmed-suggestions-list > div {
+.confirmed-item {
   background: linear-gradient(135deg, var(--pure-white) 0%, var(--gold-whisper) 100%);
   border: 1px solid rgba(217, 119, 6, 0.2);
   padding: var(--space-lg);
@@ -972,7 +1227,7 @@ p,
   position: relative;
 }
 
-.confirmed-suggestions-list > div::before {
+.confirmed-item::before {
   content: '✓';
   position: absolute;
   left: var(--space-md);
@@ -982,266 +1237,19 @@ p,
   font-weight: 700;
   color: var(--pure-gold);
 }
-.confirmed-suggestions-list > div:hover {
+
+.confirmed-item:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-gold);
   border-color: var(--bright-gold);
 }
 
-.confirmed-suggestions-list span {
+.confirmed-item span {
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   font-size: var(--text-base);
   color: var(--text-primary);
   margin-left: var(--space-2xl);
-}
-
-/* ✦ ENHANCED SUGGESTIONS TABLE ✦ */
-
-.table-header-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-lg);
-}
-
-.table-responsive {
-  width: 100%;
-  /* Removed fixed height, will allow content to dictate height */
-  overflow: auto; /* Allow both horizontal and vertical scrolling if content overflows */
-  margin-bottom: var(--space-2xl);
-  border: 1px solid var(--mist-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-medium);
-}
-
-.name-suggestion-table {
-  width: 100%;
-  border-collapse: collapse; /* Removes space between table cells */
-  text-align: left;
-  font-family: 'Inter', sans-serif;
-  table-layout: auto; /* Allow columns to size based on content, then distribute remaining space */
-}
-
-.name-suggestion-table thead tr {
-  background-color: var(--aurora-violet);
-  color: var(--pure-white);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0; /* Rounded top corners */
-  overflow: hidden; /* Ensures border-radius applies */
-}
-
-.name-suggestion-table th {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--pure-white); /* Text color for header */
-  background-color: var(--aurora-violet); /* Background for header */
-  padding: var(--space-lg) var(--space-xl);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 2px solid var(--celestial-light); /* Stronger border below header */
-  white-space: normal; /* Allow header text to wrap */
-  word-wrap: break-word; /* Ensure long words break */
-  vertical-align: top; /* Align header text to top */
-  line-height: 1.3; /* Improve readability of wrapped text */
-  text-align: center; /* Center header text */
-  box-sizing: border-box; 
-  position: sticky; /* Make headers sticky */
-  top: 0; /* Stick to the top of the scrollable area */
-  z-index: 10; /* Ensure headers are above scrolling content */
-}
-
-.name-suggestion-table td {
-  padding: var(--space-lg) var(--space-xl);
-  vertical-align: middle;
-  font-family: 'Inter', sans-serif;
-  font-size: var(--text-base);
-  font-weight: 500;
-  border-bottom: 1px solid var(--mist-white); /* Light border between rows */
-  background-color: var(--pure-white); /* Default cell background */
-  color: var(--text-primary); /* Changed to text-primary for better contrast */
-  transition: background-color var(--transition-fast);
-  white-space: normal; /* Allow text to wrap within cell */
-  word-wrap: break-word; /* Ensure long words break */
-  vertical-align: top; /* Align content to top */
-  line-height: 1.4; /* Improve readability of wrapped text */
-  box-sizing: border-box; 
-}
-
-/* Specific column widths for better layout - now using minmax for flexibility */
-/* Using a more flexible approach with minmax on th/td directly */
-.name-suggestion-table th:nth-child(1),
-.name-suggestion-table td:nth-child(1) {
-    min-width: 150px; /* Minimum width for Name */
-    width: 35%; /* Preferred width */
-}
-.name-suggestion-table th:nth-child(2),
-.name-suggestion-table td:nth-child(2) {
-    min-width: 80px; /* Minimum width for FNV */
-    width: 15%;
-    text-align: center;
-}
-.name-suggestion-table th:nth-child(3),
-.name-suggestion-table td:nth-child(3) {
-    min-width: 80px; /* Minimum width for EN */
-    width: 15%;
-    text-align: center;
-}
-.name-suggestion-table th:nth-child(4),
-.name-suggestion-table td:nth-child(4) {
-    min-width: 60px; /* Minimum width for Valid */
-    width: 10%;
-    text-align: center;
-}
-.name-suggestion-table th:nth-child(5),
-.name-suggestion-table td:nth-child(5) {
-    min-width: 120px; /* Minimum width for Actions */
-    width: 25%;
-    text-align: center;
-}
-
-
-.name-suggestion-table tbody tr:nth-of-type(even) td {
-  background-color: var(--cloud-white); /* Zebra striping */
-}
-
-.name-suggestion-table tbody tr:hover td {
-  background-color: var(--stardust); /* Lighter hover for rows */
-  color: var(--deep-space); /* Changed to deep-space for better contrast on hover */
-}
-
-.name-suggestion-table tbody tr:last-child td {
-  border-bottom: none; /* No border for the very last row */
-}
-
-.table-input {
-  width: 100%;
-  background: transparent; /* Make input background transparent by default */
-  border: 1px solid transparent; /* Transparent border */
-  border-radius: var(--radius-sm);
-  padding: var(--space-sm) var(--space-md);
-  font-family: 'Inter', sans-serif;
-  font-size: var(--text-base);
-  font-weight: 500;
-  color: var(--text-primary); /* Ensure input text is primary color */
-  transition: all var(--transition-fast);
-}
-
-.table-input:focus {
-  outline: none;
-  background: var(--pure-white); /* White background on focus */
-  border-color: var(--aurora-violet); /* Highlight border on focus */
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1); /* Subtle glow on focus */
-}
-
-.actions-cell {
-  text-align: center; /* Center actions for better alignment */
-  white-space: nowrap; /* Keep buttons on one line */
-  display: flex; /* Use flexbox for button alignment */
-  justify-content: center; /* Center buttons horizontally */
-  gap: var(--space-md); /* Space between buttons */
-  flex-wrap: wrap; /* Allow buttons to wrap if necessary */
-}
-
-.actions-cell .secondary-btn,
-.actions-cell .primary-btn {
-  margin: 0; /* Remove default button margins to use gap */
-  padding: var(--space-xs) var(--space-sm); /* Smaller padding for buttons */
-  font-size: var(--text-xs); /* Smaller font size for buttons */
-  min-width: unset; /* Allow buttons to shrink */
-  height: auto; /* Allow height to adjust */
-}
-
-.pagination-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-lg) var(--space-xl);
-  background: var(--cloud-white);
-  border-radius: var(--radius-lg);
-  margin-top: var(--space-xl);
-  box-shadow: var(--shadow-soft);
-  color: var(--text-secondary);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-
-.pagination-controls button {
-  padding: var(--space-md) var(--space-lg);
-  font-size: var(--text-sm);
-  min-height: 36px; /* Ensure consistent button height */
-}
-
-/* Removed all .suggestions-display-card.table-fullscreen specific styles */
-/* Removed .fullscreen-exit-instruction */
-
-
-/* ✦ MODAL & LOADING ✦ */
-.custom-modal, .loading-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(15px);
-}
-
-.modal-content {
-  background: var(--pure-white);
-  border-radius: var(--radius-xl);
-  padding: var(--space-3xl);
-  box-shadow: var(--shadow-large);
-  max-width: 500px;
-  width: 90%;
-  text-align: center;
-}
-
-.modal-message {
-  color: var(--text-primary);
-  font-size: var(--text-lg);
-  margin-bottom: var(--space-xl);
-}
-
-.loader {
-  width: 60px;
-  height: 60px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid var(--aurora-violet);
-  border-right: 3px solid var(--pure-gold);
-  border-radius: 50%;
-  animation: celestialSpin 1.2s linear infinite;
-  margin-bottom: var(--space-xl);
-}
-
-@keyframes celestialSpin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-overlay p {
-  color: var(--text-white);
-  font-family: 'Playfair Display', serif;
-  font-size: var(--text-xl);
-}
-
-/* ✦ REPORT & PROFILE STYLES ✦ */
-.profile-details-content, .report-preview-area {
-  max-height: 600px;
-  overflow-y: auto;
-  padding-right: var(--space-md);
-}
-
-.confirmed-item {
-  background: linear-gradient(135deg, var(--pure-white) 0%, var(--gold-whisper) 100%);
-  border: 1px solid rgba(217, 119, 6, 0.2);
-  padding: var(--space-lg);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--space-md);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .remove-btn {
@@ -1251,6 +1259,12 @@ p,
   font-size: var(--text-xl);
   cursor: pointer;
   border-radius: var(--radius-full);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
 }
 
 .remove-btn:hover {
@@ -1282,11 +1296,11 @@ button:disabled, .primary-btn.disabled-btn {
 /* ✦ DARK MODE SUPPORT ✦ */
 @media (prefers-color-scheme: dark) {
   :root {
-    --pure-white: #1e293b; /* Darker card background */
+    --pure-white: #1e293b;
     --pearl-white: #28364b;
-    --cosmic-white: #334155; /* Hover state for rows */
-    --cloud-white: #141832; /* Header background for table */
-    --mist-white: #475569; /* Border color */
+    --cosmic-white: #334155;
+    --cloud-white: #141832;
+    --mist-white: #475569;
     --text-primary: #f1f5f9;
     --text-secondary: #e2e8f0;
     --text-tertiary: #cbd5e1;
@@ -1306,42 +1320,37 @@ button:disabled, .primary-btn.disabled-btn {
     color: var(--text-primary);
   }
 
-  /* Dark mode for the table */
   .name-suggestion-table {
-    background-color: var(--cosmic-navy); /* Darker background for table */
+    background-color: var(--cosmic-navy);
   }
 
   .name-suggestion-table thead tr {
-    background-color: var(--mystic-purple); /* Darker header background */
+    background-color: var(--mystic-purple);
   }
 
   .name-suggestion-table th {
-    color: var(--celestial-light); /* Lighter text for dark headers */
-    background-color: var(--mystic-purple); /* Ensure consistency */
-    border-bottom-color: var(--nebula-violet); /* Darker border below header */
+    color: var(--celestial-light);
+    background-color: var(--mystic-purple);
+    border-bottom-color: var(--nebula-violet);
   }
 
   .name-suggestion-table td {
-    border-bottom: 1px solid var(--deep-space); /* Darker border between rows */
-    background-color: var(--cosmic-navy); /* Darker default cell background */
-    color: var(--text-primary); /* Ensure text is visible in dark mode */
+    border-bottom: 1px solid var(--deep-space);
+    background-color: var(--cosmic-navy);
+    color: var(--text-primary);
   }
 
   .name-suggestion-table tbody tr:nth-of-type(even) td {
-    background-color: var(--deep-space); /* Darker zebra striping */
+    background-color: var(--deep-space);
   }
 
   .name-suggestion-table tbody tr:hover td {
-    background-color: var(--nebula-violet); /* Darker hover for rows */
-    color: var(--stardust); /* Lighter text on hover */
-  }
-
-  .name-suggestion-table tbody tr:last-child td {
-    border-bottom: none; /* No border for the very last row */
+    background-color: var(--nebula-violet);
+    color: var(--stardust);
   }
 
   .table-input {
-    background: var(--pure-white); /* Keep input background consistent in dark mode */
+    background: var(--pure-white);
     border-color: var(--mist-white);
     color: var(--text-primary);
   }
@@ -1352,27 +1361,103 @@ button:disabled, .primary-btn.disabled-btn {
   }
 
   .pagination-controls {
-    background: var(--cloud-white); /* Darker background for pagination */
+    background: var(--cloud-white);
     color: var(--text-secondary);
   }
 
-  /* Removed fullscreen table dark mode styles */
+  .fullscreen-table-overlay {
+    background: var(--gradient-cosmic);
+  }
 
-  @media (max-width: 768px) {
-    .name-suggestion-table tr {
-      border: 1px solid var(--mist-white); /* Darker border for collapsed rows */
-    }
-    .name-suggestion-table td {
-      border-bottom: 1px dashed var(--mist-white); /* Darker dashed border */
-    }
-    .name-suggestion-table td::before {
-      color: var(--celestial-light); /* Lighter data-label text */
-    }
+  .fullscreen-table-header {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.9) 50%);
+    border-bottom-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .fullscreen-table {
+    background: var(--pure-white);
+    border-color: rgba(71, 85, 105, 0.3);
   }
 }
 
-/* ✦ RESPONSIVE DESIGN ✦ */
-@media (max-width: 768px) {
+/* ✦ RESPONSIVE DESIGN - ENHANCED FOR LANDSCAPE ✦ */
+
+/* Large Desktop (1600px+) */
+@media (min-width: 1600px) {
+  .main-content-wrapper {
+    max-width: 2000px;
+    padding: var(--space-4xl);
+  }
+  
+  .form-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .two-column-layout {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+  
+  .table-responsive {
+    max-height: 75vh;
+  }
+}
+
+/* Desktop (1200px - 1599px) */
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .main-content-wrapper {
+    width: 95vw;
+    max-width: 1500px;
+  }
+  
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .confirmed-names-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablet Landscape (768px - 1199px) */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .app-container {
+    padding: var(--space-lg);
+  }
+  
+  .main-content-wrapper {
+    width: 96vw;
+    padding: var(--space-2xl);
+  }
+  
+  .two-column-layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+  
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+  }
+  
+  .table-responsive {
+    max-height: 60vh;
+  }
+  
+  .name-suggestion-table {
+    min-width: 700px;
+  }
+  
+  .fullscreen-table-header h2 {
+    font-size: var(--text-2xl);
+  }
+  
+  .fullscreen-instructions {
+    display: none;
+  }
+}
+
+/* Mobile (max-width: 767px) */
+@media (max-width: 767px) {
   :root {
     --text-5xl: 2.25rem;
     --text-4xl: 1.875rem;
@@ -1383,17 +1468,34 @@ button:disabled, .primary-btn.disabled-btn {
   }
 
   .app-container {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
   
   .main-content-wrapper {
-    padding: var(--space-2xl);
-    width: 100%; /* Ensure it's full width on small screens */
-    max-width: none; /* Remove max-width on small screens */
+    padding: var(--space-xl);
+    width: 100%;
+    max-width: none;
   }
   
   .section-card {
     padding: var(--space-xl);
+  }
+  
+  .two-column-layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .confirmed-names-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .validation-grid {
+    grid-template-columns: 1fr;
   }
   
   .input-field {
@@ -1410,100 +1512,146 @@ button:disabled, .primary-btn.disabled-btn {
     margin: 0;
   }
   
-  .live-values {
-    grid-template-columns: 1fr;
+  .table-header-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-lg);
+  }
+  
+  .table-header-controls h2 {
+    text-align: center;
+  }
+  
+  .fullscreen-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Mobile Table Styles */
+  .table-responsive {
+    border: none;
+    box-shadow: none;
+    max-height: none;
+  }
+
+  .name-suggestion-table {
+    border: none;
+    width: 100%;
+    display: block;
+    table-layout: auto;
+    min-width: unset;
+  }
+
+  .name-suggestion-table thead {
+    display: none;
+  }
+
+  .name-suggestion-table tbody,
+  .name-suggestion-table tr,
+  .name-suggestion-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .name-suggestion-table tr {
+    margin-bottom: var(--space-lg);
+    border: 1px solid var(--mist-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    padding: var(--space-md);
+    background-color: var(--pure-white);
+  }
+
+  .name-suggestion-table td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+    border-bottom: 1px dashed var(--mist-white);
+    font-size: var(--text-sm);
+    padding-top: var(--space-sm);
+    padding-bottom: var(--space-sm);
+  }
+
+  .name-suggestion-table td:last-child {
+    border-bottom: none;
+  }
+
+  .name-suggestion-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: var(--space-md);
+    width: calc(50% - var(--space-md) * 2);
+    padding-right: var(--space-md);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-align: left;
+  }
+
+  .table-input {
+    font-size: var(--text-sm);
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .actions-cell {
+    justify-content: flex-start;
+    padding-top: var(--space-md);
+    padding-left: var(--space-md);
+  }
+
+  .actions-cell .small-btn {
+    font-size: var(--text-xs);
+    padding: 2px 6px;
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-md);
   }
   
   .modal-content {
     margin: var(--space-lg);
     padding: var(--space-2xl);
   }
-
-  /* Table on smaller screens (mobile view) */
-  .table-responsive {
-    border: none; /* Remove outer border for mobile collapsed view */
-    box-shadow: none; /* Remove shadow for mobile collapsed view */
+  
+  /* Fullscreen adjustments for mobile */
+  .fullscreen-table-overlay {
+    padding: 0;
   }
-
-  .name-suggestion-table {
-    border: none; /* Remove table border for mobile collapsed view */
-    width: 100%; /* Ensure it takes full width */
-    display: block; /* Make it block to stack elements */
-    table-layout: auto; /* Reset table layout for mobile */
-  }
-
-  .name-suggestion-table thead {
-    display: none; /* Hide table header on small screens */
-  }
-
-  .name-suggestion-table tbody,
-  .name-suggestion-table tr,
-  .name-suggestion-table td {
-    display: block; /* Make table body, rows, and cells block-level */
-    width: 100%; /* Each cell takes full width */
-  }
-
-  .name-suggestion-table tr {
-    margin-bottom: var(--space-lg); /* Space between collapsed rows */
-    border: 1px solid var(--mist-white); /* Add a border to each "row card" */
-    border-radius: var(--radius-lg); /* Rounded corners for each "row card" */
-    box-shadow: var(--shadow-soft); /* Subtle shadow for each "row card" */
-    padding: var(--space-md); /* Padding inside each "row card" */
-    background-color: var(--pure-white); /* Background for each "row card" */
-  }
-
-  .name-suggestion-table td {
-    text-align: right; /* Align cell content to the right */
-    padding-left: 50%; /* Make space for the data-label */
-    position: relative; /* For positioning the data-label */
-    border-bottom: 1px dashed var(--mist-white); /* Dashed border for visual separation */
-    font-size: var(--text-sm); /* Adjust font size for mobile */
-  }
-
-  .name-suggestion-table td:last-child {
-    border-bottom: none; /* No border for the last cell in a row */
-  }
-
-  .name-suggestion-table td::before {
-    content: attr(data-label); /* Use data-label for pseudo-element content */
-    position: absolute;
-    left: var(--space-md);
-    width: calc(50% - var(--space-md) * 2); /* Adjust width for data-label */
-    padding-right: var(--space-md);
-    white-space: nowrap; /* Prevent data-label from wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis if data-label is too long */
-    font-weight: 700; /* Bold the label */
-    color: var(--text-secondary); /* Color for the label */
-    text-align: left; /* Align label text to the left */
-  }
-
-  .table-input {
-    font-size: var(--text-sm); /* Smaller input font for mobile */
-    padding: var(--space-xs) var(--space-sm);
-  }
-
-  .actions-cell {
-    justify-content: flex-start; /* Align actions to the left on mobile */
-    padding-top: var(--space-md); /* Add some space above actions */
-    padding-left: var(--space-md); /* Align with the label */
-  }
-
-  .actions-cell .small-btn {
-    font-size: var(--text-xs); /* Even smaller buttons on mobile */
-    padding: 2px 6px;
-  }
-
-  .pagination-controls {
-    flex-direction: column; /* Stack pagination controls vertically */
+  
+  .fullscreen-table-header {
+    padding: var(--space-lg);
+    flex-direction: column;
     gap: var(--space-md);
-    padding: var(--space-md);
+    text-align: center;
+  }
+  
+  .fullscreen-table-header h2 {
+    font-size: var(--text-xl);
+  }
+  
+  .fullscreen-controls {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .fullscreen-table-content {
+    padding: var(--space-lg);
+  }
+  
+  .fullscreen-instructions {
+    display: block;
+    text-align: center;
   }
 }
 
+/* Small Mobile (max-width: 480px) */
 @media (max-width: 480px) {
   .main-content-wrapper {
-    padding: var(--space-xl);
+    padding: var(--space-lg);
   }
   
   .section-card {
@@ -1517,12 +1665,21 @@ button:disabled, .primary-btn.disabled-btn {
   .report-preview-area h1 {
     font-size: var(--text-3xl);
   }
+  
+  .fullscreen-table-header {
+    padding: var(--space-md);
+  }
+  
+  .fullscreen-table-content {
+    padding: var(--space-md);
+  }
 }
 
 /* ✦ PRINT STYLES ✦ */
 @media print {
   .loading-overlay,
-  .custom-modal {
+  .custom-modal,
+  .fullscreen-table-overlay {
     display: none !important;
   }
   
@@ -1538,10 +1695,13 @@ button:disabled, .primary-btn.disabled-btn {
   }
   
   .main-title,
-  .section-card h2,
-  .celestial-gradient-text {
+  .section-card h2 {
     -webkit-text-fill-color: black;
     color: black;
+  }
+  
+  .fullscreen-btn {
+    display: none;
   }
 }
 
@@ -1553,6 +1713,10 @@ button:disabled, .primary-btn.disabled-btn {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  
+  .fullscreen-table-overlay {
+    animation: none;
   }
 }
 
@@ -1566,17 +1730,32 @@ button:disabled, .primary-btn.disabled-btn {
   }
   
   .section-card,
-  .input-field {
+  .input-field,
+  .fullscreen-table {
     border: 2px solid #000000;
   }
   
   .primary-btn, 
-  .secondary-btn {
+  .secondary-btn,
+  .fullscreen-btn {
     border: 2px solid #000000;
   }
 }
 
-/* ✨ Enhanced Celestial Numerology Portal Complete ✨ */
+/* ✦ BACKGROUND SPARKLE OVERLAY ✦ */
+body::after {
+  content: '';
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0; 
+  left: 0;
+  pointer-events: none;
+  background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+  opacity: 0.02;
+  z-index: -2;
+}
+
 /* ✦ IMPROVEMENTS: Enhanced Card Focus Glow ✦ */
 .section-card:focus-within {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), var(--shadow-celestial);
@@ -1587,15 +1766,74 @@ p {
   max-width: 70ch;
 }
 
-/* ✦ IMPROVEMENTS: Background Sparkle Overlay ✦ */
-body::after {
-  content: '';
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0; left: 0;
-  pointer-events: none;
-  background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
-  opacity: 0.02;
-  z-index: -2;
+/* ✦ LANDSCAPE ORIENTATION OPTIMIZATIONS ✦ */
+@media (orientation: landscape) and (max-height: 900px) {
+  .main-content-wrapper {
+    padding: var(--space-2xl);
+  }
+  
+  .section-card {
+    padding: var(--space-2xl);
+  }
+  
+  .main-title {
+    margin-bottom: var(--space-2xl);
+    font-size: var(--text-4xl);
+  }
+  
+  .table-responsive {
+    max-height: 50vh;
+  }
+  
+  .profile-details-content,
+  .live-validation-output,
+  .report-preview-area {
+    max-height: 400px;
+  }
 }
+
+/* ✦ WIDE SCREEN OPTIMIZATIONS ✦ */
+@media (min-width: 1920px) {
+  .main-content-wrapper {
+    max-width: 2200px;
+    padding: var(--space-4xl) var(--space-3xl);
+  }
+  
+  .form-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .two-column-layout {
+    grid-template-columns: 1.5fr 1fr;
+    gap: var(--space-3xl);
+  }
+  
+  .confirmed-names-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .table-responsive {
+    max-height: 80vh;
+  }
+  
+  .name-suggestion-table {
+    min-width: 1000px;
+  }
+}
+
+/* ✦ ULTRA-WIDE SCREEN OPTIMIZATIONS ✦ */
+@media (min-width: 2560px) {
+  .main-content-wrapper {
+    max-width: 2800px;
+  }
+  
+  .form-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .confirmed-names-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ✨ Enhanced Celestial Numerology Portal Complete ✨ */

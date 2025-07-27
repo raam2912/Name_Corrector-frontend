@@ -187,7 +187,7 @@ function App() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
-    // Removed isTableFullscreen state and related logic
+    const [isTableFullscreen, setIsTableFullscreen] = useState(false); // New state for fullscreen table
 
     // --- Modal Functions ---
     const openModal = useCallback((message) => {
@@ -198,7 +198,31 @@ function App() {
         setModal({ isOpen: false, message: '' });
     }, [setModal]);
 
-    // Removed toggleTableFullscreen and its useEffect for Esc key
+    // Fullscreen toggle function
+    const toggleTableFullscreen = useCallback(() => {
+        setIsTableFullscreen(prev => !prev);
+    }, []);
+
+    // ESC key handler for fullscreen mode
+    useEffect(() => {
+        const handleEscKey = (event) => {
+            if (event.key === 'Escape' && isTableFullscreen) {
+                setIsTableFullscreen(false);
+            }
+        };
+
+        if (isTableFullscreen) {
+            document.addEventListener('keydown', handleEscKey);
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscKey);
+            document.body.style.overflow = 'unset';
+        };
+    }, [isTableFullscreen]);
 
     // --- formatProfileData Function ---
     const formatProfileData = useCallback((profile) => {
@@ -535,7 +559,7 @@ function App() {
     }, [debouncedValidateSuggestionNameBackend]);
     
     // --- Pagination Logic ---
-    const SUGGESTIONS_PER_PAGE = 5;
+    const SUGGESTIONS_PER_PAGE = isTableFullscreen ? 10 : 5; // More items in fullscreen
     const pageCount = Math.ceil(editableSuggestions.length / SUGGESTIONS_PER_PAGE);
     const paginatedSuggestions = editableSuggestions.slice(
         currentPage * SUGGESTIONS_PER_PAGE,
@@ -551,105 +575,188 @@ function App() {
     };
 
     return (
-        // Removed fullscreen-active class
-        <div className="app-container">
+        <div className={`app-container ${isTableFullscreen ? 'fullscreen-active' : ''}`}>
+            {/* Fullscreen Table Overlay */}
+            {isTableFullscreen && (
+                <div className="fullscreen-table-overlay">
+                    <div className="fullscreen-table-header">
+                        <h2>Suggested Name Variations - Fullscreen Mode</h2>
+                        <div className="fullscreen-controls">
+                            <span className="fullscreen-instructions">Press ESC or click × to exit fullscreen</span>
+                            <button 
+                                onClick={toggleTableFullscreen} 
+                                className="fullscreen-close-btn"
+                                aria-label="Exit fullscreen"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="fullscreen-table-content">
+                        <div className="table-responsive fullscreen-table">
+                            <table className="name-suggestion-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>First Name Value</th>
+                                        <th>Expression Number</th>
+                                        <th>Soul Urge</th>
+                                        <th>Personality</th>
+                                        <th>Karmic Debt</th>
+                                        <th>Valid</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paginatedSuggestions.map((s) => (
+                                        <tr key={s.id}>
+                                            <td data-label="Actions" className="actions-cell">
+                                                <button 
+                                                    onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, s.id)} 
+                                                    className="secondary-btn small-btn" 
+                                                    disabled={!clientProfile || !s.currentName.trim()}
+                                                    title="Re-validate this name with the backend"
+                                                >
+                                                    Validate
+                                                </button>
+                                                <button
+                                                    onClick={() => handleConfirmSuggestion(s)}
+                                                    className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'disabled-btn' : ''}`}
+                                                    disabled={confirmedSuggestions.some(cs => cs.name === s.currentName)}
+                                                    title="Confirm this name for the report"
+                                                >
+                                                    {confirmedSuggestions.some(cs => cs.name === s.currentName) ? '✓' : 'Confirm'}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div className="pagination-controls fullscreen-pagination">
+                            <button onClick={goToPreviousPage} disabled={currentPage === 0} className="secondary-btn">
+                                Previous
+                            </button>
+                            <span>Page {currentPage + 1} of {pageCount} | Showing {paginatedSuggestions.length} of {editableSuggestions.length} names</span>
+                            <button onClick={goToNextPage} disabled={currentPage >= pageCount - 1} className="secondary-btn">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="main-content-wrapper">
                 <h1 className="main-title">Sheelaa's Numerology Portal</h1>
 
                 {/* Input Form */}
                 <div className="section-card input-form-card">
                     <h2>Client Information</h2>
-                    <div className="input-group">
-                        <label htmlFor="fullName" className="input-label">Full Name:</label>
-                        <input type="text" id="fullName" placeholder="e.g., John Doe" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="birthDate" className="input-label">Birth Date:</label>
-                        <input type="date" id="birthDate" className="input-field" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="birthTime" className="input-label">Birth Time (optional):</label>
-                        <input type="time" id="birthTime" placeholder="HH:MM" className="input-field" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="birthPlace" className="input-label">Birth Place (optional):</label>
-                        <input type="text" id="birthPlace" placeholder="City, Country" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="desiredOutcome" className="input-label">Desired Outcome:</label>
-                        <input type="text" id="desiredOutcome" placeholder="e.g., Success, Love, Career" className="input-field" value={desiredOutcome} onChange={(e) => setDesiredOutcome(e.target.value)} />
+                    <div className="form-grid">
+                        <div className="input-group">
+                            <label htmlFor="fullName" className="input-label">Full Name:</label>
+                            <input type="text" id="fullName" placeholder="e.g., John Doe" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="birthDate" className="input-label">Birth Date:</label>
+                            <input type="date" id="birthDate" className="input-field" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="birthTime" className="input-label">Birth Time (optional):</label>
+                            <input type="time" id="birthTime" placeholder="HH:MM" className="input-field" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="birthPlace" className="input-label">Birth Place (optional):</label>
+                            <input type="text" id="birthPlace" placeholder="City, Country" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
+                        </div>
+                        <div className="input-group full-width">
+                            <label htmlFor="desiredOutcome" className="input-label">Desired Outcome:</label>
+                            <input type="text" id="desiredOutcome" placeholder="e.g., Success, Love, Career" className="input-field" value={desiredOutcome} onChange={(e) => setDesiredOutcome(e.target.value)} />
+                        </div>
                     </div>
                     <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
                 </div>
 
-                {/* Profile Display */}
-                {clientProfile ? (
+                {/* Two Column Layout for Profile and Custom Validation */}
+                <div className="two-column-layout">
+                    {/* Profile Display */}
                     <div className="section-card profile-display-card">
                         <h2>Client Numerology Profile</h2>
-                        <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="section-card profile-display-card">
-                        <h2>Client Numerology Profile</h2>
-                        <p className="text-gray-600">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
-                    </div>
-                )}
-
-                {/* Custom Name Validation */}
-                {clientProfile && (
-                    <div className="section-card custom-validation-card">
-                        <h2>Validate Custom Name</h2>
-                        <div className="input-group">
-                            <label htmlFor="customNameInput" className="input-label">Name to Validate:</label>
-                            <input
-                                type="text"
-                                id="customNameInput"
-                                placeholder="Enter a name to validate..."
-                                className="input-field"
-                                value={customNameInput}
-                                onChange={(e) => setCustomNameInput(e.target.value)}
-                            />
-                        </div>
-                        {liveValidationOutput && (
-                            <div className="live-validation-output section-card" style={{backgroundColor: '#ffffff', border: '1px solid #e9eceb', boxShadow: 'none'}}>
-                                <p className="font-bold">Live Calculated Values:</p>
-                                <p><b>Name:</b> {customNameInput}</p>
-                                <p><b>First Name Value:</b> {liveValidationOutput.firstNameValue}</p>
-                                <p><b>Expression Number:</b> {liveValidationOutput.expressionNumber}</p>
-                                <p><b>Karmic Debt:</b> {liveValidationOutput.karmicDebtPresent ? 'Yes ⚠️' : 'No'}</p>
-                                {backendValidationResult && (
-                                    <>
-                                        <hr className="my-2" />
-                                        <p><b>Backend Validation:</b> <span className={backendValidationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{backendValidationResult.is_valid ? 'VALID' : 'INVALID'}</span></p>
-                                        <p><b>Rationale:</b> {backendValidationResult.rationale}</p>
-                                    </>
-                                )}
+                        {clientProfile ? (
+                            <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
                             </div>
+                        ) : (
+                            <p className="text-gray-600">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
                         )}
-                        <button onClick={() => handleValidateName(customNameInput, clientProfileRef.current, true, null)} className="primary-btn" disabled={!clientProfile || !customNameInput.trim()}>Validate Custom Name</button>
                     </div>
-                )}
 
-                {/* --- NEW PAGINATED SUGGESTIONS TABLE --- */}
+                    {/* Custom Name Validation */}
+                    {clientProfile && (
+                        <div className="section-card custom-validation-card">
+                            <h2>Validate Custom Name</h2>
+                            <div className="input-group">
+                                <label htmlFor="customNameInput" className="input-label">Name to Validate:</label>
+                                <input
+                                    type="text"
+                                    id="customNameInput"
+                                    placeholder="Enter a name to validate..."
+                                    className="input-field"
+                                    value={customNameInput}
+                                    onChange={(e) => setCustomNameInput(e.target.value)}
+                                />
+                            </div>
+                            {liveValidationOutput && (
+                                <div className="live-validation-output section-card" style={{backgroundColor: '#ffffff', border: '1px solid #e9eceb', boxShadow: 'none'}}>
+                                    <p className="font-bold">Live Calculated Values:</p>
+                                    <div className="validation-grid">
+                                        <p><b>Name:</b> {customNameInput}</p>
+                                        <p><b>First Name Value:</b> {liveValidationOutput.firstNameValue}</p>
+                                        <p><b>Expression Number:</b> {liveValidationOutput.expressionNumber}</p>
+                                        <p><b>Soul Urge:</b> {liveValidationOutput.soulUrgeNumber}</p>
+                                        <p><b>Personality:</b> {liveValidationOutput.personalityNumber}</p>
+                                        <p><b>Karmic Debt:</b> {liveValidationOutput.karmicDebtPresent ? 'Yes ⚠️' : 'No'}</p>
+                                    </div>
+                                    {backendValidationResult && (
+                                        <>
+                                            <hr className="my-2" />
+                                            <p><b>Backend Validation:</b> <span className={backendValidationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{backendValidationResult.is_valid ? 'VALID' : 'INVALID'}</span></p>
+                                            <p><b>Rationale:</b> {backendValidationResult.rationale}</p>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                            <button onClick={() => handleValidateName(customNameInput, clientProfileRef.current, true, null)} className="primary-btn" disabled={!clientProfile || !customNameInput.trim()}>Validate Custom Name</button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Enhanced Suggestions Table */}
                 {editableSuggestions.length > 0 && (
-                    <div className="section-card suggestions-display-card"> {/* Removed table-fullscreen class here */}
+                    <div className="section-card suggestions-display-card">
                         <div className="table-header-controls">
                             <h2>Suggested Name Variations</h2>
-                            {/* Removed Fullscreen button */}
+                            <button 
+                                onClick={toggleTableFullscreen}
+                                className="secondary-btn fullscreen-btn"
+                                title="Open table in fullscreen mode"
+                            >
+                                <span className="fullscreen-icon">⛶</span> Fullscreen
+                            </button>
                         </div>
                         <p className="text-sm text-gray-700 mb-3">
-                           Here are the suggested names. You can edit, validate, and confirm them directly in the table.
+                           Here are the suggested names. You can edit, validate, and confirm them directly in the table. Click "Fullscreen" for a better editing experience.
                         </p>
                         <div className="table-responsive">
                             <table className="name-suggestion-table">
                                 <thead>
                                     <tr>
-                                    <th>Name</th>
-                                    <th>FNV (First Name Value)</th>
-                                    <th>EN (Expression Number)</th>
-                                    <th>Valid</th>
-                                    <th>Actions</th>
+                                        <th>Name</th>
+                                        <th>FNV</th>
+                                        <th>EN</th>
+                                        <th>Valid</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -708,7 +815,6 @@ function App() {
                     </div>
                 )}
 
-
                 {/* Report Generation */}
                 {clientProfile && (
                     <div className="section-card report-generation-card">
@@ -716,18 +822,20 @@ function App() {
                          {confirmedSuggestions.length > 0 ? (
                             <div className="confirmed-suggestions-list mt-4 mb-4">
                                 <h3 className="font-bold text-lg mb-2">Your Confirmed Names:</h3>
-                                {confirmedSuggestions.map((s, index) => (
-                                    <div key={index} className="confirmed-item">
-                                        <span>{s.name} (Exp: {s.expression_number})</span>
-                                        <button 
-                                            onClick={() => handleRemoveConfirmedSuggestion(s.name)} 
-                                            className="remove-btn"
-                                            title="Remove this name from the confirmed list"
-                                        >
-                                            &times;
-                                        </button>
-                                    </div>
-                                ))}
+                                <div className="confirmed-names-grid">
+                                    {confirmedSuggestions.map((s, index) => (
+                                        <div key={index} className="confirmed-item">
+                                            <span>{s.name} (Exp: {s.expression_number})</span>
+                                            <button 
+                                                onClick={() => handleRemoveConfirmedSuggestion(s.name)} 
+                                                className="remove-btn"
+                                                title="Remove this name from the confirmed list"
+                                            >
+                                                &times;
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         ) : (
                             <p className="text-gray-700 mb-3">Confirm names from the table above to include them in the report.</p>
@@ -763,5 +871,4 @@ function App() {
 }
 
 export default App;
-// END OF App.js - DO NOT DELETE THIS LINE
- 
+// END OF App.js - DO NOT DELETE THIS LINE="Name">
