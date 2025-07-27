@@ -982,7 +982,144 @@ p,
   font-weight: 700;
   color: var(--pure-gold);
 }
+/* ✦ TABLE STYLES ✦ */
 
+.table-container {
+  width: 100%;
+  overflow-x: auto; /* Ensures table is scrollable on small screens */
+  margin-bottom: var(--space-2xl);
+  border: 1px solid var(--mist-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-medium);
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse; /* Removes space between table cells */
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+  background-color: var(--pure-white);
+}
+
+.styled-table thead tr {
+  background-color: var(--aurora-violet);
+  color: var(--pure-white);
+  text-align: left;
+}
+
+.styled-table th,
+.styled-table td {
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--mist-white);
+}
+
+.styled-table th {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.styled-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+  background-color: var(--cosmic-white); /* Zebra striping */
+}
+
+.styled-table tbody tr:hover {
+  background-color: var(--celestial-light);
+  color: var(--deep-space);
+}
+
+.styled-table tbody tr:last-of-type {
+  border-bottom: 2px solid var(--aurora-violet); /* Stronger border for the last row */
+}
+
+/* Responsive Table Behavior for Smaller Screens */
+@media (max-width: 768px) {
+  .styled-table thead {
+    display: none; /* Hide table headers on small screens */
+  }
+
+  .styled-table,
+  .styled-table tbody,
+  .styled-table tr,
+  .styled-table td {
+    display: block; /* Make table elements behave like block elements */
+    width: 100%;
+  }
+
+  .styled-table tr {
+    margin-bottom: var(--space-lg);
+    border: 1px solid var(--mist-white);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .styled-table td {
+    text-align: right;
+    padding-left: 50%; /* Make space for the data-label */
+    position: relative;
+    border: none;
+    border-bottom: 1px dashed var(--mist-white); /* Dashed border for readability */
+  }
+
+  .styled-table td:last-child {
+    border-bottom: none;
+  }
+
+  .styled-table td::before {
+    content: attr(data-label); /* Use data-label for pseudo-elements */
+    position: absolute;
+    left: var(--space-md);
+    width: calc(50% - var(--space-md));
+    padding-right: var(--space-md);
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 700;
+    color: var(--text-violet);
+  }
+}
+
+/* Dark Mode Adjustments for Tables */
+@media (prefers-color-scheme: dark) {
+  .styled-table {
+    background-color: var(--cosmic-navy);
+  }
+
+  .styled-table thead tr {
+    background-color: var(--mystic-purple);
+  }
+
+  .styled-table th,
+  .styled-table td {
+    border-bottom: 1px solid var(--deep-space);
+  }
+
+  .styled-table tbody tr:nth-of-type(even) {
+    background-color: var(--deep-space);
+  }
+
+  .styled-table tbody tr:hover {
+    background-color: var(--nebula-violet);
+    color: var(--stardust);
+  }
+
+  .styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid var(--celestial-light);
+  }
+
+  @media (max-width: 768px) {
+    .styled-table tr {
+      border: 1px solid var(--deep-space);
+    }
+    .styled-table td {
+      border-bottom: 1px dashed var(--deep-space);
+    }
+  }
+}
 .confirmed-suggestions-list > div:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-gold);

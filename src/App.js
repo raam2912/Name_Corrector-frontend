@@ -638,11 +638,11 @@ function App() {
                             <table className="name-suggestion-table">
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>FNV</th>
-                                        <th>EN</th>
-                                        <th>Valid</th>
-                                        <th>Actions</th>
+                                    <th>Name</th>
+                                    <th>FNV (First Name Value)</th>
+                                    <th>EN (Expression Number)</th>
+                                    <th>Valid</th>
+                                    <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
