@@ -1144,12 +1144,12 @@ p,
     left: 0; /* Align to left of viewport */
     width: 100vw; /* Take full viewport width */
     height: 100vh; /* Take full viewport height */
-    background: rgba(255, 255, 255, 0.98); /* Near-solid white background for clarity */
+    background: rgba(255, 255, 255, 0.98) !important; /* Near-solid white background for clarity, !important to override */
     backdrop-filter: blur(10px); /* Slight blur for background page */
-    border-radius: 0 !important; /* No border radius in fullscreen */
+    border-radius: 0 !important; /* No border radius in fullscreen, !important to override */
     padding: var(--space-lg); /* Consistent padding around the content */
-    box-shadow: none !important; /* No shadow in fullscreen */
-    z-index: 1000; /* Extremely high z-index to ensure it's on top */
+    box-shadow: none !important; /* No shadow in fullscreen, !important to override */
+    z-index: 1000 !important; /* Extremely high z-index to ensure it's on top, !important to override */
     display: flex;
     flex-direction: column;
     justify-content: flex-start; /* Align content to the top within fullscreen */
@@ -1215,12 +1215,16 @@ p,
     box-shadow: var(--shadow-large);
     border-radius: var(--radius-lg); /* Ensure consistent border-radius */
     display: block; /* Important for table to fill flex container */
+    /* Add explicit border-box for consistency */
+    box-sizing: border-box; 
 }
 
 /* Actual table within fullscreen */
 .suggestions-display-card.table-fullscreen .name-suggestion-table {
     width: 100%; /* Ensure table fills its container */
     table-layout: fixed; /* Fix table layout to respect column widths */
+    /* Add explicit border-box for consistency */
+    box-sizing: border-box; 
 }
 
 /* Table headers within fullscreen - specific widths and styles */
@@ -1235,6 +1239,8 @@ p,
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Add ellipsis for truly long content */
     text-align: center; /* Center header text */
+    /* Add explicit border-box for consistency */
+    box-sizing: border-box; 
 }
 
 /* Table data cells within fullscreen - specific widths and styles */
@@ -1248,6 +1254,8 @@ p,
     max-width: 0; /* Needed for text-overflow to work with table-layout: fixed */
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Add ellipsis for truly long content */
+    /* Add explicit border-box for consistency */
+    box-sizing: border-box; 
 }
 
 /* Specific column widths for better layout in fullscreen */

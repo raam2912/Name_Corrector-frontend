@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import { marked } from 'marked'; // For rendering Markdown in report preview
+import { marked } from 'marked'; // Corrected: For rendering Markdown in report preview
 import debounce from 'lodash.debounce'; // Correctly imported debounce
 
 import './App.css'; // Import the CSS file for styling
@@ -180,7 +180,7 @@ function App() {
     const [currentPage, setCurrentPage] = useState(0); // For paginating suggestions table
 
     const [customNameInput, setCustomNameInput] = useState('');
-    const [liveValidationOutput, setLiveValidationOutput] = useState(null); // For live client-side calcs of custom input
+    const [liveValidationOutput, setLiveValidationOutput] = null; // For live client-side calcs of custom input
     const [backendValidationResult, setBackendValidationResult] = useState(null); // For custom validation section
 
     const [reportPreviewContent, setReportPreviewContent] = useState('');
