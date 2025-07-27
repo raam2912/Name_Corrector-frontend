@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { marked } from 'marked'; // For rendering Markdown in report preview
@@ -10,6 +11,42 @@ const BACKEND_URL = 'https://name-corrector-backend.onrender.com'; // <<< IMPORT
 
 // --- Client-Side Numerology Calculation Functions (Ported from Backend) ---
 // These are essential for live updates without constant server calls.
+
+// Patch: Replace suggestion list with a strict table layout
+const LUCKY_NAME_NUMBERS = new Set([1, 3, 5, 6, 9, 11, 22, 33]);
+
+// eslint-disable-next-line no-unused-vars
+function NameSuggestionTable({ suggestions }) {
+  const filtered = suggestions.filter(
+    (item) => LUCKY_NAME_NUMBERS.has(item.fullNameNumber)
+  );
+
+  return (
+    <table className="name-suggestion-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>FNV</th>
+          <th>EN</th>
+          <th>✓</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filtered.slice(0, 5).map((item, index) => (
+          <tr key={index}>
+            <td>{item.name}</td>
+            <td>{item.fullNameNumber}</td>
+            <td>{item.expressionNumber}</td>
+            <td>{item.isValid ? '✅' : '❌'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+
+
 
 const CHALDEAN_MAP = {
     'A': 1, 'I': 1, 'J': 1, 'Q': 1, 'Y': 1,
