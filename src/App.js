@@ -26,7 +26,28 @@ const CHALDEAN_MAP = {
 const MASTER_NUMBERS = new Set([11, 22, 33]);
 const KARMIC_DEBT_NUMBERS = new Set([13, 14, 16, 19]);
 const VOWELS = new Set('AEIOU');
+// --- Initial Name Evaluation Additions ---
+const LUCKY_NAME_NUMBERS = new Set([1, 3, 5, 6, 9, 11, 22, 33]);
+const UNLUCKY_NAME_NUMBERS = new Set([4, 8]);
 
+
+function isValidNameNumber(expressionNum, rawSum) {
+    return LUCKY_NAME_NUMBERS.has(expressionNum) && !UNLUCKY_NAME_NUMBERS.has(expressionNum) && !KARMIC_DEBT_NUMBERS.has(rawSum);
+}
+
+function evaluateInitialNameValidity(name) {
+    const cleaned = cleanName(name);
+    let sum = 0;
+    for (const char of cleaned) {
+        sum += getChaldeanValue(char);
+    }
+    const expression = calculateSingleDigit(sum, true);
+    return {
+        isValid: isValidNameNumber(expression, sum),
+        rawSum: sum,
+        expressionNumber: expression,
+    };
+}
 function cleanName(name) {
     return name.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
 }
@@ -164,9 +185,11 @@ function App() {
     const [birthDate, setBirthDate] = useState('');
     const [birthTime, setBirthTime] = useState('');
     const [birthPlace, setBirthPlace] = useState('');
+    // eslint-disable-next-line no-unused-vars
     const [desiredOutcome, setDesiredOutcome] = useState('');
 
     const [clientProfile, setClientProfile] = useState(null);
+    const [initialNameValidation, setInitialNameValidation] = useState(null); // ✨ NEW: State for initial name validation
     // Use a ref to always have the latest clientProfile available in callbacks
     const clientProfileRef = useRef(clientProfile);
     useEffect(() => {
@@ -187,7 +210,6 @@ function App() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
-    // Removed isTableFullscreen state and related logic
 
     // --- Modal Functions ---
     const openModal = useCallback((message) => {
@@ -198,18 +220,16 @@ function App() {
         setModal({ isOpen: false, message: '' });
     }, [setModal]);
 
-    // Removed toggleTableFullscreen and its useEffect for Esc key
-
     // --- formatProfileData Function ---
     const formatProfileData = useCallback((profile) => {
         if (!profile) return '<p>No profile data available.</p>';
+        // The desired_outcome field is removed from the profile data display
         return `
             <h3 class="font-bold">Basic Info:</h3>
             <p><b>Full Name:</b> ${profile.full_name}</p>
             <p><b>Birth Date:</b> ${profile.birth_date}</p>
             ${profile.birth_time ? `<p><b>Birth Time:</b> ${profile.birth_time}</p>` : ''}
             ${profile.birth_place ? `<p><b>Birth Place:</b> ${profile.birth_place}</p>` : ''}
-            <p><b>Desired Outcome:</b> ${profile.desired_outcome}</p>
             <hr class="my-2">
             <h3 class="font-bold">Core Numbers:</h3>
             <p><b>Expression Number:</b> ${profile.expression_number} (Ruled by ${profile.expression_details?.planetary_ruler || 'N/A'})</p>
@@ -244,51 +264,64 @@ function App() {
     // --- API Call Functions (Wrapped in useCallback for stability) ---
 
     const getInitialSuggestions = useCallback(async () => {
-        if (!fullName || !birthDate || !desiredOutcome) {
-            openModal("Please fill in Full Name, Birth Date, and Desired Outcome to get suggestions.");
+        // desiredOutcome is no longer required for the initial call
+        if (!fullName || !birthDate) {
+            openModal("Please fill in Full Name and Birth Date to get suggestions.");
             return;
         }
 
         setIsLoading(true);
+        setInitialNameValidation(null); // ✨ NEW: Reset initial validation state
         try {
+            // desiredOutcome is no longer sent to the backend
             const response = await axios.post(`${BACKEND_URL}/initial_suggestions`, {
                 full_name: fullName,
                 birth_date: birthDate,
                 birth_time: birthTime,
                 birth_place: birthPlace,
-                desired_outcome: desiredOutcome,
             });
             setSuggestions(response.data.suggestions);
             
             // Ensure profile_data is present and an object before setting clientProfile
-            if (response.data.profile_data && typeof response.data.profile_data === 'object') {
-                setClientProfile(response.data.profile_data); 
-                console.log("Client Profile set successfully:", response.data.profile_data);
+            const profileData = response.data.profile_data;
+            if (profileData && typeof profileData === 'object') {
+                setClientProfile(profileData); 
+                console.log("Client Profile set successfully:", profileData);
+                
+                // ✨ NEW: Automatically validate the client's original name
+                try {
+                    const validationResponse = await axios.post(`${BACKEND_URL}/validate_name`, {
+                        suggested_name: fullName, // Use the original name from the input field
+                        client_profile: profileData,
+                    });
+                    setInitialNameValidation(validationResponse.data);
+                    console.log("Initial name validation successful:", validationResponse.data);
+                } catch (validationError) {
+                    console.error('Could not validate the initial name:', validationError);
+                    setInitialNameValidation(null);
+                }
             } else {
                 console.error("Backend did not return valid profile_data in initial_suggestions response:", response.data.profile_data);
                 openModal("Failed to load client profile due to invalid data from backend. Please try again or contact support.");
             }
             setConfirmedSuggestions([]);
-            setCurrentPage(0); // Reset to first page of table on new suggestions
+            setCurrentPage(0);
         } catch (error) {
             console.error('Error fetching suggestions:', error);
-            // Display specific error from backend if available, otherwise a generic one
             openModal(error.response?.data?.error || 'Failed to get suggestions. Please check your backend server.');
         } finally {
             setIsLoading(false);
         }
-    }, [fullName, birthDate, birthTime, birthPlace, desiredOutcome, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading, setCurrentPage]);
+    }, [fullName, birthDate, birthTime, birthPlace, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading, setCurrentPage]);
 
     // handleValidateName now accepts the currentClientProfile directly
     const handleValidateName = useCallback(async (nameToValidate, currentClientProfile, isCustom = false, suggestionIndex = null) => {
-        // Use the passed currentClientProfile
         if (!currentClientProfile) {
             openModal("Please get initial suggestions first to generate your numerology profile before validating names.");
             console.error("Validation attempted with null clientProfile. Aborting API call.");
             return;
         }
         
-        // If nameToValidate is empty, clear the validation result and return without API call
         if (!nameToValidate.trim()) {
             if (!isCustom) {
                 setEditableSuggestions(prev => prev.map((s, idx) =>
@@ -298,16 +331,16 @@ function App() {
                 setBackendValidationResult(null);
             }
             console.log(`Validation skipped: Name is empty or whitespace for ${isCustom ? 'custom input' : `suggestion ${suggestionIndex}`}`);
-            return; // Exit function if name is empty
+            return;
         }
 
         setIsLoading(true);
         try {
             console.log(`Sending validation request for: "${nameToValidate}"`);
-            console.log('Client Profile for validation (sent to backend):', currentClientProfile); // Log currentClientProfile here
+            console.log('Client Profile for validation (sent to backend):', currentClientProfile);
             const response = await axios.post(`${BACKEND_URL}/validate_name`, {
                 suggested_name: nameToValidate,
-                client_profile: currentClientProfile, // Use the passed currentClientProfile
+                client_profile: currentClientProfile,
             });
             if (isCustom) {
                 setBackendValidationResult(response.data);
@@ -319,7 +352,6 @@ function App() {
             console.log('Validation successful:', response.data);
         } catch (error) {
             console.error('Error validating name:', error);
-            // Display specific error from backend if available, otherwise a generic one
             openModal(error.response?.data?.error || 'Failed to validate name. Please check your backend server.');
         } finally {
             setIsLoading(false);
@@ -334,30 +366,22 @@ function App() {
 
         setIsLoading(true);
         try {
-            // First, get the text report for preview
-            const textReportResponse = await axios.post(`${BACKEND_URL}/generate_text_report`, {
+            // The desired_outcome is no longer sent to the backend for report generation
+            const reportPayload = {
                 full_name: clientProfile.full_name,
                 birth_date: clientProfile.birth_date,
                 birth_time: clientProfile.birth_time,
                 birth_place: clientProfile.birth_place,
-                desired_outcome: clientProfile.desired_outcome,
                 confirmed_suggestions: confirmedSuggestions,
-            });
+            };
+
+            const textReportResponse = await axios.post(`${BACKEND_URL}/generate_text_report`, reportPayload);
             setReportPreviewContent(textReportResponse.data.report_content);
 
-            // Then, trigger PDF download (this will open a new tab/download)
-            const pdfResponse = await axios.post(`${BACKEND_URL}/generate_pdf_report`, {
-                full_name: clientProfile.full_name,
-                birth_date: clientProfile.birth_date,
-                birth_time: clientProfile.birth_time,
-                birth_place: clientProfile.birth_place,
-                desired_outcome: desiredOutcome,
-                confirmed_suggestions: confirmedSuggestions,
-            }, {
-                responseType: 'blob', // Important for downloading files
+            const pdfResponse = await axios.post(`${BACKEND_URL}/generate_pdf_report`, reportPayload, {
+                responseType: 'blob',
             });
 
-            // Create a blob from the response data and create a download link
             const url = window.URL.createObjectURL(new Blob([pdfResponse.data]));
             const link = document.createElement('a');
             link.href = url;
@@ -365,7 +389,7 @@ function App() {
             document.body.appendChild(link);
             link.click();
             link.remove();
-            window.URL.revokeObjectURL(url); // Clean up the URL object
+            window.URL.revokeObjectURL(url);
 
         } catch (error) {
             console.error('Error generating report:', error);
@@ -373,36 +397,32 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [clientProfile, confirmedSuggestions, openModal, setReportPreviewContent, setIsLoading, desiredOutcome]);
+    }, [clientProfile, confirmedSuggestions, openModal, setReportPreviewContent, setIsLoading]);
 
     // --- Effects ---
-    // Initialize editableSuggestions when suggestions from backend are received
     useEffect(() => {
         if (suggestions.length > 0) {
             const initialEditable = suggestions.map((s, index) => {
-                // Calculate initial live values for each suggestion
                 const firstNameValue = calculateFirstNameValue(s.name);
                 const expressionNumber = calculateExpressionNumber(s.name);
                 const soulUrgeNumber = calculateSoulUrgeNumber(s.name);
                 const personalityNumber = calculatePersonalityNumber(s.name);
                 const karmicDebtPresent = checkKarmicDebt(s.name);
-
-                // Extract first name from the full suggested name
                 const firstName = s.name.split(' ')[0];
 
                 return {
                     ...s,
-                    id: index, // Add a stable id
-                    currentName: s.name, // The full name the user can edit (initially LLM suggestion)
-                    currentFirstName: firstName, // The first name part for separate editing
-                    originalName: s.name, // The original full name suggested by LLM
+                    id: index,
+                    currentName: s.name,
+                    currentFirstName: firstName,
+                    originalName: s.name,
                     firstNameValue,
                     expressionNumber,
                     soulUrgeNumber,
                     personalityNumber,
                     karmicDebtPresent,
-                    isEdited: false, // Flag to track if user has edited this suggestion
-                    validationResult: null // Clear any previous validation results
+                    isEdited: false,
+                    validationResult: null
                 };
             });
             setEditableSuggestions(initialEditable);
@@ -410,8 +430,6 @@ function App() {
     }, [suggestions]);
 
 
-    // Core logic for live validation display (not debounced)
-    // This function now takes currentClientProfile directly
     const updateLiveValidationDisplayCore = useCallback((name, currentClientProfile) => {
         if (!name.trim() || !currentClientProfile) {
             setLiveValidationOutput(null);
@@ -419,9 +437,8 @@ function App() {
             return;
         }
 
-        // Client-side calculations for immediate feedback
         const expNum = calculateExpressionNumber(name);
-        const birthDateStr = currentClientProfile.birth_date; // Use passed profile
+        const birthDateStr = currentClientProfile.birth_date;
         const loShu = calculateLoShuGrid(birthDateStr, expNum);
         const birthDayNum = calculateBirthDayNumber(birthDateStr);
         const lifePathNum = calculateLifePathNumber(birthDateStr);
@@ -431,7 +448,7 @@ function App() {
 
         setLiveValidationOutput({
             name,
-            firstNameValue: calculateFirstNameValue(name), // Live first name value
+            firstNameValue: calculateFirstNameValue(name),
             expressionNumber: expNum,
             soulUrgeNumber: soulUrgeNum,
             personalityNumber: personalityNum,
@@ -442,20 +459,14 @@ function App() {
             loShuMissingNumbers: loShu.missing_numbers,
         });
 
-        // Trigger backend validation for comprehensive rules
-        // Pass clientProfileRef.current to handleValidateName
-        handleValidateName(name, currentClientProfile, true, null); // custom validation doesn't need suggestion index
+        handleValidateName(name, currentClientProfile, true, null);
     }, [handleValidateName]);
 
-    // Debounced version of updateLiveValidationDisplayCore
     const debouncedUpdateLiveValidationDisplay = useRef(
         debounce((name, profile) => updateLiveValidationDisplayCore(name, profile), 300)
     ).current;
 
-    // Effect to trigger live validation when customNameInput or clientProfile changes
     useEffect(() => {
-        // Only trigger if clientProfile is available AND customNameInput is not empty
-        // Use clientProfileRef.current to ensure the latest value is captured by the debounce
         if (clientProfileRef.current && customNameInput.trim()) { 
             debouncedUpdateLiveValidationDisplay(customNameInput, clientProfileRef.current);
         } else {
@@ -464,9 +475,7 @@ function App() {
         }
     }, [customNameInput, debouncedUpdateLiveValidationDisplay]);
 
-    // --- Confirmation Logic ---
     const handleConfirmSuggestion = useCallback((suggestion) => {
-        // Use the editedName if available, otherwise the original name
         const nameToConfirm = suggestion.currentName;
         
         const isAlreadyConfirmed = confirmedSuggestions.some(
@@ -478,15 +487,14 @@ function App() {
             return;
         }
 
-        // Add the current edited name and its original rationale to confirmed list
         const expressionToConfirm = suggestion.expressionNumber;
 
         setConfirmedSuggestions(prev => [
             ...prev,
             {
-                name: nameToConfirm, // Use the current edited name
-                expression_number: expressionToConfirm, // Use the live calculated expression
-                rationale: suggestion.validationResult?.rationale || suggestion.rationale, // Use new rationale if available
+                name: nameToConfirm,
+                expression_number: expressionToConfirm,
+                rationale: suggestion.validationResult?.rationale || suggestion.rationale,
             }
         ]);
         openModal(`'${nameToConfirm}' has been added to your confirmed list.`);
@@ -499,8 +507,6 @@ function App() {
     }, [openModal]);
 
 
-    // --- Handlers for Editable Suggestions Pseudo-Table ---
-    // Core logic for backend suggestion validation (not debounced)
     const validateSuggestionNameBackendCore = useCallback((name, index) => {
         if (clientProfileRef.current) {
             handleValidateName(name, clientProfileRef.current, false, index);
@@ -510,7 +516,6 @@ function App() {
         }
     }, [handleValidateName, openModal]);
 
-    // Debounced version
     const debouncedValidateSuggestionNameBackend = useRef(
         debounce((name, index) => validateSuggestionNameBackendCore(name, index), 500)
     ).current;
@@ -519,21 +524,17 @@ function App() {
         setEditableSuggestions(prev => prev.map((s, idx) => {
             if (idx === index) {
                 const updatedSuggestion = { ...s, currentName: newFullName, isEdited: true };
-
-                // Recalculate all live numerology values for the full name
                 updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
                 updatedSuggestion.expressionNumber = calculateExpressionNumber(newFullName);
                 updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
                 updatedSuggestion.personalityNumber = calculatePersonalityNumber(newFullName);
                 updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newFullName);
-
-                // Update currentFirstName based on the newFullName
                 updatedSuggestion.currentFirstName = newFullName.split(' ')[0];
 
                 if (newFullName.trim()) {
                     debouncedValidateSuggestionNameBackend(newFullName, index);
                 } else {
-                    updatedSuggestion.validationResult = null; // Clear validation on empty
+                    updatedSuggestion.validationResult = null;
                 }
                 return updatedSuggestion;
             }
@@ -544,13 +545,9 @@ function App() {
     const handleFirstNameChange = useCallback((index, newFirstName) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
             if (idx === index) {
-                // Construct the new full name by replacing the first word
                 const originalParts = s.currentName.split(' ');
                 const newFullName = [newFirstName, ...originalParts.slice(1)].join(' ');
-
                 const updatedSuggestion = { ...s, currentName: newFullName, currentFirstName: newFirstName, isEdited: true };
-
-                // Recalculate all live numerology values for the new full name
                 updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
                 updatedSuggestion.expressionNumber = calculateExpressionNumber(newFullName);
                 updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
@@ -560,7 +557,7 @@ function App() {
                 if (newFullName.trim()) {
                     debouncedValidateSuggestionNameBackend(newFullName, index);
                 } else {
-                    updatedSuggestion.validationResult = null; // Clear validation on empty
+                    updatedSuggestion.validationResult = null;
                 }
                 return updatedSuggestion;
             }
@@ -569,7 +566,6 @@ function App() {
     }, [debouncedValidateSuggestionNameBackend]);
 
 
-    // --- Pagination Logic ---
     const SUGGESTIONS_PER_PAGE = 5; 
     const pageCount = Math.ceil(editableSuggestions.length / SUGGESTIONS_PER_PAGE);
     const paginatedSuggestions = editableSuggestions.slice(
@@ -590,13 +586,22 @@ function App() {
             <div className="main-content-wrapper">
                 <h1 className="main-title">Sheelaa's Numerology Portal</h1>
 
-                {/* Input Form */}
                 <div className="section-card input-form-card">
                     <h2>Client Information</h2>
                     <div className="form-grid">
                         <div className="input-group">
                             <label htmlFor="fullName" className="input-label">Full Name:</label>
                             <input type="text" id="fullName" placeholder="e.g., John Doe" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                            {fullName && (() => {
+    const evalResult = evaluateInitialNameValidity(fullName);
+    return (
+        <div style={{ marginTop: '0.5rem' }}>
+            <p><strong>Initial Name Status:</strong> <span style={{ color: evalResult.isValid ? 'green' : 'red' }}>
+                {evalResult.isValid ? 'VALID ✅' : 'INVALID ❌'}
+            </span> (Expression: {evalResult.expressionNumber}, Sum: {evalResult.rawSum})</p>
+        </div>
+    );
+})()}
                         </div>
                         <div className="input-group">
                             <label htmlFor="birthDate" className="input-label">Birth Date:</label>
@@ -610,28 +615,33 @@ function App() {
                             <label htmlFor="birthPlace" className="input-label">Birth Place (optional):</label>
                             <input type="text" id="birthPlace" placeholder="City, Country" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
                         </div>
-                        <div className="input-group full-width">
-                            <label htmlFor="desiredOutcome" className="input-label">Desired Outcome:</label>
-                            <input type="text" id="desiredOutcome" placeholder="e.g., Success, Love, Career" className="input-field" value={desiredOutcome} onChange={(e) => setDesiredOutcome(e.target.value)} />
-                        </div>
+                        {/* The "Desired Outcome" input field is now removed from the UI */}
                     </div>
                     <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
                 </div>
 
-                {/* Two Column Layout for Profile and Custom Validation */}
                 <div className="two-column-layout">
-                    {/* Profile Display */}
                     <div className="section-card profile-display-card">
                         <h2>Client Numerology Profile</h2>
                         {clientProfile ? (
-                            <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
-                            </div>
+                            <>
+                                {/* ✨ NEW: Display for initial name validation */}
+                                {initialNameValidation && (
+                                    <div className={`validation-result ${initialNameValidation.is_valid ? 'valid' : 'invalid'}`}>
+                                        <strong>Initial Name Status:</strong> {initialNameValidation.is_valid ? 'Valid ✅' : 'Invalid ❌'}
+                                        <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-sm)', color: 'inherit' }}>
+                                            {initialNameValidation.rationale}
+                                        </p>
+                                    </div>
+                                )}
+                                <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
+                                </div>
+                            </>
                         ) : (
-                            <p className="text-gray-600">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
+                            <p className="text-muted">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
                         )}
                     </div>
 
-                    {/* Custom Name Validation */}
                     {clientProfile && (
                         <div className="section-card custom-validation-card">
                             <h2>Validate Custom Name</h2>
@@ -671,7 +681,6 @@ function App() {
                     )}
                 </div>
 
-                {/* Pseudo-Table for Suggested Name Variations */}
                 {editableSuggestions.length > 0 && (
                     <div className="section-card suggestions-display-card">
                         <div className="pseudo-table-header-controls">
@@ -764,7 +773,6 @@ function App() {
                 )}
 
 
-                {/* Report Generation */}
                 {clientProfile && (
                     <div className="section-card report-generation-card">
                         <h2>Generate Reports</h2>
@@ -798,7 +806,6 @@ function App() {
                 )}
             </div>
 
-            {/* Loading Overlay */}
             {isLoading && (
                 <div className="loading-overlay">
                     <div className="loader"></div>
@@ -806,7 +813,6 @@ function App() {
                 </div>
             )}
 
-            {/* Custom Modal for Alerts */}
             {modal.isOpen && (
                 <div className="custom-modal">
                     <div className="modal-content">
@@ -820,4 +826,3 @@ function App() {
 }
 
 export default App;
-// END OF App.js - DO NOT DELETE THIS LINE
