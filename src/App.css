@@ -472,38 +472,47 @@ p,
 /* ✦ ENHANCED MODAL, LOADING, PROFILE, REPORT STYLES ✦ */
 /* ... (these sections remain unchanged as they are already well-designed) ... */
 
-/* ✦ PSEUDO TABLE STYLES - REFINED FOR CLARITY AND RESPONSIVENESS ✦ */
+/* ✦ ENHANCED PSEUDO TABLE STYLES - IMPROVED FOR FULL VISIBILITY AND CLARITY ✦ */
+
 .pseudo-table-responsive {
   width: 100%;
-  max-height: 70vh;
-  overflow-y: auto;
-  overflow-x: auto; /* Allow horizontal scroll on smaller viewports if content demands it */
+  max-height: none; /* Remove height restriction for better visibility */
+  overflow-x: auto;
+  overflow-y: visible; /* Allow content to dictate height */
   margin-bottom: var(--space-2xl);
   border: 1px solid var(--mist-white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-medium);
+  background: var(--pure-white);
 }
 
+/* ✨ IMPROVED: Better grid layout with proper column sizing */
 .pseudo-table-header, .pseudo-table-row {
   display: grid;
-  /* ✨ NEW: Flexible and robust grid layout using fr units */
-  grid-template-columns: minmax(250px, 2.5fr) repeat(2, 1fr) 0.5fr 1.5fr;
-  align-items: center; /* Vertically align all cell content */
+  grid-template-columns: 
+    minmax(300px, 3fr)    /* Suggested Name - wider for editing */
+    minmax(120px, 1fr)    /* First Name Value */
+    minmax(140px, 1fr)    /* Expression Number */
+    minmax(80px, 0.8fr)   /* Valid status */
+    minmax(180px, 1.2fr); /* Actions - wider for buttons */
+  align-items: stretch; /* Ensure all cells have same height */
+  min-height: 60px; /* Minimum row height for consistency */
 }
 
 .pseudo-table-header {
-  background-color: var(--aurora-violet);
+  background: linear-gradient(135deg, var(--aurora-violet) 0%, var(--mystic-purple) 100%);
   color: var(--pure-white);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   position: sticky;
   top: 0;
   z-index: 10;
   font-family: 'Space Grotesk', sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 2px solid var(--celestial-light);
+  border-bottom: 3px solid var(--celestial-light);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
 }
 
 .pseudo-table-body {
@@ -513,24 +522,29 @@ p,
 .pseudo-table-row {
   border-bottom: 1px solid var(--mist-white);
   background-color: var(--pure-white);
-  transition: background-color var(--transition-fast);
+  transition: all var(--transition-medium);
+  position: relative;
 }
 
 .pseudo-table-row:nth-child(even) {
-  background-color: var(--cloud-white);
+  background: linear-gradient(135deg, var(--cloud-white) 0%, rgba(248, 250, 252, 0.8) 100%);
 }
 
 .pseudo-table-row:hover {
-  background-color: var(--stardust);
-  color: var(--deep-space);
+  background: linear-gradient(135deg, var(--stardust) 0%, rgba(199, 210, 254, 0.6) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+  border-color: var(--celestial-light);
 }
 
 .pseudo-table-row:last-child {
   border-bottom: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
+/* ✨ IMPROVED: Better cell styling with proper alignment */
 .pseudo-table-cell {
-  padding: var(--space-md); /* Reduced padding for more content space */
+  padding: var(--space-lg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -538,15 +552,22 @@ p,
   font-size: var(--text-base);
   font-weight: 500;
   color: var(--text-primary);
-  white-space: normal; /* ✨ Allow text to wrap naturally */
-  word-break: break-word; /* Break long words if necessary */
   text-align: center;
+  border-right: 1px solid rgba(226, 232, 240, 0.5);
+  position: relative;
+  min-height: 60px; /* Consistent cell height */
+}
+
+.pseudo-table-cell:last-child {
+  border-right: none;
 }
 
 .pseudo-table-cell.header {
   padding: var(--space-lg);
   justify-content: center;
   text-align: center;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .pseudo-table-cell.header:first-child,
@@ -556,188 +577,434 @@ p,
 }
 
 .pseudo-table-cell .cell-label {
-  display: none;
+  display: none; /* Hidden on desktop, shown on mobile */
 }
 
+/* ✨ GREATLY IMPROVED: Name editing cell with better layout */
 .pseudo-table-cell.name-editing-cell {
   flex-direction: column;
-  align-items: flex-start;
-  padding: var(--space-md);
+  align-items: stretch;
+  padding: var(--space-lg);
+  gap: var(--space-md);
+  background: rgba(255, 255, 255, 0.5);
+  min-height: 120px; /* Taller for editing content */
 }
 
 .pseudo-table-input {
   width: 100%;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  padding: var(--space-sm) var(--space-md);
+  background: var(--pure-white);
+  border: 2px solid var(--mist-white);
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
   font-family: 'Inter', sans-serif;
   font-size: var(--text-base);
   font-weight: 500;
   color: var(--text-primary);
-  transition: all var(--transition-fast);
+  transition: all var(--transition-medium);
+  box-shadow: var(--shadow-soft);
 }
 
 .pseudo-table-input:focus {
   outline: none;
-  background: var(--pure-white);
+  background: var(--cosmic-white);
   border-color: var(--aurora-violet);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), var(--shadow-medium);
+  transform: translateY(-1px);
+}
+
+.pseudo-table-input:hover {
+  border-color: var(--celestial-light);
+  background: var(--cosmic-white);
 }
 
 .pseudo-table-input.full-name-input {
-  margin-bottom: var(--space-md);
   font-weight: 600;
+  font-size: var(--text-lg);
+  padding: var(--space-lg);
+  background: linear-gradient(135deg, var(--pure-white) 0%, var(--cosmic-white) 100%);
 }
 
+/* ✨ IMPROVED: First name editing section */
 .first-name-edit-section {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-top: var(--space-md);
-  padding-top: var(--space-sm);
-  border-top: 1px dashed var(--mist-white);
+  align-items: center;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 2px dashed rgba(99, 102, 241, 0.2);
+  background: rgba(248, 250, 252, 0.5);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
 }
 
 .first-name-edit-section .pseudo-table-input.first-name-input {
-  margin-bottom: var(--space-sm);
+  flex: 1;
+  font-size: var(--text-base);
+  font-weight: 500;
+  background: var(--pure-white);
 }
 
 .first-name-score {
+  background: linear-gradient(135deg, var(--aurora-violet) 0%, var(--celestial-light) 100%);
+  color: var(--pure-white);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-full);
   font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--text-violet);
-  padding: var(--space-xs) var(--space-sm);
-  background: var(--stardust);
-  border-radius: var(--radius-sm);
-  align-self: flex-end;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-soft);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  min-width: 80px;
+  text-align: center;
 }
 
+/* ✨ IMPROVED: Actions cell with better button layout */
 .pseudo-table-cell.actions-cell {
   display: flex;
   justify-content: center;
-  gap: var(--space-sm);
-  flex-wrap: nowrap; /* Prevent buttons from wrapping onto new lines */
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: nowrap;
+  padding: var(--space-lg);
 }
 
-/* Pagination controls remain the same */
+/* ✨ IMPROVED: Button styles within table */
+.pseudo-table-cell .secondary-btn,
+.pseudo-table-cell .primary-btn {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  min-height: 40px;
+  min-width: 70px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-medium);
+}
+
+.pseudo-table-cell .secondary-btn {
+  background: var(--pure-white);
+  color: var(--text-violet);
+  border: 2px solid var(--celestial-light);
+}
+
+.pseudo-table-cell .secondary-btn:hover {
+  background: var(--celestial-light);
+  color: var(--pure-white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.pseudo-table-cell .primary-btn {
+  background: linear-gradient(135deg, var(--pure-gold) 0%, var(--bright-gold) 100%);
+  color: var(--pure-white);
+  border: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.pseudo-table-cell .primary-btn:hover {
+  background: linear-gradient(135deg, var(--bright-gold) 0%, var(--champagne) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+
+.pseudo-table-cell .primary-btn.disabled-btn {
+  background: var(--text-success);
+  color: var(--pure-white);
+  cursor: default;
+  transform: none;
+}
+
+.pseudo-table-cell .primary-btn.disabled-btn:hover {
+  transform: none;
+  box-shadow: var(--shadow-soft);
+}
+
+/* ✨ IMPROVED: Pagination controls */
 .pagination-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-lg) var(--space-xl);
-  background: var(--cloud-white);
+  padding: var(--space-xl) var(--space-2xl);
+  background: linear-gradient(135deg, var(--cloud-white) 0%, var(--pure-white) 100%);
+  border: 1px solid var(--mist-white);
   border-radius: var(--radius-lg);
   margin-top: var(--space-xl);
   box-shadow: var(--shadow-soft);
   color: var(--text-secondary);
   font-family: 'Space Grotesk', sans-serif;
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: 600;
 }
 
 .pagination-controls button {
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-md) var(--space-xl);
   font-size: var(--text-sm);
-  min-height: 36px;
+  min-height: 44px;
+  min-width: 100px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
 }
 
-/* ✦ UTILITY & STATE CLASSES ✦ */
-.text-green-600 { color: var(--text-success); }
-.text-red-600 { color: var(--text-error); }
-.font-bold { font-weight: 700; }
-
-button:disabled, .primary-btn.disabled-btn {
-  background: var(--mist-white);
-  color: var(--text-muted);
-  border-color: transparent;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-  opacity: 0.7;
+.pagination-controls span {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.primary-btn.disabled-btn {
-  background: var(--text-success);
-  color: var(--pure-white);
-  cursor: default;
-}
-
-/* ✦ DARK MODE SUPPORT ✦ */
+/* ✨ IMPROVED: Dark mode enhancements for table */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --pure-white: #1e293b; /* Darker card background */
-    --pearl-white: #28364b;
-    --cosmic-white: #334155; /* Hover state for rows */
-    --cloud-white: #141832; /* Header background for table */
-    --mist-white: #475569; /* Border color */
-    --text-primary: #f1f5f9;
-    --text-secondary: #e2e8f0;
-    --text-tertiary: #cbd5e1;
-    --text-muted: #94a3b8;
-  }
-  
-  .main-content-wrapper {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.9) 50%, rgba(71, 85, 105, 0.85) 100%);
-  }
-  
-  .section-card,
-  .input-field,
-  .live-values,
-  .report-preview-area {
-    background: var(--pure-white);
-    border-color: rgba(71, 85, 105, 0.3);
-    color: var(--text-primary);
-  }
-
-  /* Dark mode for the pseudo-table */
   .pseudo-table-responsive {
-    border-color: var(--deep-space);
+    border-color: var(--stellar-blue);
+    background: var(--cosmic-navy);
   }
 
   .pseudo-table-header {
-    background-color: var(--mystic-purple);
-    border-bottom-color: var(--nebula-violet);
+    background: linear-gradient(135deg, var(--mystic-purple) 0%, var(--nebula-violet) 100%);
+    border-bottom-color: var(--aurora-violet);
   }
 
   .pseudo-table-row {
     background-color: var(--cosmic-navy);
-    border-bottom-color: var(--deep-space);
+    border-bottom-color: var(--stellar-blue);
   }
 
   .pseudo-table-row:nth-child(even) {
-    background-color: var(--deep-space);
+    background: linear-gradient(135deg, var(--deep-space) 0%, rgba(20, 24, 50, 0.8) 100%);
   }
 
   .pseudo-table-row:hover {
-    background-color: var(--nebula-violet);
-    color: var(--stardust);
+    background: linear-gradient(135deg, var(--nebula-violet) 0%, rgba(45, 27, 105, 0.6) 100%);
+    border-color: var(--celestial-light);
   }
 
   .pseudo-table-input {
-    background: var(--pure-white);
-    border-color: var(--mist-white);
+    background: var(--stellar-blue);
+    border-color: var(--nebula-violet);
     color: var(--text-primary);
   }
-  
+
   .pseudo-table-input:focus {
+    background: var(--cosmic-navy);
     border-color: var(--aurora-violet);
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), var(--shadow-medium);
   }
 
-  .pagination-controls {
-    background: var(--cloud-white);
-    color: var(--text-secondary);
+  .pseudo-table-input.full-name-input {
+    background: linear-gradient(135deg, var(--stellar-blue) 0%, var(--cosmic-navy) 100%);
   }
 
   .first-name-edit-section {
-    border-top-color: var(--mist-white); /* Dark mode border for first name section */
+    background: rgba(31, 35, 71, 0.5);
+    border-top-color: rgba(99, 102, 241, 0.3);
   }
 
   .first-name-score {
-    background: var(--nebula-violet); /* Dark mode background for score */
-    color: var(--celestial-light);
+    background: linear-gradient(135deg, var(--aurora-violet) 0%, var(--mystic-purple) 100%);
+  }
+
+  .pagination-controls {
+    background: linear-gradient(135deg, var(--deep-space) 0%, var(--cosmic-navy) 100%);
+    border-color: var(--stellar-blue);
+  }
+}
+
+/* ✨ GREATLY IMPROVED: Mobile responsive design */
+@media (max-width: 768px) {
+  .pseudo-table-responsive {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .pseudo-table-header {
+    display: none; /* Hide header on mobile */
+  }
+
+  .pseudo-table-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  .pseudo-table-row {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid var(--mist-white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-medium);
+    padding: var(--space-xl);
+    background: var(--pure-white);
+    margin-bottom: 0;
+  }
+
+  .pseudo-table-row:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-large);
+  }
+
+  .pseudo-table-cell {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--space-md) 0;
+    border-right: none;
+    border-bottom: 1px solid var(--mist-white);
+    min-height: auto;
+    text-align: left;
+  }
+
+  .pseudo-table-cell:last-child {
+    border-bottom: none;
+    padding-top: var(--space-lg);
+  }
+
+  .pseudo-table-cell .cell-label {
+    display: block;
+    font-weight: 700;
+    color: var(--text-violet);
+    flex-basis: 40%;
+    padding-right: var(--space-md);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .pseudo-table-cell.name-editing-cell {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-lg) 0;
+    background: transparent;
+    border-bottom: 2px solid var(--celestial-light);
+    margin-bottom: var(--space-lg);
+  }
+
+  .pseudo-table-cell.name-editing-cell .cell-label {
+    display: block;
+    margin-bottom: var(--space-sm);
+    color: var(--aurora-violet);
+    font-weight: 700;
+  }
+
+  .first-name-edit-section {
+    margin-top: var(--space-lg);
+    padding: var(--space-lg);
+    flex-direction: column;
+    gap: var(--space-md);
+    background: rgba(99, 102, 241, 0.05);
+  }
+
+  .first-name-edit-section .cell-label {
+    margin-bottom: var(--space-sm);
+  }
+
+  .first-name-score {
+    align-self: flex-end;
+    margin-top: var(--space-sm);
+  }
+
+  .pseudo-table-cell.actions-cell {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: var(--space-md);
+    padding-top: var(--space-lg);
+    border-top: 2px dashed var(--celestial-light);
+  }
+
+  .pseudo-table-cell.actions-cell .cell-label {
+    display: none; /* Hide Actions label on mobile */
+  }
+
+  .pseudo-table-cell .secondary-btn,
+  .pseudo-table-cell .primary-btn {
+    font-size: var(--text-xs);
+    padding: var(--space-sm) var(--space-md);
+    min-width: 80px;
+    min-height: 36px;
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+    text-align: center;
+  }
+
+  .pagination-controls button {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+/* ✨ EXTRA SMALL SCREENS */
+@media (max-width: 480px) {
+  .pseudo-table-row {
+    padding: var(--space-lg);
+  }
+
+  .pseudo-table-cell .cell-label {
+    flex-basis: 100%;
+    margin-bottom: var(--space-xs);
+  }
+
+  .pseudo-table-cell {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .first-name-edit-section {
+    padding: var(--space-md);
+  }
+
+  .pseudo-table-cell.actions-cell {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .pseudo-table-cell .secondary-btn,
+  .pseudo-table-cell .primary-btn {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+/* ✨ ACCESSIBILITY IMPROVEMENTS */
+@media (prefers-reduced-motion: reduce) {
+  .pseudo-table-row,
+  .pseudo-table-input,
+  .pseudo-table-cell .secondary-btn,
+  .pseudo-table-cell .primary-btn {
+    transition: none;
+  }
+
+  .pseudo-table-row:hover {
+    transform: none;
+  }
+}
+
+/* ✨ HIGH CONTRAST MODE */
+@media (prefers-contrast: high) {
+  .pseudo-table-responsive {
+    border: 3px solid #000000;
+  }
+
+  .pseudo-table-header {
+    background: #000000;
+    color: #ffffff;
+    border-bottom: 3px solid #000000;
+  }
+
+  .pseudo-table-row {
+    border-bottom: 2px solid #000000;
+  }
+
+  .pseudo-table-input {
+    border: 2px solid #000000;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .pseudo-table-cell .secondary-btn,
+  .pseudo-table-cell .primary-btn {
+    border: 2px solid #000000;
   }
 }
 
