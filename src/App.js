@@ -409,42 +409,42 @@ function App() {
     }, [clientProfile, confirmedSuggestions, openModal, setReportPreviewContent, setIsLoading]);
 
     // --- Effects ---
-    useEffect(() => {
-  if (suggestions.length > 0) {
-    const initialEditable = suggestions.map((s, index) => {
-      const name = typeof s === 'string' ? s : s.name; // fallback if s is a string
+        useEffect(() => {
+         if (suggestions.length > 0) {
+                const initialEditable = suggestions.map((s, index) => {
+                const name = typeof s === 'string' ? s : s.name; // fallback if s is a string
 
-      const firstNameValue = calculateFirstNameValue(name);
-      const expressionNumber = calculateExpressionNumber(name);
-      const soulUrgeNumber = calculateSoulUrgeNumber(name);
-      const personalityNumber = calculatePersonalityNumber(name);
-      const karmicDebtPresent = checkKarmicDebt(name);
-      const firstName = name.split(' ')[0];
-      const rawSum = name
-        .toUpperCase()
-        .split('')
-        .map(getChaldeanValue)
-        .reduce((acc, val) => acc + val, 0);
-      const isValid = isValidNameNumber(expressionNumber, rawSum);
+                const firstNameValue = calculateFirstNameValue(name);
+                const expressionNumber = calculateExpressionNumber(name);
+                const soulUrgeNumber = calculateSoulUrgeNumber(name);
+                const personalityNumber = calculatePersonalityNumber(name);
+                const karmicDebtPresent = checkKarmicDebt(name);
+                const firstName = name.split(' ')[0];
+                const rawSum = name
+                    .toUpperCase()
+                    .split('')
+                    .map(getChaldeanValue)
+                    .reduce((acc, val) => acc + val, 0);
+                const isValid = isValidNameNumber(expressionNumber, rawSum);
 
-      return {
-        ...s,
-        id: index,
-        currentName: name,
-        currentFirstName: firstName,
-        originalName: name,
-        firstNameValue,
-        expressionNumber,
-        soulUrgeNumber,
-        personalityNumber,
-        karmicDebtPresent,
-        isEdited: false,
-        validationResult: isValid
-      };
-    });
-    setEditableSuggestions(initialEditable);
-  }
-}, [suggestions]);
+                return {
+                    ...s,
+                    id: index,
+                    currentName: name,
+                    currentFirstName: firstName,
+                    originalName: name,
+                    firstNameValue,
+                    expressionNumber,
+                    soulUrgeNumber,
+                    personalityNumber,
+                    karmicDebtPresent,
+                    isEdited: false,
+                    validationResult: isValid
+                };
+                });
+                setEditableSuggestions(initialEditable);
+            }
+            }, [suggestions]);
 
 
     const updateLiveValidationDisplayCore = useCallback((name, currentClientProfile) => {
@@ -563,7 +563,40 @@ function App() {
             return s;
         }));
     }, [debouncedValidateSuggestionNameBackend]);
-    
+    useEffect(() => {
+    if (suggestions.length > 0) {
+        const initialEditable = suggestions.map((s, index) => {
+            const firstNameValue = calculateFirstNameValue(s.name);
+            const expressionNumber = calculateExpressionNumber(s.name);
+            const soulUrgeNumber = calculateSoulUrgeNumber(s.name);
+            const personalityNumber = calculatePersonalityNumber(s.name);
+            const karmicDebtPresent = checkKarmicDebt(s.name);
+            const firstName = s.name.split(' ')[0];
+            const rawSum = s.name
+                .toUpperCase()
+                .split('')
+                .map(getChaldeanValue)
+                .reduce((acc, val) => acc + val, 0);
+            const isValid = isValidNameNumber(expressionNumber, rawSum);
+
+            return {
+                ...s,
+                id: index,
+                currentName: s.name,
+                currentFirstName: firstName,
+                originalName: s.name,
+                firstNameValue,
+                expressionNumber,
+                soulUrgeNumber,
+                personalityNumber,
+                karmicDebtPresent,
+                isEdited: false,
+                validationResult: isValid
+            };
+        });
+        setEditableSuggestions(initialEditable);
+    }
+}, [suggestions]);
     const handleFirstNameChange = useCallback((index, newFirstName) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
             if (idx === index) {
@@ -637,7 +670,7 @@ function App() {
                             <label htmlFor="birthPlace" className="input-label">Birth Place (optional):</label>
                             <input type="text" id="birthPlace" placeholder="City, Country" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
                         </div>
-                        {/* The "Desired Outcome" input field is now removed from the UI */}
+                        
                     </div>
                     <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
                 </div>
