@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { marked } from 'marked'; // Corrected: For rendering Markdown in report preview
@@ -209,14 +210,16 @@ function App() {
     const [suggestions, setSuggestions] = useState([]); // Original suggestions from backend
     const [editableSuggestions, setEditableSuggestions] = useState([]); // Suggestions with edit state and live calculated values
     const [confirmedSuggestions, setConfirmedSuggestions] = useState([]);
-    const [currentPage, setCurrentPage] = useState(0); // For paginating suggestions table
+    
 
     const [customNameInput, setCustomNameInput] = useState('');
     const [liveValidationOutput, setLiveValidationOutput] = useState(null); // For live client-side calcs of custom input
     const [backendValidationResult, setBackendValidationResult] = useState(null); // For custom validation section
 
+    // eslint-disable-next-line no-unused-vars
     const [reportPreviewContent, setReportPreviewContent] = useState('');
 
+    // eslint-disable-next-line no-unused-vars
     const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
 
@@ -321,7 +324,7 @@ function App() {
         } finally {
             setIsLoading(false);
         }
-    }, [fullName, birthDate, birthTime, birthPlace, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading, setCurrentPage]);
+    }, [fullName, birthDate, birthTime, birthPlace, openModal, setSuggestions, setClientProfile, setConfirmedSuggestions, setIsLoading]);
 
     // handleValidateName now accepts the currentClientProfile directly
     const handleValidateName = useCallback(async (nameToValidate, currentClientProfile, isCustom = false, suggestionIndex = null) => {
@@ -621,264 +624,229 @@ function App() {
     }, [debouncedValidateSuggestionNameBackend]);
 
 
-    const SUGGESTIONS_PER_PAGE = 5; 
+    const SUGGESTIONS_PER_PAGE = 5;
+    const [currentPage, setCurrentPage] = useState(0);
+
     const pageCount = Math.ceil(editableSuggestions.length / SUGGESTIONS_PER_PAGE);
     const paginatedSuggestions = editableSuggestions.slice(
-        currentPage * SUGGESTIONS_PER_PAGE,
-        (currentPage + 1) * SUGGESTIONS_PER_PAGE
-    );
+    currentPage * SUGGESTIONS_PER_PAGE,
+    (currentPage + 1) * SUGGESTIONS_PER_PAGE);
 
-    const goToNextPage = () => {
-        setCurrentPage((page) => Math.min(page + 1, pageCount - 1));
-    };
+const goToNextPage = () => {
+  setCurrentPage((page) => Math.min(page + 1, pageCount - 1));
+};
 
-    const goToPreviousPage = () => {
-        setCurrentPage((page) => Math.max(page - 1, 0));
-    };
+const goToPreviousPage = () => {
+  setCurrentPage((page) => Math.max(page - 1, 0));
+};
 
     return (
-        <div className="app-container">
-            <div className="main-content-wrapper">
-                <h1 className="main-title">Sheelaa's Numerology Portal</h1>
+  <div className="app-container">
+    <div className="main-content-wrapper">
+      <h1 className="main-title">Sheelaa's Numerology Portal</h1>
 
-                <div className="section-card input-form-card">
-                    <h2>Client Information</h2>
-                    <div className="form-grid">
-                        <div className="input-group">
-                            <label htmlFor="fullName" className="input-label">Full Name:</label>
-                            <input type="text" id="fullName" placeholder="e.g., John Doe" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                            {fullName && (() => {
-    const evalResult = evaluateInitialNameValidity(fullName);
-    return (
-        <div style={{ marginTop: '0.5rem' }}>
-            <p><strong>Initial Name Status:</strong> <span style={{ color: evalResult.isValid ? 'green' : 'red' }}>
-                {evalResult.isValid ? 'VALID ✅' : 'INVALID ❌'}
-            </span> (Expression: {evalResult.expressionNumber}, Sum: {evalResult.rawSum})</p>
+      {/* Input Form */}
+      <div className="section-card input-form-card">
+        <h2>Client Information</h2>
+        <div className="form-grid">
+          <div className="input-group">
+            <label htmlFor="fullName" className="input-label">Full Name:</label>
+            <input
+              type="text"
+              id="fullName"
+              placeholder="e.g., John Doe"
+              className="input-field"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+            {fullName && (() => {
+              const evalResult = evaluateInitialNameValidity(fullName);
+              return (
+                <div style={{ marginTop: '0.5rem' }}>
+                  <p><strong>Initial Name Status:</strong> <span style={{ color: evalResult.isValid ? 'green' : 'red' }}>
+                    {evalResult.isValid ? 'VALID ✅' : 'INVALID ❌'}
+                  </span> (Expression: {evalResult.expressionNumber}, Sum: {evalResult.rawSum})</p>
+                </div>
+              );
+            })()}
+          </div>
+          <div className="input-group">
+            <label htmlFor="birthDate" className="input-label">Birth Date:</label>
+            <input
+              type="date"
+              id="birthDate"
+              className="input-field"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="birthTime" className="input-label">Birth Time (optional):</label>
+            <input
+              type="time"
+              id="birthTime"
+              placeholder="HH:MM"
+              className="input-field"
+              value={birthTime}
+              onChange={(e) => setBirthTime(e.target.value)}
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="birthPlace" className="input-label">Birth Place (optional):</label>
+            <input
+              type="text"
+              id="birthPlace"
+              placeholder="City, Country"
+              className="input-field"
+              value={birthPlace}
+              onChange={(e) => setBirthPlace(e.target.value)}
+            />
+          </div>
         </div>
-    );
-})()}
-                        </div>
-                        <div className="input-group">
-                            <label htmlFor="birthDate" className="input-label">Birth Date:</label>
-                            <input type="date" id="birthDate" className="input-field" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
-                        </div>
-                        <div className="input-group">
-                            <label htmlFor="birthTime" className="input-label">Birth Time (optional):</label>
-                            <input type="time" id="birthTime" placeholder="HH:MM" className="input-field" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
-                        </div>
-                        <div className="input-group">
-                            <label htmlFor="birthPlace" className="input-label">Birth Place (optional):</label>
-                            <input type="text" id="birthPlace" placeholder="City, Country" className="input-field" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
-                        </div>
-                        
-                    </div>
-                    <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
+        <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
+      </div>
+
+      {/* Suggested Names Carousel */}
+      {editableSuggestions.length > 0 && (
+        <div className="section-card suggestions-carousel">
+          <h2>Suggested Names</h2>
+
+          <div className="carousel-grid">
+            {paginatedSuggestions.map((s) => (
+              <div key={s.id} className="name-card">
+                <div className="input-group">
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    value={s.currentName}
+                    onChange={(e) => handleNameChange(s.id, e.target.value)}
+                    className="input-field"
+                  />
                 </div>
 
-                <div className="two-column-layout">
-                    <div className="section-card profile-display-card">
-                        <h2>Client Numerology Profile</h2>
-                        {clientProfile ? (
-                            <>
-                                {/* ✨ NEW: Display for initial name validation */}
-                                {initialNameValidation && (
-                                    <div className={`validation-result ${initialNameValidation.is_valid ? 'valid' : 'invalid'}`}>
-                                        <strong>Initial Name Status:</strong> {initialNameValidation.is_valid ? 'Valid ✅' : 'Invalid ❌'}
-                                        <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-sm)', color: 'inherit' }}>
-                                            {initialNameValidation.rationale}
-                                        </p>
-                                    </div>
-                                )}
-                                <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}>
-                                </div>
-                            </>
-                        ) : (
-                            <p className="text-muted">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
-                        )}
-                    </div>
-
-                    {clientProfile && (
-                        <div className="section-card custom-validation-card">
-                            <h2>Validate Custom Name</h2>
-                            <div className="input-group">
-                                <label htmlFor="customNameInput" className="input-label">Name to Validate:</label>
-                                <input
-                                    type="text"
-                                    id="customNameInput"
-                                    placeholder="Enter a name to validate..."
-                                    className="input-field"
-                                    value={customNameInput}
-                                    onChange={(e) => setCustomNameInput(e.target.value)}
-                                />
-                            </div>
-                            {liveValidationOutput && (
-                                <div className="live-validation-output section-card" style={{backgroundColor: '#ffffff', border: '1px solid #e9eceb', boxShadow: 'none'}}>
-                                    <p className="font-bold">Live Calculated Values:</p>
-                                    <div className="validation-grid">
-                                        <p><b>Name:</b> {customNameInput}</p>
-                                        <p><b>First Name Value:</b> {liveValidationOutput.firstNameValue}</p>
-                                        <p><b>Expression Number:</b> {liveValidationOutput.expressionNumber}</p>
-                                        <p><b>Soul Urge:</b> {liveValidationOutput.soulUrgeNumber}</p>
-                                        <p><b>Personality:</b> {liveValidationOutput.personalityNumber}</p>
-                                        <p><b>Karmic Debt:</b> {liveValidationOutput.karmicDebtPresent ? 'Yes ⚠️' : 'No'}</p>
-                                    </div>
-                                    {backendValidationResult && (
-                                        <>
-                                            <hr className="my-2" />
-                                            <p><b>Backend Validation:</b> <span className={backendValidationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{backendValidationResult.is_valid ? 'VALID' : 'INVALID'}</span></p>
-                                            <p><b>Rationale:</b> {backendValidationResult.rationale}</p>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                            <button onClick={() => handleValidateName(customNameInput, clientProfileRef.current, true, null)} className="primary-btn" disabled={!clientProfile || !customNameInput.trim()}>Validate Custom Name</button>
-                        </div>
-                    )}
+                <div className="input-group">
+                  <label>First Name</label>
+                  <input
+                    type="text"
+                    value={s.currentFirstName}
+                    onChange={(e) => handleFirstNameChange(s.id, e.target.value)}
+                    className="input-field"
+                  />
+                  <span className="text-sm text-gray-600">Score: {calculateFirstNameValue(s.currentFirstName)}</span>
                 </div>
 
-                {editableSuggestions.length > 0 && (
-                    <div className="section-card suggestions-display-card">
-                        <div className="pseudo-table-header-controls">
-                            <h2>Suggested Name Variations</h2>
-                        </div>
-                        <p className="text-sm text-gray-700 mb-3">
-                           Here are the suggested names. You can edit, validate, and confirm them directly in the list.
-                        </p>
-                        <div className="pseudo-table-responsive">
-                            <div className="pseudo-table-header">
-                                <div className="pseudo-table-cell header">Suggested Name</div>
-                                <div className="pseudo-table-cell header">First Name Value</div>
-                                <div className="pseudo-table-cell header">Expression Number</div>
-                                <div className="pseudo-table-cell header">Valid</div>
-                                <div className="pseudo-table-cell header">Actions</div>
-                            </div>
-                            <div className="pseudo-table-body">
-                                {paginatedSuggestions.map((s) => (
-                                    <div key={s.id} className="pseudo-table-row">
-                                        <div className="pseudo-table-cell name-editing-cell">
-                                            <span className="cell-label">Suggested Name:</span>
-                                            <input
-                                                type="text"
-                                                value={s.currentName}
-                                                onChange={(e) => handleNameChange(s.id, e.target.value)}
-                                                className="pseudo-table-input full-name-input"
-                                                aria-label={`Edit full name for ${s.originalName}`}
-                                            />
-                                            <div className="first-name-edit-section">
-                                                <span className="cell-label">First Name:</span>
-                                                <input
-                                                    type="text"
-                                                    value={s.currentFirstName}
-                                                    onChange={(e) => handleFirstNameChange(s.id, e.target.value)}
-                                                    className="pseudo-table-input first-name-input"
-                                                    aria-label={`Edit first name for ${s.originalName}`}
-                                                />
-                                                <span className="first-name-score">Score: {calculateFirstNameValue(s.currentFirstName)}</span>
-                                            </div>
-                                        </div>
-                                        <div className="pseudo-table-cell">
-                                            <span className="cell-label">First Name Value:</span>
-                                            {s.firstNameValue}
-                                        </div>
-                                        <div className="pseudo-table-cell">
-                                            <span className="cell-label">Expression Number:</span>
-                                            {s.expressionNumber}
-                                        </div>
-                                        <div className="pseudo-table-cell">
-                                            <span className="cell-label">Valid:</span>
-                                            {s.validationResult ? (
-                                                s.validationResult.is_valid ? '✅' : '❌'
-                                            ) : (
-                                                '--'
-                                            )}
-                                        </div>
-                                        <div className="pseudo-table-cell actions-cell">
-                                            <span className="cell-label">Actions:</span>
-                                            <button 
-                                                onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, s.id)} 
-                                                className="secondary-btn small-btn" 
-                                                disabled={!clientProfile || !s.currentName.trim()}
-                                                title="Re-validate this name with the backend"
-                                            >
-                                                Validate
-                                            </button>
-                                            <button
-                                                onClick={() => handleConfirmSuggestion(s)}
-                                                className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'disabled-btn' : ''}`}
-                                                disabled={confirmedSuggestions.some(cs => cs.name === s.currentName)}
-                                                 title="Confirm this name for the report"
-                                            >
-                                                {confirmedSuggestions.some(cs => cs.name === s.currentName) ? '✓' : 'Confirm'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="pagination-controls">
-                            <button onClick={goToPreviousPage} disabled={currentPage === 0} className="secondary-btn">
-                                Previous
-                            </button>
-                            <span>Page {currentPage + 1} of {pageCount}</span>
-                            <button onClick={goToNextPage} disabled={currentPage >= pageCount - 1} className="secondary-btn">
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                )}
+                <p><b>Expression:</b> {s.expressionNumber}</p>
+                <p><b>Valid:</b> {s.validationResult ? '✅' : '❌'}</p>
 
+                <div className="button-row">
+                  <button
+                    onClick={() => handleValidateName(s.currentName, clientProfileRef.current, false, s.id)}
+                    className="secondary-btn small-btn"
+                  >
+                    Validate
+                  </button>
+                  <button
+                    onClick={() => handleConfirmSuggestion(s)}
+                    className={`primary-btn small-btn ${confirmedSuggestions.some(cs => cs.name === s.currentName) ? 'disabled-btn' : ''}`}
+                    disabled={confirmedSuggestions.some(cs => cs.name === s.currentName)}
+                  >
+                    {confirmedSuggestions.some(cs => cs.name === s.currentName) ? '✓ Confirmed' : 'Confirm'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
 
-                {clientProfile && (
-                    <div className="section-card report-generation-card">
-                        <h2>Generate Reports</h2>
-                         {confirmedSuggestions.length > 0 ? (
-                            <div className="confirmed-suggestions-list mt-4 mb-4">
-                                <h3 className="font-bold text-lg mb-2">Your Confirmed Names:</h3>
-                                <div className="confirmed-names-grid">
-                                    {confirmedSuggestions.map((s, index) => (
-                                        <div key={index} className="confirmed-item">
-                                            <span>{s.name} (Exp: {s.expression_number})</span>
-                                            <button 
-                                                onClick={() => handleRemoveConfirmedSuggestion(s.name)} 
-                                                className="remove-btn"
-                                                title="Remove this name from the confirmed list"
-                                            >
-                                                &times;
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="text-gray-700 mb-3">Confirm names from the table above to include them in the report.</p>
-                        )}
-                        <button onClick={handleGenerateReport} className="primary-btn" disabled={!clientProfile || confirmedSuggestions.length === 0}>Generate Comprehensive Report (PDF & Preview)</button>
-                        {reportPreviewContent && (
-                            <div className="report-preview-area" dangerouslySetInnerHTML={{ __html: marked.parse(String(reportPreviewContent || '')) }}>
-                            </div>
-                        )}
-                    </div>
-                )}
+          <div className="carousel-controls">
+            <button
+              onClick={goToPreviousPage}
+              disabled={currentPage === 0}
+              className="secondary-btn"
+            >⬅ Previous</button>
+            <span>Page {currentPage + 1} of {pageCount}</span>
+            <button
+              onClick={goToNextPage}
+              disabled={currentPage >= pageCount - 1}
+              className="secondary-btn"
+            >Next ➡</button>
+          </div>
+        </div>
+      )}
+
+      {/* Client Profile */}
+      <div className="two-column-layout">
+        <div className="section-card profile-display-card">
+          <h2>Client Numerology Profile</h2>
+          {clientProfile ? (
+            <>
+              {initialNameValidation && (
+                <div className={`validation-result ${initialNameValidation.is_valid ? 'valid' : 'invalid'}`}>
+                  <strong>Initial Name Status:</strong> {initialNameValidation.is_valid ? 'Valid ✅' : 'Invalid ❌'}
+                  <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-sm)', color: 'inherit' }}>{initialNameValidation.rationale}</p>
+                </div>
+              )}
+              <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }} />
+            </>
+          ) : (
+            <p className="text-muted">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
+          )}
+        </div>
+
+        {/* Custom Validation */}
+        {clientProfile && (
+          <div className="section-card custom-validation-card">
+            <h2>Validate Custom Name</h2>
+            <div className="input-group">
+              <label htmlFor="customNameInput" className="input-label">Name to Validate:</label>
+              <input
+                type="text"
+                id="customNameInput"
+                placeholder="Enter a name to validate..."
+                className="input-field"
+                value={customNameInput}
+                onChange={(e) => setCustomNameInput(e.target.value)}
+              />
             </div>
-
-            {isLoading && (
-                <div className="loading-overlay">
-                    <div className="loader"></div>
-                    <p>Loading...</p>
+            {liveValidationOutput && (
+              <div className="live-validation-output section-card" style={{ backgroundColor: '#ffffff', border: '1px solid #e9eceb', boxShadow: 'none' }}>
+                <p className="font-bold">Live Calculated Values:</p>
+                <div className="validation-grid">
+                  <p><b>Name:</b> {customNameInput}</p>
+                  <p><b>First Name Value:</b> {liveValidationOutput.firstNameValue}</p>
+                  <p><b>Expression Number:</b> {liveValidationOutput.expressionNumber}</p>
+                  <p><b>Soul Urge:</b> {liveValidationOutput.soulUrgeNumber}</p>
+                  <p><b>Personality:</b> {liveValidationOutput.personalityNumber}</p>
+                  <p><b>Karmic Debt:</b> {liveValidationOutput.karmicDebtPresent ? 'Yes ⚠️' : 'No'}</p>
                 </div>
+                {backendValidationResult && (
+                  <>
+                    <hr className="my-2" />
+                    <p><b>Backend Validation:</b> <span className={backendValidationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{backendValidationResult.is_valid ? 'VALID' : 'INVALID'}</span></p>
+                    <p><b>Rationale:</b> {backendValidationResult.rationale}</p>
+                  </>
+                )}
+              </div>
             )}
+            <button onClick={() => handleValidateName(customNameInput, clientProfileRef.current, true, null)} className="primary-btn" disabled={!clientProfile || !customNameInput.trim()}>
+              Validate Custom Name
+            </button>
+          </div>
+        )}
+      </div>
 
-            {modal.isOpen && (
-                <div className="custom-modal">
-                    <div className="modal-content">
-                        <p className="modal-message">{modal.message}</p>
-                        <button onClick={closeModal} className="primary-btn">OK</button>
-                    </div>
-                </div>
-            )}
+      {/* Modal */}
+      {modal.isOpen && (
+        <div className="custom-modal">
+          <div className="modal-content">
+            <p className="modal-message">{modal.message}</p>
+            <button onClick={closeModal} className="primary-btn">OK</button>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  </div>
+);
 }
-
 export default App;
+
 

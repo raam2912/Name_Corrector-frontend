@@ -1728,6 +1728,66 @@ p,
 p {
   max-width: 70ch;
 }
+/* === Suggestions Carousel Styling === */
+.suggestions-carousel {
+  padding: 1.5rem;
+  background: #fefefe;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.carousel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.name-card {
+  border: 1px solid #e3e3e3;
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.03);
+  transition: transform 0.2s ease;
+}
+
+.name-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.carousel-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.carousel-controls span {
+  font-weight: 500;
+  color: #444;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.small-btn {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.disabled-btn {
+  background-color: #ccc !important;
+  cursor: not-allowed;
+}
+
 
 /* ✦ IMPROVEMENTS: Background Sparkle Overlay ✦ */
 body::after {
