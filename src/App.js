@@ -410,47 +410,47 @@ function App() {
 
     // --- Effects ---
     useEffect(() => {
-    if (suggestions.length > 0) {
-        const initialEditable = suggestions.map((s, index) => {
-            const firstNameValue = calculateFirstNameValue(s.name);
-            const expressionNumber = calculateExpressionNumber(s.name);
-            const soulUrgeNumber = calculateSoulUrgeNumber(s.name);
-            const personalityNumber = calculatePersonalityNumber(s.name);
-            const karmicDebtPresent = checkKarmicDebt(s.name);
-            const firstName = s.name.split(' ')[0];
+    if (!clientProfile || !clientProfile.birth_date || suggestions.length === 0) return;
 
-            // ✅ STRICT VALIDATION ADDED BELOW
-            const lifePathNum = calculateLifePathNumber(clientProfile.birth_date);
-            const birthDayNum = calculateBirthDayNumber(clientProfile.birth_date);
+    const lifePathNum = calculateLifePathNumber(clientProfile.birth_date);
+    const birthDayNum = calculateBirthDayNumber(clientProfile.birth_date);
 
-            const isLucky = LUCKY_NAME_NUMBERS.has(expressionNumber);
-            const isCompatible =
-                EXPRESSION_COMPATIBILITY_MAP[expressionNumber]?.includes(lifePathNum) &&
-                EXPRESSION_COMPATIBILITY_MAP[expressionNumber]?.includes(birthDayNum);
-            const isValid = isLucky && isCompatible && !UNLUCKY_NAME_NUMBERS.has(expressionNumber);
+    const initialEditable = suggestions.map((s, index) => {
+        const firstName = s.name.split(' ')[0];
+        const firstNameValue = calculateFirstNameValue(s.name);
+        const expressionNumber = calculateExpressionNumber(s.name);
+        const soulUrgeNumber = calculateSoulUrgeNumber(s.name);
+        const personalityNumber = calculatePersonalityNumber(s.name);
+        const karmicDebtPresent = checkKarmicDebt(s.name);
 
-            return {
-                ...s,
-                id: index,
-                currentName: s.name,
-                currentFirstName: firstName,
-                originalName: s.name,
-                firstNameValue,
-                expressionNumber,
-                soulUrgeNumber,
-                personalityNumber,
-                karmicDebtPresent,
-                isEdited: false,
-                validationResult: null,
-                // ✅ ADDED FIELDS
-                isLucky,
-                isCompatible,
-                isValid
-            };
-        });
-        setEditableSuggestions(initialEditable);
-    }
-}, [clientProfile.birth_date, suggestions]);
+        const isLucky = LUCKY_NAME_NUMBERS.has(expressionNumber);
+        const isCompatible =
+            EXPRESSION_COMPATIBILITY_MAP[expressionNumber]?.includes(lifePathNum) &&
+            EXPRESSION_COMPATIBILITY_MAP[expressionNumber]?.includes(birthDayNum);
+        const isValid = isLucky && isCompatible && !UNLUCKY_NAME_NUMBERS.has(expressionNumber);
+
+        return {
+            ...s,
+            id: index,
+            currentName: s.name,
+            currentFirstName: firstName,
+            originalName: s.name,
+            firstNameValue,
+            expressionNumber,
+            soulUrgeNumber,
+            personalityNumber,
+            karmicDebtPresent,
+            isEdited: false,
+            validationResult: null,
+            isLucky,
+            isCompatible,
+            isValid
+        };
+    });
+
+    setEditableSuggestions(initialEditable);
+}, [clientProfile, suggestions]);
+
 
 
     const updateLiveValidationDisplayCore = useCallback((name, currentClientProfile) => {
@@ -461,7 +461,9 @@ function App() {
         }
 
         const expNum = calculateExpressionNumber(name);
-        const birthDateStr = currentClientProfile.birth_date;
+        const birthDateStr = currentClientProfile?.birth_date;
+if (!birthDateStr) return;
+
         const loShu = calculateLoShuGrid(birthDateStr, expNum);
         const birthDayNum = calculateBirthDayNumber(birthDateStr);
         const lifePathNum = calculateLifePathNumber(birthDateStr);
