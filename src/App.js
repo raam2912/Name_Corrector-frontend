@@ -45,19 +45,7 @@ function isValidNameNumber(expressionNum, rawSum) {
     return LUCKY_NAME_NUMBERS.has(expressionNum) && !UNLUCKY_NAME_NUMBERS.has(expressionNum) && !KARMIC_DEBT_NUMBERS.has(rawSum);
 }
 
-function evaluateInitialNameValidity(name) {
-    const cleaned = cleanName(name);
-    let sum = 0;
-    for (const char of cleaned) {
-        sum += getChaldeanValue(char);
-    }
-    const expression = calculateSingleDigit(sum, true);
-    return {
-        isValid: isValidNameNumber(expression, sum),
-        rawSum: sum,
-        expressionNumber: expression,
-    };
-}
+
 function cleanName(name) {
     return name.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
 }
@@ -196,10 +184,10 @@ function App() {
     const [birthTime, setBirthTime] = useState('');
     const [birthPlace, setBirthPlace] = useState('');
     // eslint-disable-next-line no-unused-vars
-    const [desiredOutcome, setDesiredOutcome] = useState('');
+    
 
     const [clientProfile, setClientProfile] = useState(null);
-    const [initialNameValidation, setInitialNameValidation] = useState(null); // ✨ NEW: State for initial name validation
+   
     // Use a ref to always have the latest clientProfile available in callbacks
     const clientProfileRef = useRef(clientProfile);
     useEffect(() => {
@@ -217,10 +205,10 @@ function App() {
     const [backendValidationResult, setBackendValidationResult] = useState(null); // For custom validation section
 
     // eslint-disable-next-line no-unused-vars
-    const [reportPreviewContent, setReportPreviewContent] = useState('');
+    const [ setReportPreviewContent] = useState('');
 
     // eslint-disable-next-line no-unused-vars
-    const [isLoading, setIsLoading] = useState(false);
+    const [setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
 
     // --- Modal Functions ---
@@ -283,7 +271,7 @@ function App() {
         }
 
         setIsLoading(true);
-        setInitialNameValidation(null); // ✨ NEW: Reset initial validation state
+        
         try {
             // desiredOutcome is no longer sent to the backend
             const response = await axios.post(`${BACKEND_URL}/initial_suggestions`, {
@@ -300,18 +288,7 @@ function App() {
                 setClientProfile(profileData); 
                 console.log("Client Profile set successfully:", profileData);
                 
-                // ✨ NEW: Automatically validate the client's original name
-                try {
-                    const validationResponse = await axios.post(`${BACKEND_URL}/validate_name`, {
-                        suggested_name: fullName, // Use the original name from the input field
-                        client_profile: profileData,
-                    });
-                    setInitialNameValidation(validationResponse.data);
-                    console.log("Initial name validation successful:", validationResponse.data);
-                } catch (validationError) {
-                    console.error('Could not validate the initial name:', validationError);
-                    setInitialNameValidation(null);
-                }
+                
             } else {
                 console.error("Backend did not return valid profile_data in initial_suggestions response:", response.data.profile_data);
                 openModal("Failed to load client profile due to invalid data from backend. Please try again or contact support.");
@@ -659,16 +636,11 @@ const goToPreviousPage = () => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
             />
-            {fullName && (() => {
-              const evalResult = evaluateInitialNameValidity(fullName);
-              return (
-                <div style={{ marginTop: '0.5rem' }}>
-                  <p><strong>Initial Name Status:</strong> <span style={{ color: evalResult.isValid ? 'green' : 'red' }}>
-                    {evalResult.isValid ? 'VALID ✅' : 'INVALID ❌'}
-                  </span> (Expression: {evalResult.expressionNumber}, Sum: {evalResult.rawSum})</p>
-                </div>
-              );
-            })()}
+            {fullName && (
+  <div style={{ marginTop: '0.5rem' }}>
+    <p><strong>Live Values:</strong> First Name Value (FNV): <b>{calculateFirstNameValue(fullName.split(' ')[0])}</b>, Expression Number (Full Name): <b>{calculateExpressionNumber(fullName)}</b></p>
+  </div>
+)}
           </div>
           <div className="input-group">
             <label htmlFor="birthDate" className="input-label">Birth Date:</label>
@@ -774,23 +746,28 @@ const goToPreviousPage = () => {
       )}
 
       {/* Client Profile */}
-      <div className="two-column-layout">
-        <div className="section-card profile-display-card">
-          <h2>Client Numerology Profile</h2>
-          {clientProfile ? (
-            <>
-              {initialNameValidation && (
-                <div className={`validation-result ${initialNameValidation.is_valid ? 'valid' : 'invalid'}`}>
-                  <strong>Initial Name Status:</strong> {initialNameValidation.is_valid ? 'Valid ✅' : 'Invalid ❌'}
-                  <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-sm)', color: 'inherit' }}>{initialNameValidation.rationale}</p>
-                </div>
-              )}
-              <div className="profile-details-content" dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }} />
-            </>
-          ) : (
-            <p className="text-muted">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
-          )}
-        </div>
+<div className="two-column-layout">
+  <div className="section-card profile-display-card">
+    <h2>Client Numerology Profile</h2>
+
+    {/* Optional: Show live FNV/Expression even if profile hasn't loaded */}
+    {fullName && (
+      <div style={{ marginBottom: '0.75rem', fontStyle: 'italic' }}>
+        <p><strong>Live Name Check:</strong> FNV = <b>{calculateFirstNameValue(fullName.split(' ')[0])}</b>, Expression = <b>{calculateExpressionNumber(fullName)}</b></p>
+      </div>
+    )}
+
+    {clientProfile ? (
+      <>
+        <div
+          className="profile-details-content"
+          dangerouslySetInnerHTML={{ __html: formatProfileData(clientProfile) }}
+        />
+      </>
+    ) : (
+      <p className="text-muted">Please fill in your details and click "Get Initial Suggestions" to load your numerology profile.</p>
+    )}
+  </div>
 
         {/* Custom Validation */}
         {clientProfile && (
