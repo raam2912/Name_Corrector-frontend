@@ -12,23 +12,23 @@ const BACKEND_URL = 'https://name-corrector-backend.onrender.com'; // <<< IMPORT
 // --- Client-Side Numerology Calculation Functions (Ported from Backend) ---
 // These are essential for live updates without constant server calls.
 
-const CHALDEAN_MAP = {
-    'A': 1, 'I': 1, 'J': 1, 'Q': 1, 'Y': 1,
-    'B': 2, 'K': 2, 'R': 2,
-    'C': 3, 'G': 3, 'L': 3, 'S': 3,
-    'D': 4, 'M': 4, 'T': 4,
-    'E': 5, 'H': 5, 'N': 5, 'X': 5,
-    'U': 6, 'V': 6, 'W': 6,
-    'O': 7, 'Z': 7,
-    'F': 8, 'P': 8
+const EXPRESSION_COMPATIBILITY_MAP = {
+  1: [1, 3, 5, 6],
+  2: [2, 4, 6, 9],
+  3: [1, 3, 5, 6, 9],
+  4: [1, 5, 6],
+  5: [1, 3, 5, 6, 9],
+  6: [3, 5, 6, 9],
+  7: [1, 5, 6, 9],
+  8: [1, 3, 5, 6],
+  9: [3, 6, 9],
+  11: [2, 6, 11, 22],
+  22: [4, 6, 8, 22],
+  33: [6, 9, 33],
 };
 
-const MASTER_NUMBERS = new Set([11, 22, 33]);
-const KARMIC_DEBT_NUMBERS = new Set([13, 14, 16, 19]);
-const VOWELS = new Set('AEIOU');
-// --- Initial Name Evaluation Additions ---
 const LUCKY_NAME_NUMBERS = new Set([1, 3, 5, 6, 9, 11, 22, 33]);
-const UNLUCKY_NAME_NUMBERS = new Set([4, 8]);
+const UNLUCKY_NAME_NUMBERS = new Set([4, 8, 13, 14, 16, 19]);
 
 
 function isValidNameNumber(expressionNum, rawSum) {
@@ -401,33 +401,47 @@ function App() {
 
     // --- Effects ---
     useEffect(() => {
-        if (suggestions.length > 0) {
-            const initialEditable = suggestions.map((s, index) => {
-                const firstNameValue = calculateFirstNameValue(s.name);
-                const expressionNumber = calculateExpressionNumber(s.name);
-                const soulUrgeNumber = calculateSoulUrgeNumber(s.name);
-                const personalityNumber = calculatePersonalityNumber(s.name);
-                const karmicDebtPresent = checkKarmicDebt(s.name);
-                const firstName = s.name.split(' ')[0];
+    if (suggestions.length > 0) {
+        const initialEditable = suggestions.map((s, index) => {
+            const firstNameValue = calculateFirstNameValue(s.name);
+            const expressionNumber = calculateExpressionNumber(s.name);
+            const soulUrgeNumber = calculateSoulUrgeNumber(s.name);
+            const personalityNumber = calculatePersonalityNumber(s.name);
+            const karmicDebtPresent = checkKarmicDebt(s.name);
+            const firstName = s.name.split(' ')[0];
 
-                return {
-                    ...s,
-                    id: index,
-                    currentName: s.name,
-                    currentFirstName: firstName,
-                    originalName: s.name,
-                    firstNameValue,
-                    expressionNumber,
-                    soulUrgeNumber,
-                    personalityNumber,
-                    karmicDebtPresent,
-                    isEdited: false,
-                    validationResult: null
-                };
-            });
-            setEditableSuggestions(initialEditable);
-        }
-    }, [suggestions]);
+            // ✅ STRICT VALIDATION ADDED BELOW
+            const lifePathNum = calculateLifePathNumber(clientProfile.birth_date);
+            const birthDayNum = calculateBirthDayNumber(clientProfile.birth_date);
+
+            const isLucky = LUCKY_NAME_NUMBERS.has(expressionNumber);
+            const isCompatible =
+                EXPRESSION_COMPATIBILITY_MAP[expressionNumber]?.includes(lifePathNum) &&
+                EXPRESSION_COMPATIBILITY_MAP[expressionNumber]?.includes(birthDayNum);
+            const isValid = isLucky && isCompatible && !UNLUCKY_NAME_NUMBERS.has(expressionNumber);
+
+            return {
+                ...s,
+                id: index,
+                currentName: s.name,
+                currentFirstName: firstName,
+                originalName: s.name,
+                firstNameValue,
+                expressionNumber,
+                soulUrgeNumber,
+                personalityNumber,
+                karmicDebtPresent,
+                isEdited: false,
+                validationResult: null,
+                // ✅ ADDED FIELDS
+                isLucky,
+                isCompatible,
+                isValid
+            };
+        });
+        setEditableSuggestions(initialEditable);
+    }
+}, [suggestions]);
 
 
     const updateLiveValidationDisplayCore = useCallback((name, currentClientProfile) => {
@@ -476,6 +490,11 @@ function App() {
     }, [customNameInput, debouncedUpdateLiveValidationDisplay]);
 
     const handleConfirmSuggestion = useCallback((suggestion) => {
+        if (!suggestion.isValid) {
+  openModal("❌ This name is not numerologically compatible. Please choose a valid, lucky name aligned with your Life Path.");
+  return;
+}
+        
         const nameToConfirm = suggestion.currentName;
         
         const isAlreadyConfirmed = confirmedSuggestions.some(
@@ -826,3 +845,4 @@ function App() {
 }
 
 export default App;
+
