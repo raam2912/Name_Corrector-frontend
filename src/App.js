@@ -10,7 +10,7 @@ import './App.css'; // Import the CSS file for styling
 // Configure your backend URL
 const BACKEND_URL = 'https://name-corrector-backend.onrender.com'; // <<< IMPORTANT: REPLACE THIS WITH YOUR RENDER BACKEND URL
 
-// --- ENHANCED CLIENT-SIDE CHALDEAN NUMEROLOGY CALCULATIONS ---
+// --- UPDATED CHALDEAN NUMEROLOGY CALCULATIONS WITH NEW RULES ---
 const CHALDEAN_MAP = {
   A: 1, B: 2, C: 3, D: 4, E: 5, F: 8, G: 3,
   H: 5, I: 1, J: 1, K: 2, L: 3, M: 4, N: 5,
@@ -22,137 +22,202 @@ const MASTER_NUMBERS = new Set([11, 22, 33]);
 const KARMIC_DEBT_NUMBERS = new Set([13, 14, 16, 19]);
 const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
 
-// ENHANCED CHALDEAN COMPATIBILITY MATRIX
-const LIFE_PATH_EXPRESSION_COMPATIBILITY = {
-  1: [1, 3, 5, 6],
-  2: [2, 4, 6, 9],
-  3: [1, 3, 5, 6, 9],
-  4: [1, 5, 6], // NEVER 4 or 8
-  5: [1, 3, 5, 6, 9],
-  6: [3, 5, 6, 9],
-  7: [1, 5, 6, 9], // avoid 7, 8
-  8: [1, 3, 5, 6], // NEVER 4 or 8
-  9: [3, 6, 9],
-  11: [2, 6, 11, 22],
-  22: [4, 6, 8, 22], // Exception: Can have 4, 8
-  33: [6, 9, 33],
-};
+// UPDATED RULES: PRIMARY LUCKY NUMBERS ARE ONLY 1, 5, 6
+const PRIMARY_LUCKY_NUMBERS = new Set([1, 5, 6]);
 
-// LUCKY AND UNLUCKY NUMBERS
-const LUCKY_EXPRESSION_NUMBERS = new Set([1, 3, 5, 6, 9, 11, 22, 33]);
-const UNLUCKY_EXPRESSION_NUMBERS = new Set([4, 8]); // 7 sometimes unlucky
-const FORBIDDEN_COMBINATIONS = new Set([4, 8]); // The 4-8 trap
+// Special value permissions and restrictions
+const ALWAYS_REJECTED_VALUES = new Set([51]); // 51 rejected for personal names (business only)
+const SPECIAL_ALLOWED_VALUES = new Set([65]); // 65 allowed despite reducing to 2
 
-// PRIORITY SCORING SYSTEM
-const getExpressionNumberPriority = (expressionNum, lifePathNum) => {
-  // Check if it's a forbidden number first
-  if (UNLUCKY_EXPRESSION_NUMBERS.has(expressionNum)) {
-    // Exception for Life Path 2 (can have Expression 4) and Life Path 22 (can have Expression 8)
-    if (!(lifePathNum === 2 && expressionNum === 4) && !(lifePathNum === 22 && expressionNum === 8)) {
-      return { priority: 1, label: "★☆☆☆☆ FORBIDDEN", class: "priority-forbidden" };
+/**
+ * Calculate Birth Number from date of birth
+ * @param {string} birthDateStr - Date in YYYY-MM-DD format
+ * @returns {number} Birth number (day reduced to single digit)
+ */
+function calculateBirthNumber(birthDateStr) {
+    try {
+        const day = parseInt(birthDateStr.split('-')[2], 10);
+        if (isNaN(day) || day < 1 || day > 31) return 0;
+        return calculateSingleDigit(day, false); // Birth number is always single digit
+    } catch {
+        return 0;
     }
-  }
-
-  // Check Life Path compatibility
-  const compatibleNumbers = LIFE_PATH_EXPRESSION_COMPATIBILITY[lifePathNum] || [];
-  if (!compatibleNumbers.includes(expressionNum)) {
-    return { priority: 2, label: "★★☆☆☆ INCOMPATIBLE", class: "priority-incompatible" };
-  }
-
-  // Check if it's a lucky number
-  if (LUCKY_EXPRESSION_NUMBERS.has(expressionNum)) {
-    if ([1, 3, 5, 6, 9].includes(expressionNum)) {
-      return { priority: 5, label: "★★★★★ PREMIUM", class: "priority-premium" };
-    }
-    if ([11, 22, 33].includes(expressionNum)) {
-      return { priority: 4, label: "★★★★☆ MASTER", class: "priority-master" };
-    }
-  }
-
-  return { priority: 3, label: "★★★☆☆ ACCEPTABLE", class: "priority-acceptable" };
-};
-
-// ENHANCED VALIDATION FUNCTION
-function isValidNameNumber(expressionNum, rawSum, lifePathNum = null) {
-  // Check for karmic debt in raw sum
-  if (KARMIC_DEBT_NUMBERS.has(rawSum)) {
-    return false;
-  }
-
-  // Check if it's a forbidden number (4-8 trap)
-  if (UNLUCKY_EXPRESSION_NUMBERS.has(expressionNum)) {
-    // Exception for Life Path 2 (can have Expression 4) and Life Path 22 (can have Expression 8)
-    if (!(lifePathNum === 2 && expressionNum === 4) && !(lifePathNum === 22 && expressionNum === 8)) {
-      return false;
-    }
-  }
-
-  // If Life Path is provided, check compatibility
-  if (lifePathNum !== null) {
-    const compatibleNumbers = LIFE_PATH_EXPRESSION_COMPATIBILITY[lifePathNum] || [];
-    if (!compatibleNumbers.includes(expressionNum)) {
-      return false;
-    }
-  }
-
-  // Must be a lucky number
-  return LUCKY_EXPRESSION_NUMBERS.has(expressionNum);
 }
 
-// ENHANCED NAME COMPATIBILITY CHECKER
-function getNameCompatibilityAnalysis(expressionNum, lifePathNum, rawSum) {
-  const analysis = {
-    isValid: false,
-    priority: getExpressionNumberPriority(expressionNum, lifePathNum),
-    conflicts: [],
-    benefits: [],
-    recommendation: ""
-  };
-
-  // Check for karmic debt
-  if (KARMIC_DEBT_NUMBERS.has(rawSum)) {
-    analysis.conflicts.push(`Karmic Debt detected (${rawSum}) - avoid this combination`);
-  }
-
-  // Check 4-8 trap
-  if (UNLUCKY_EXPRESSION_NUMBERS.has(expressionNum)) {
-    if (!(lifePathNum === 2 && expressionNum === 4) && !(lifePathNum === 22 && expressionNum === 8)) {
-      analysis.conflicts.push(`Expression ${expressionNum} creates the 4-8 trap - brings instability and delays`);
+/**
+ * Calculate Life Path Number from full birth date
+ * @param {string} birthDateStr - Date in YYYY-MM-DD format
+ * @returns {number} Life path number (sum of all digits reduced)
+ */
+function calculateLifePathNumber(birthDateStr) {
+    try {
+        const [year, month, day] = birthDateStr.split('-').map(Number);
+        const totalSumAllDigits = String(year) + String(month).padStart(2, '0') + String(day).padStart(2, '0');
+        let sum = 0;
+        for(const digit of totalSumAllDigits) {
+            sum += parseInt(digit, 10);
+        }
+        return calculateSingleDigit(sum, false); // Life path is single digit for our rules
+    } catch {
+        return 0;
     }
-  }
-
-  // Check Life Path compatibility
-  const compatibleNumbers = LIFE_PATH_EXPRESSION_COMPATIBILITY[lifePathNum] || [];
-  if (!compatibleNumbers.includes(expressionNum)) {
-    analysis.conflicts.push(`Expression ${expressionNum} conflicts with Life Path ${lifePathNum} - creates karmic obstacles`);
-  } else {
-    analysis.benefits.push(`Expression ${expressionNum} harmoniously vibrates with Life Path ${lifePathNum}`);
-  }
-
-  // Check if it's a lucky number
-  if (LUCKY_EXPRESSION_NUMBERS.has(expressionNum)) {
-    if ([1, 3, 5, 6, 9].includes(expressionNum)) {
-      analysis.benefits.push(`Expression ${expressionNum} is a fortunate number - enhances success and confidence`);
-    }
-    if ([11, 22, 33].includes(expressionNum)) {
-      analysis.benefits.push(`Expression ${expressionNum} is a Master Number - brings heightened spiritual potential`);
-    }
-  }
-
-  // Final validation
-  analysis.isValid = isValidNameNumber(expressionNum, rawSum, lifePathNum);
-
-  // Generate recommendation
-  if (analysis.isValid) {
-    analysis.recommendation = `✅ RECOMMENDED: This name creates positive energetic alignment with your Life Path ${lifePathNum}`;
-  } else {
-    analysis.recommendation = `❌ NOT RECOMMENDED: This name creates conflicts or karmic obstacles for Life Path ${lifePathNum}`;
-  }
-
-  return analysis;
 }
 
-// --- EXISTING CALCULATION FUNCTIONS (Enhanced) ---
+/**
+ * Determine allowed values based on birth number and life path number
+ * @param {number} birthNumber 
+ * @param {number} lifePathNumber 
+ * @returns {Set} Set of allowed values for FNV and CMV
+ */
+function getAllowedValues(birthNumber, lifePathNumber) {
+    let allowedValues = new Set([1, 5, 6]); // Start with base lucky numbers
+    
+    // Exception 1: Birth/Life Path = 8 → Cannot use 1
+    if (birthNumber === 8 || lifePathNumber === 8) {
+        allowedValues.delete(1);
+    }
+    
+    // Exception 2: Birth/Life Path = 3 → Cannot use 6
+    if (birthNumber === 3 || lifePathNumber === 3) {
+        allowedValues.delete(6);
+    }
+    
+    // Exception 3: Birth/Life Path = 6 → Cannot use 3 (but 3 wasn't in primary anyway)
+    // This doesn't affect our primary set, but good to track
+    
+    // Exception 4: Birth/Life Path = 3 → CAN use 3
+    if (birthNumber === 3 || lifePathNumber === 3) {
+        allowedValues.add(3);
+    }
+    
+    return allowedValues;
+}
+
+/**
+ * Check if a specific value is allowed for name correction
+ * @param {number} value - The calculated name value
+ * @param {number} birthNumber 
+ * @param {number} lifePathNumber 
+ * @returns {boolean}
+ */
+function isValueAllowed(value, birthNumber, lifePathNumber) {
+    // Exception 5: Always reject 51 for personal names
+    if (ALWAYS_REJECTED_VALUES.has(value)) {
+        return false;
+    }
+    
+    // Exception 6: Always allow 65 despite reducing to 2
+    if (SPECIAL_ALLOWED_VALUES.has(value)) {
+        return true;
+    }
+    
+    // Reduce value to single digit for comparison
+    const reducedValue = calculateSingleDigit(value, false);
+    const allowedValues = getAllowedValues(birthNumber, lifePathNumber);
+    
+    return allowedValues.has(reducedValue);
+}
+
+/**
+ * Get comprehensive analysis of name compatibility
+ * @param {number} fnv - First Name Value
+ * @param {number} cmv - Complete name value (Expression Number)
+ * @param {number} birthNumber 
+ * @param {number} lifePathNumber 
+ * @returns {Object} Analysis object
+ */
+function getNameCompatibilityAnalysis(fnv, cmv, birthNumber, lifePathNumber) {
+    const analysis = {
+        isValid: false,
+        priority: { priority: 1, label: "❌ INVALID", class: "priority-invalid" },
+        conflicts: [],
+        benefits: [],
+        recommendation: "",
+        allowedValues: [],
+        fnvStatus: { isValid: false, reason: "" },
+        cmvStatus: { isValid: false, reason: "" }
+    };
+    
+    const allowedValues = getAllowedValues(birthNumber, lifePathNumber);
+    analysis.allowedValues = Array.from(allowedValues).sort();
+    
+    // Check FNV (First Name Value)
+    const fnvValid = isValueAllowed(fnv, birthNumber, lifePathNumber);
+    const fnvReduced = calculateSingleDigit(fnv, false);
+    
+    if (!fnvValid) {
+        if (ALWAYS_REJECTED_VALUES.has(fnv)) {
+            analysis.fnvStatus = { isValid: false, reason: `FNV ${fnv} is forbidden for personal names` };
+            analysis.conflicts.push(`First Name Value ${fnv} is forbidden for personal names`);
+        } else {
+            analysis.fnvStatus = { isValid: false, reason: `FNV ${fnvReduced} not in allowed values [${analysis.allowedValues.join(', ')}]` };
+            analysis.conflicts.push(`First Name Value ${fnvReduced} conflicts with your birth numbers`);
+        }
+    } else {
+        if (SPECIAL_ALLOWED_VALUES.has(fnv)) {
+            analysis.fnvStatus = { isValid: true, reason: `FNV ${fnv} specially allowed` };
+            analysis.benefits.push(`First Name Value ${fnv} has special permission`);
+        } else {
+            analysis.fnvStatus = { isValid: true, reason: `FNV ${fnvReduced} is lucky and compatible` };
+            analysis.benefits.push(`First Name Value ${fnvReduced} creates positive energy`);
+        }
+    }
+    
+    // Check CMV (Complete Name Value / Expression Number)
+    const cmvValid = isValueAllowed(cmv, birthNumber, lifePathNumber);
+    const cmvReduced = calculateSingleDigit(cmv, false);
+    
+    if (!cmvValid) {
+        if (ALWAYS_REJECTED_VALUES.has(cmv)) {
+            analysis.cmvStatus = { isValid: false, reason: `CMV ${cmv} is forbidden for personal names` };
+            analysis.conflicts.push(`Expression Number ${cmv} is forbidden for personal names`);
+        } else {
+            analysis.cmvStatus = { isValid: false, reason: `CMV ${cmvReduced} not in allowed values [${analysis.allowedValues.join(', ')}]` };
+            analysis.conflicts.push(`Expression Number ${cmvReduced} conflicts with your birth numbers`);
+        }
+    } else {
+        if (SPECIAL_ALLOWED_VALUES.has(cmv)) {
+            analysis.cmvStatus = { isValid: true, reason: `CMV ${cmv} specially allowed` };
+            analysis.benefits.push(`Expression Number ${cmv} has special permission`);
+        } else {
+            analysis.cmvStatus = { isValid: true, reason: `CMV ${cmvReduced} is lucky and compatible` };
+            analysis.benefits.push(`Expression Number ${cmvReduced} enhances your fortune`);
+        }
+    }
+    
+    // Overall validation
+    analysis.isValid = fnvValid && cmvValid;
+    
+    // Set priority and recommendation
+    if (analysis.isValid) {
+        // Determine priority based on how "lucky" the numbers are
+        if (allowedValues.has(1) && (fnvReduced === 1 || cmvReduced === 1)) {
+            analysis.priority = { priority: 5, label: "★★★★★ PREMIUM", class: "priority-premium" };
+        } else if (allowedValues.has(5) && (fnvReduced === 5 || cmvReduced === 5)) {
+            analysis.priority = { priority: 4, label: "★★★★☆ EXCELLENT", class: "priority-excellent" };
+        } else if (allowedValues.has(6) && (fnvReduced === 6 || cmvReduced === 6)) {
+            analysis.priority = { priority: 4, label: "★★★★☆ EXCELLENT", class: "priority-excellent" };
+        } else if (allowedValues.has(3) && (fnvReduced === 3 || cmvReduced === 3)) {
+            analysis.priority = { priority: 3, label: "★★★☆☆ GOOD", class: "priority-good" };
+        } else {
+            analysis.priority = { priority: 3, label: "★★★☆☆ ACCEPTABLE", class: "priority-acceptable" };
+        }
+        
+        analysis.recommendation = `✅ RECOMMENDED: This name follows Chaldean numerology rules and is compatible with Birth Number ${birthNumber} and Life Path ${lifePathNumber}`;
+    } else {
+        analysis.priority = { priority: 1, label: "❌ INVALID", class: "priority-invalid" };
+        analysis.recommendation = `❌ NOT RECOMMENDED: This name violates Chaldean numerology rules for Birth Number ${birthNumber} and Life Path ${lifePathNumber}`;
+    }
+    
+    // Add specific guidance
+    if (analysis.conflicts.length === 0 && analysis.benefits.length > 0) {
+        analysis.benefits.push(`Both First Name and Expression numbers align with lucky values [${analysis.allowedValues.join(', ')}]`);
+    }
+    
+    return analysis;
+}
+
+// --- EXISTING CALCULATION FUNCTIONS (Updated for new rules) ---
 function cleanName(name) {
     return name.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
 }
@@ -161,7 +226,7 @@ function getChaldeanValue(char) {
     return CHALDEAN_MAP[char] || 0;
 }
 
-function calculateSingleDigit(number, allowMasterNumbers = true) {
+function calculateSingleDigit(number, allowMasterNumbers = false) {
     if (allowMasterNumbers && MASTER_NUMBERS.has(number)) {
         return number;
     }
@@ -181,7 +246,7 @@ function calculateFirstNameValue(fullName) {
     for (const char of firstName) {
         total += getChaldeanValue(char);
     }
-    return calculateSingleDigit(total, false); // First name value usually reduced to single digit
+    return total; // Return raw sum for rule checking
 }
 
 function calculateExpressionNumber(fullName) {
@@ -190,7 +255,7 @@ function calculateExpressionNumber(fullName) {
     for (const char of cleanedName) {
         total += getChaldeanValue(char);
     }
-    return calculateSingleDigit(total, true); // Expression number preserves Master Numbers
+    return total; // Return raw sum for rule checking
 }
 
 function calculateRawSum(fullName) {
@@ -230,27 +295,7 @@ function checkKarmicDebt(fullName) {
 }
 
 function calculateBirthDayNumber(birthDateStr) {
-    try {
-        const day = parseInt(birthDateStr.split('-')[2], 10);
-        if (isNaN(day) || day < 1 || day > 31) return 0;
-        return calculateSingleDigit(day, true);
-    } catch {
-        return 0;
-    }
-}
-
-function calculateLifePathNumber(birthDateStr) {
-    try {
-        const [year, month, day] = birthDateStr.split('-').map(Number);
-        const totalSumAllDigits = String(year) + String(month) + String(day);
-        let sum = 0;
-        for(const digit of totalSumAllDigits) {
-            sum += parseInt(digit, 10);
-        }
-        return calculateSingleDigit(sum, true);
-    } catch {
-        return 0;
-    }
+    return calculateBirthNumber(birthDateStr); // Use the updated function
 }
 
 function calculateLoShuGrid(birthDateStr, nameExpressionNum = null) {
@@ -282,6 +327,14 @@ function calculateLoShuGrid(birthDateStr, nameExpressionNum = null) {
         has_5: gridCounts[5] > 0,
         has_6: gridCounts[6] > 0
     };
+}
+
+/**
+ * UPDATED VALIDATION FUNCTION using new rules
+ */
+function isValidNameNumber(fnv, cmv, birthNumber, lifePathNumber) {
+    return isValueAllowed(fnv, birthNumber, lifePathNumber) && 
+           isValueAllowed(cmv, birthNumber, lifePathNumber);
 }
 
 // --- MAIN COMPONENT ---
@@ -324,7 +377,18 @@ function App() {
     // --- formatProfileData Function ---
     const formatProfileData = useCallback((profile) => {
         if (!profile) return '<p>No profile data available.</p>';
+        
+        // Calculate birth number and life path for display
+        const birthNumber = calculateBirthNumber(profile.birth_date);
+        const lifePathNumber = calculateLifePathNumber(profile.birth_date);
+        const allowedValues = getAllowedValues(birthNumber, lifePathNumber);
+        
         return `
+            <h3 class="font-bold">Updated Chaldean Rules Applied:</h3>
+            <p><b>Birth Number:</b> ${birthNumber}</p>
+            <p><b>Life Path Number:</b> ${lifePathNumber}</p>
+            <p><b>Allowed Values for Names:</b> [${Array.from(allowedValues).sort().join(', ')}]</p>
+            <hr class="my-2">
             <h3 class="font-bold">Basic Info:</h3>
             <p><b>Full Name:</b> ${profile.full_name}</p>
             <p><b>Birth Date:</b> ${profile.birth_date}</p>
@@ -342,22 +406,9 @@ function App() {
             <p><b>Counts:</b> ${JSON.stringify(profile.lo_shu_grid?.grid_counts || {})}</p>
             <p><b>Missing Numbers:</b> ${profile.lo_shu_grid?.missing_numbers?.join(', ') || 'None'}</p>
             <hr class="my-2">
-            <h3 class="font-bold">Conceptual Astro-Numerology:</h3>
-            <p><b>Ascendant:</b> ${profile.astro_info?.ascendant_info?.sign || 'N/A'} (Ruler: ${profile.astro_info?.ascendant_info?.ruler || 'N/A'})</p>
-            <p><b>Moon Sign:</b> ${profile.astro_info?.moon_sign_info?.sign || 'N/A'} (Ruler: ${profile.astro_info?.moon_sign_info?.ruler || 'N/A'})</p>
-            <p><b>Planetary Compatibility:</b> ${profile.astro_info?.planetary_compatibility?.compatibility_flags?.join('; ') || 'No specific flags'}</p>
-            <hr class="my-2">
-            <h3 class="font-bold">Phonetic Vibration:</h3>
-            <p><b>Harmony:</b> ${profile.phonetic_vibration?.is_harmonious ? 'Harmonious' : 'Needs consideration'} (Score: ${profile.phonetic_vibration?.score?.toFixed(2) || 'N/A'})</p>
-            <p><i>"${profile.phonetic_vibration?.qualitative_description || 'N/A'}"</i></p>
-            <hr class="my-2">
-            <h3 class="font-bold">Insights & Forecast:</h3>
-            <p><b>Compatibility Insights:</b> ${profile.compatibility_insights?.description || 'N/A'}</p>
-            <p><b>Karmic Lessons:</b> ${profile.karmic_lessons?.lessons_summary?.map(l => l.lesson).join('; ') || 'None'}</p>
-            <p><b>Karmic Debts (Birth Date):</b> ${profile.karmic_lessons?.birth_date_karmic_debts?.join('; ') || 'None'}</p>
-            <p><b>Edge Cases:</b> ${profile.edge_cases?.map(ec => ec.type).join('; ') || 'None'}</p>
-            <p><b>Current Personal Year:</b> ${profile.timing_recommendations?.current_personal_year || 'N/A'}</p>
-            <p><b>Success Areas:</b> ${profile.success_areas?.combined_strengths?.join(', ') || 'N/A'}</p>
+            <h3 class="font-bold">Rule Exceptions Applied:</h3>
+            <p><b>Forbidden Value 51:</b> ${ALWAYS_REJECTED_VALUES.has(51) ? 'Blocked for personal names' : 'N/A'}</p>
+            <p><b>Special Value 65:</b> ${SPECIAL_ALLOWED_VALUES.has(65) ? 'Specially allowed despite reducing to 2' : 'N/A'}</p>
         `;
     }, []);
 
@@ -481,10 +532,11 @@ function App() {
         }
     }, [clientProfile, confirmedSuggestions, openModal, setReportPreviewContent]);
 
-    // --- Enhanced Effects ---
+    // --- Enhanced Effects with NEW RULES ---
     useEffect(() => {
         if (suggestions.length > 0 && clientProfile) {
-            const lifePathNum = clientProfile.life_path_number;
+            const birthNumber = calculateBirthNumber(clientProfile.birth_date);
+            const lifePathNumber = calculateLifePathNumber(clientProfile.birth_date);
             
             const initialEditable = suggestions.map((s, index) => {
                 const name = typeof s === 'string' ? s : s.name;
@@ -496,9 +548,9 @@ function App() {
                 const karmicDebtPresent = checkKarmicDebt(name);
                 const firstName = name.split(' ')[0];
                 
-                // Enhanced validation with Life Path compatibility
-                const isValid = isValidNameNumber(expressionNumber, rawSum, lifePathNum);
-                const compatibilityAnalysis = getNameCompatibilityAnalysis(expressionNumber, lifePathNum, rawSum);
+                // UPDATED validation with new rules
+                const isValid = isValidNameNumber(firstNameValue, expressionNumber, birthNumber, lifePathNumber);
+                const compatibilityAnalysis = getNameCompatibilityAnalysis(firstNameValue, expressionNumber, birthNumber, lifePathNumber);
 
                 return {
                     ...s,
@@ -529,29 +581,30 @@ function App() {
             return;
         }
 
-        const expNum = calculateExpressionNumber(name);
+        const fnv = calculateFirstNameValue(name);
+        const cmv = calculateExpressionNumber(name);
         const rawSum = calculateRawSum(name);
         const birthDateStr = currentClientProfile.birth_date;
-        const lifePathNum = currentClientProfile.life_path_number;
-        const loShu = calculateLoShuGrid(birthDateStr, expNum);
-        const birthDayNum = calculateBirthDayNumber(birthDateStr);
+        const birthNumber = calculateBirthNumber(birthDateStr);
+        const lifePathNumber = calculateLifePathNumber(birthDateStr);
+        const loShu = calculateLoShuGrid(birthDateStr, cmv);
         const soulUrgeNum = calculateSoulUrgeNumber(name);
         const personalityNum = calculatePersonalityNumber(name);
         const karmicDebtPresent = checkKarmicDebt(name);
         
-        // Enhanced compatibility analysis
-        const compatibilityAnalysis = getNameCompatibilityAnalysis(expNum, lifePathNum, rawSum);
+        // UPDATED compatibility analysis with new rules
+        const compatibilityAnalysis = getNameCompatibilityAnalysis(fnv, cmv, birthNumber, lifePathNumber);
 
         setLiveValidationOutput({
             name,
-            firstNameValue: calculateFirstNameValue(name),
-            expressionNumber: expNum,
+            firstNameValue: fnv,
+            expressionNumber: cmv,
             rawSum,
             soulUrgeNumber: soulUrgeNum,
             personalityNumber: personalityNum,
             karmicDebtPresent: karmicDebtPresent,
-            birthDayNumber: birthDayNum,
-            lifePathNumber: lifePathNum,
+            birthNumber: birthNumber,
+            lifePathNumber: lifePathNumber,
             loShuGridCounts: loShu.grid_counts,
             loShuMissingNumbers: loShu.missing_numbers,
             compatibilityAnalysis
@@ -575,7 +628,7 @@ function App() {
 
     const handleConfirmSuggestion = useCallback((suggestion) => {
         if (!suggestion.isValid) {
-            openModal("❌ This name is not numerologically compatible. Please choose a valid, lucky name aligned with your Life Path.");
+            openModal("❌ This name does not comply with the updated Chaldean numerology rules. Please choose a valid name that follows the 1, 5, 6 system.");
             return;
         }
         
@@ -625,11 +678,12 @@ function App() {
     const handleNameChange = useCallback((index, newFullName) => {
         setEditableSuggestions(prev => prev.map((s, idx) => {
             if (idx === index) {
-                const lifePathNum = clientProfile?.life_path_number;
+                const birthNumber = calculateBirthNumber(clientProfile?.birth_date || '');
+                const lifePathNumber = calculateLifePathNumber(clientProfile?.birth_date || '');
+                const firstNameValue = calculateFirstNameValue(newFullName);
                 const expressionNumber = calculateExpressionNumber(newFullName);
-                const rawSum = calculateRawSum(newFullName);
-                const isValid = isValidNameNumber(expressionNumber, rawSum, lifePathNum);
-                const compatibilityAnalysis = lifePathNum ? getNameCompatibilityAnalysis(expressionNumber, lifePathNum, rawSum) : null;
+                const isValid = isValidNameNumber(firstNameValue, expressionNumber, birthNumber, lifePathNumber);
+                const compatibilityAnalysis = getNameCompatibilityAnalysis(firstNameValue, expressionNumber, birthNumber, lifePathNumber);
 
                 const updatedSuggestion = { 
                     ...s, 
@@ -638,9 +692,9 @@ function App() {
                     isValid,
                     compatibilityAnalysis
                 };
-                updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
+                updatedSuggestion.firstNameValue = firstNameValue;
                 updatedSuggestion.expressionNumber = expressionNumber;
-                updatedSuggestion.rawSum = rawSum;
+                updatedSuggestion.rawSum = calculateRawSum(newFullName);
                 updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
                 updatedSuggestion.personalityNumber = calculatePersonalityNumber(newFullName);
                 updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newFullName);
@@ -662,11 +716,12 @@ function App() {
             if (idx === index) {
                 const originalParts = s.currentName.split(' ');
                 const newFullName = [newFirstName, ...originalParts.slice(1)].join(' ');
-                const lifePathNum = clientProfile?.life_path_number;
+                const birthNumber = calculateBirthNumber(clientProfile?.birth_date || '');
+                const lifePathNumber = calculateLifePathNumber(clientProfile?.birth_date || '');
+                const firstNameValue = calculateFirstNameValue(newFullName);
                 const expressionNumber = calculateExpressionNumber(newFullName);
-                const rawSum = calculateRawSum(newFullName);
-                const isValid = isValidNameNumber(expressionNumber, rawSum, lifePathNum);
-                const compatibilityAnalysis = lifePathNum ? getNameCompatibilityAnalysis(expressionNumber, lifePathNum, rawSum) : null;
+                const isValid = isValidNameNumber(firstNameValue, expressionNumber, birthNumber, lifePathNumber);
+                const compatibilityAnalysis = getNameCompatibilityAnalysis(firstNameValue, expressionNumber, birthNumber, lifePathNumber);
 
                 const updatedSuggestion = { 
                     ...s, 
@@ -676,9 +731,9 @@ function App() {
                     isValid,
                     compatibilityAnalysis
                 };
-                updatedSuggestion.firstNameValue = calculateFirstNameValue(newFullName);
+                updatedSuggestion.firstNameValue = firstNameValue;
                 updatedSuggestion.expressionNumber = expressionNumber;
-                updatedSuggestion.rawSum = rawSum;
+                updatedSuggestion.rawSum = calculateRawSum(newFullName);
                 updatedSuggestion.soulUrgeNumber = calculateSoulUrgeNumber(newFullName);
                 updatedSuggestion.personalityNumber = calculatePersonalityNumber(newFullName);
                 updatedSuggestion.karmicDebtPresent = checkKarmicDebt(newFullName);
@@ -712,21 +767,22 @@ function App() {
         setCurrentPage((page) => Math.max(page - 1, 0));
     };
 
-    // Enhanced live validation for input names
+    // Enhanced live validation for input names with NEW RULES
     const getLiveNameAnalysis = (name, birthDate) => {
         if (!name.trim() || !birthDate) return null;
         
-        const lifePathNum = calculateLifePathNumber(birthDate);
-        const expressionNum = calculateExpressionNumber(name);
-        const rawSum = calculateRawSum(name);
+        const birthNumber = calculateBirthNumber(birthDate);
+        const lifePathNumber = calculateLifePathNumber(birthDate);
         const firstNameValue = calculateFirstNameValue(name);
+        const expressionNumber = calculateExpressionNumber(name);
         
         return {
-            lifePathNum,
-            expressionNum,
+            birthNumber,
+            lifePathNumber,
             firstNameValue,
-            isValid: isValidNameNumber(expressionNum, rawSum, lifePathNum),
-            compatibilityAnalysis: getNameCompatibilityAnalysis(expressionNum, lifePathNum, rawSum)
+            expressionNumber,
+            isValid: isValidNameNumber(firstNameValue, expressionNumber, birthNumber, lifePathNumber),
+            compatibilityAnalysis: getNameCompatibilityAnalysis(firstNameValue, expressionNumber, birthNumber, lifePathNumber)
         };
     };
 
@@ -735,10 +791,10 @@ function App() {
     return (
         <div className="app-container">
             <div className="main-content-wrapper">
-                <h1 className="main-title">Sheelaa's Numerology Portal</h1>
+                <h1 className="main-title">Sheelaa's Numerology Portal - Updated Chaldean Rules (1, 5, 6 System)</h1>
                 {isLoading && (
                     <div className="loading-overlay">
-                        <p>⏳ Processing numerological calculations...</p>
+                        <p>⏳ Processing numerological calculations with updated rules...</p>
                     </div>
                 )}
 
@@ -758,15 +814,17 @@ function App() {
                             />
                             {currentNameAnalysis && (
                                 <div className="live-analysis" style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#f8f9fa', borderRadius: '4px', border: '1px solid #e9ecef' }}>
-                                    <p><strong>Live Analysis:</strong></p>
-                                    <p>First Name Value: <strong>{currentNameAnalysis.firstNameValue}</strong></p>
-                                    <p>Expression Number: <strong>{currentNameAnalysis.expressionNum}</strong></p>
-                                    <p>Life Path Number: <strong>{currentNameAnalysis.lifePathNum}</strong></p>
+                                    <p><strong>Live Analysis (Updated Rules):</strong></p>
+                                    <p>Birth Number: <strong>{currentNameAnalysis.birthNumber}</strong></p>
+                                    <p>Life Path Number: <strong>{currentNameAnalysis.lifePathNumber}</strong></p>
+                                    <p>First Name Value: <strong>{currentNameAnalysis.firstNameValue}</strong> (Reduced: {calculateSingleDigit(currentNameAnalysis.firstNameValue, false)})</p>
+                                    <p>Expression Number: <strong>{currentNameAnalysis.expressionNumber}</strong> (Reduced: {calculateSingleDigit(currentNameAnalysis.expressionNumber, false)})</p>
+                                    <p>Allowed Values: <strong>[{Array.from(getAllowedValues(currentNameAnalysis.birthNumber, currentNameAnalysis.lifePathNumber)).sort().join(', ')}]</strong></p>
                                     <div className={`compatibility-badge ${currentNameAnalysis.compatibilityAnalysis.priority.class}`}>
                                         {currentNameAnalysis.compatibilityAnalysis.priority.label}
                                     </div>
                                     <p className={currentNameAnalysis.isValid ? 'text-green-600' : 'text-red-600'}>
-                                        <strong>{currentNameAnalysis.isValid ? '✅ COMPATIBLE' : '❌ INCOMPATIBLE'}</strong>
+                                        <strong>{currentNameAnalysis.isValid ? '✅ COMPLIANT' : '❌ NON-COMPLIANT'}</strong>
                                     </p>
                                     <p style={{ fontSize: '0.9em', fontStyle: 'italic' }}>
                                         {currentNameAnalysis.compatibilityAnalysis.recommendation}
@@ -810,10 +868,35 @@ function App() {
                     <button onClick={getInitialSuggestions} className="primary-btn">Get Initial Suggestions</button>
                 </div>
 
-                {/* Enhanced Suggested Names Carousel */}
+                {/* Updated Rules Information Panel */}
+                <div className="section-card rules-info-card">
+                    <h2>🔧 Updated Chaldean Numerology Rules</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.9em' }}>
+                        <div>
+                            <h4>✅ Lucky Numbers for Names:</h4>
+                            <ul>
+                                <li><strong>1</strong> - Power & Leadership</li>
+                                <li><strong>5</strong> - Freedom & Adventure</li>
+                                <li><strong>6</strong> - Love & Harmony</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>⚠️ Special Rules:</h4>
+                            <ul>
+                                <li>Birth/Life = 8 → Cannot use 1</li>
+                                <li>Birth/Life = 3 → Cannot use 6, Can use 3</li>
+                                <li>Birth/Life = 6 → Cannot use 3</li>
+                                <li>Value 51 → Forbidden for personal names</li>
+                                <li>Value 65 → Specially allowed</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Enhanced Suggested Names Carousel with NEW RULES */}
                 {editableSuggestions.length > 0 && (
                     <div className="section-card suggestions-carousel">
-                        <h2>Suggested Names - Chaldean Compatibility Analysis</h2>
+                        <h2>Suggested Names - Updated Chaldean Analysis (1, 5, 6 System)</h2>
 
                         <div className="carousel-grid">
                             {paginatedSuggestions.map((s) => (
@@ -823,7 +906,7 @@ function App() {
                                             {s.compatibilityAnalysis?.priority.label || 'Calculating...'}
                                         </div>
                                         <div className={`validity-indicator ${s.isValid ? 'valid' : 'invalid'}`}>
-                                            {s.isValid ? '✅ VALID' : '❌ INVALID'}
+                                            {s.isValid ? '✅ COMPLIANT' : '❌ NON-COMPLIANT'}
                                         </div>
                                     </div>
 
@@ -845,11 +928,13 @@ function App() {
                                             onChange={(e) => handleFirstNameChange(s.id, e.target.value)}
                                             className="input-field"
                                         />
-                                        <span className="text-sm text-gray-600">Score: {s.firstNameValue}</span>
+                                        <span className="text-sm text-gray-600">
+                                            Raw: {s.firstNameValue} | Reduced: {calculateSingleDigit(s.firstNameValue, false)}
+                                        </span>
                                     </div>
 
                                     <div className="numerology-summary">
-                                        <p><strong>Expression:</strong> {s.expressionNumber}</p>
+                                        <p><strong>Expression:</strong> {s.expressionNumber} (Reduced: {calculateSingleDigit(s.expressionNumber, false)})</p>
                                         <p><strong>Soul Urge:</strong> {s.soulUrgeNumber}</p>
                                         <p><strong>Personality:</strong> {s.personalityNumber}</p>
                                         <p><strong>Karmic Debt:</strong> {s.karmicDebtPresent ? '⚠️ Yes' : '✅ No'}</p>
@@ -857,7 +942,18 @@ function App() {
 
                                     {s.compatibilityAnalysis && (
                                         <div className="compatibility-analysis">
-                                            <h4>Compatibility Analysis:</h4>
+                                            <h4>Updated Rules Analysis:</h4>
+                                            <p><strong>Allowed Values:</strong> [{s.compatibilityAnalysis.allowedValues.join(', ')}]</p>
+                                            
+                                            <div className="rule-status">
+                                                <p><strong>FNV Status:</strong> <span className={s.compatibilityAnalysis.fnvStatus.isValid ? 'text-green-600' : 'text-red-600'}>
+                                                    {s.compatibilityAnalysis.fnvStatus.isValid ? '✅' : '❌'} {s.compatibilityAnalysis.fnvStatus.reason}
+                                                </span></p>
+                                                <p><strong>CMV Status:</strong> <span className={s.compatibilityAnalysis.cmvStatus.isValid ? 'text-green-600' : 'text-red-600'}>
+                                                    {s.compatibilityAnalysis.cmvStatus.isValid ? '✅' : '❌'} {s.compatibilityAnalysis.cmvStatus.reason}
+                                                </span></p>
+                                            </div>
+                                            
                                             {s.compatibilityAnalysis.benefits.length > 0 && (
                                                 <div className="benefits">
                                                     <strong>Benefits:</strong>
@@ -870,7 +966,7 @@ function App() {
                                             )}
                                             {s.compatibilityAnalysis.conflicts.length > 0 && (
                                                 <div className="conflicts">
-                                                    <strong>Conflicts:</strong>
+                                                    <strong>Rule Violations:</strong>
                                                     <ul>
                                                         {s.compatibilityAnalysis.conflicts.map((conflict, idx) => (
                                                             <li key={idx} className="conflict-item">❌ {conflict}</li>
@@ -900,7 +996,7 @@ function App() {
                                                 ? '✓ Confirmed' 
                                                 : s.isValid 
                                                     ? 'Confirm' 
-                                                    : 'Invalid'
+                                                    : 'Non-Compliant'
                                             }
                                         </button>
                                     </div>
@@ -941,10 +1037,10 @@ function App() {
                         )}
                     </div>
 
-                    {/* Enhanced Custom Validation */}
+                    {/* Enhanced Custom Validation with NEW RULES */}
                     {clientProfile && (
                         <div className="section-card custom-validation-card">
-                            <h2>Validate Custom Name</h2>
+                            <h2>Validate Custom Name (Updated Rules)</h2>
                             <div className="input-group">
                                 <label htmlFor="customNameInput" className="input-label">Name to Validate:</label>
                                 <input
@@ -965,7 +1061,7 @@ function App() {
                                     marginTop: '1rem' 
                                 }}>
                                     <div className="validation-header">
-                                        <h3>Live Chaldean Analysis</h3>
+                                        <h3>Live Updated Rules Analysis</h3>
                                         <div className={`priority-badge ${liveValidationOutput.compatibilityAnalysis?.priority.class || ''}`}>
                                             {liveValidationOutput.compatibilityAnalysis?.priority.label || 'Calculating...'}
                                         </div>
@@ -973,21 +1069,33 @@ function App() {
 
                                     <div className="validation-grid">
                                         <p><strong>Name:</strong> {customNameInput}</p>
-                                        <p><strong>First Name Value:</strong> {liveValidationOutput.firstNameValue}</p>
-                                        <p><strong>Expression Number:</strong> {liveValidationOutput.expressionNumber}</p>
+                                        <p><strong>Birth Number:</strong> {liveValidationOutput.birthNumber}</p>
+                                        <p><strong>Life Path Number:</strong> {liveValidationOutput.lifePathNumber}</p>
+                                        <p><strong>Allowed Values:</strong> [{Array.from(getAllowedValues(liveValidationOutput.birthNumber, liveValidationOutput.lifePathNumber)).sort().join(', ')}]</p>
+                                        <hr />
+                                        <p><strong>First Name Value:</strong> {liveValidationOutput.firstNameValue} (Reduced: {calculateSingleDigit(liveValidationOutput.firstNameValue, false)})</p>
+                                        <p><strong>Expression Number:</strong> {liveValidationOutput.expressionNumber} (Reduced: {calculateSingleDigit(liveValidationOutput.expressionNumber, false)})</p>
                                         <p><strong>Raw Sum:</strong> {liveValidationOutput.rawSum}</p>
                                         <p><strong>Soul Urge:</strong> {liveValidationOutput.soulUrgeNumber}</p>
                                         <p><strong>Personality:</strong> {liveValidationOutput.personalityNumber}</p>
-                                        <p><strong>Life Path:</strong> {liveValidationOutput.lifePathNumber}</p>
                                         <p><strong>Karmic Debt:</strong> {liveValidationOutput.karmicDebtPresent ? 'Yes ⚠️' : 'No ✅'}</p>
                                     </div>
 
                                     {liveValidationOutput.compatibilityAnalysis && (
                                         <div className="compatibility-analysis">
-                                            <h4>Chaldean Compatibility Analysis:</h4>
+                                            <h4>Updated Chaldean Rules Analysis:</h4>
                                             <p className={liveValidationOutput.compatibilityAnalysis.isValid ? 'text-green-600' : 'text-red-600'}>
                                                 <strong>{liveValidationOutput.compatibilityAnalysis.recommendation}</strong>
                                             </p>
+                                            
+                                            <div className="rule-status">
+                                                <p><strong>FNV Compliance:</strong> <span className={liveValidationOutput.compatibilityAnalysis.fnvStatus.isValid ? 'text-green-600' : 'text-red-600'}>
+                                                    {liveValidationOutput.compatibilityAnalysis.fnvStatus.isValid ? '✅' : '❌'} {liveValidationOutput.compatibilityAnalysis.fnvStatus.reason}
+                                                </span></p>
+                                                <p><strong>CMV Compliance:</strong> <span className={liveValidationOutput.compatibilityAnalysis.cmvStatus.isValid ? 'text-green-600' : 'text-red-600'}>
+                                                    {liveValidationOutput.compatibilityAnalysis.cmvStatus.isValid ? '✅' : '❌'} {liveValidationOutput.compatibilityAnalysis.cmvStatus.reason}
+                                                </span></p>
+                                            </div>
                                             
                                             {liveValidationOutput.compatibilityAnalysis.benefits.length > 0 && (
                                                 <div className="benefits">
@@ -1002,7 +1110,7 @@ function App() {
                                             
                                             {liveValidationOutput.compatibilityAnalysis.conflicts.length > 0 && (
                                                 <div className="conflicts">
-                                                    <strong>Conflicts:</strong>
+                                                    <strong>Rule Violations:</strong>
                                                     <ul>
                                                         {liveValidationOutput.compatibilityAnalysis.conflicts.map((conflict, idx) => (
                                                             <li key={idx} className="conflict-item">❌ {conflict}</li>
@@ -1019,7 +1127,7 @@ function App() {
                                             <div className="backend-validation">
                                                 <h4>Backend Validation:</h4>
                                                 <p className={backendValidationResult.is_valid ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                                                    {backendValidationResult.is_valid ? '✅ BACKEND CONFIRMS VALID' : '❌ BACKEND CONFIRMS INVALID'}
+                                                    {backendValidationResult.is_valid ? '✅ BACKEND CONFIRMS COMPLIANT' : '❌ BACKEND CONFIRMS NON-COMPLIANT'}
                                                 </p>
                                                 <p><strong>Rationale:</strong> {backendValidationResult.rationale}</p>
                                             </div>
@@ -1033,7 +1141,7 @@ function App() {
                                 className="primary-btn" 
                                 disabled={!clientProfile || !customNameInput.trim()}
                             >
-                                Validate Custom Name
+                                Validate with Updated Rules
                             </button>
                         </div>
                     )}
@@ -1042,7 +1150,7 @@ function App() {
                 {/* Confirmed Suggestions */}
                 {confirmedSuggestions.length > 0 && (
                     <div className="section-card confirmed-suggestions-card">
-                        <h2>Confirmed Lucky Names ({confirmedSuggestions.length})</h2>
+                        <h2>Confirmed Lucky Names ({confirmedSuggestions.length}) - Updated Rules Compliant</h2>
                         <div className="confirmed-list">
                             {confirmedSuggestions.map((cs, idx) => (
                                 <div key={idx} className="confirmed-item">
@@ -1076,13 +1184,13 @@ function App() {
                 )}
             </div>
 
-            {/* CSS Styles for Enhanced Compatibility Display */}
+            {/* CSS Styles for Enhanced Compatibility Display with NEW RULES */}
             <style jsx>{`
                 .priority-premium { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-                .priority-master { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+                .priority-excellent { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+                .priority-good { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
                 .priority-acceptable { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-                .priority-incompatible { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-                .priority-forbidden { background: linear-gradient(135deg, #991b1b, #7f1d1d); color: white; }
+                .priority-invalid { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
                 
                 .priority-badge, .compatibility-badge {
                     padding: 0.25rem 0.5rem;
@@ -1131,6 +1239,13 @@ function App() {
                     background-color: #f8fafc;
                     border-radius: 0.375rem;
                     font-size: 0.875rem;
+                }
+                
+                .rule-status {
+                    margin: 0.5rem 0;
+                    padding: 0.5rem;
+                    background-color: #f1f5f9;
+                    border-radius: 0.25rem;
                 }
                 
                 .benefits ul, .conflicts ul {
@@ -1188,6 +1303,319 @@ function App() {
                 
                 .remove-btn:hover {
                     background-color: #dc2626;
+                }
+                
+                .rules-info-card {
+                    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+                    border: 2px solid #3b82f6;
+                }
+                
+                .rules-info-card h4 {
+                    color: #1e40af;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .rules-info-card ul {
+                    list-style-type: none;
+                    padding-left: 0;
+                }
+                
+                .rules-info-card li {
+                    padding: 0.25rem 0;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                
+                .rules-info-card li:last-child {
+                    border-bottom: none;
+                }
+                
+                .validation-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 0.5rem;
+                    margin-bottom: 1rem;
+                }
+                
+                .validation-grid p {
+                    margin: 0.25rem 0;
+                    font-size: 0.875rem;
+                }
+                
+                .text-green-600 {
+                    color: #059669;
+                }
+                
+                .text-red-600 {
+                    color: #dc2626;
+                }
+                
+                .font-bold {
+                    font-weight: 700;
+                }
+                
+                .text-sm {
+                    font-size: 0.875rem;
+                }
+                
+                .text-gray-600 {
+                    color: #6b7280;
+                }
+                
+                .text-muted {
+                    color: #9ca3af;
+                    font-style: italic;
+                }
+                
+                /* Enhanced form styling */
+                .form-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 1rem;
+                    margin-bottom: 1rem;
+                }
+                
+                .input-group {
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .input-label {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: #374151;
+                }
+                
+                .input-field {
+                    padding: 0.75rem;
+                    border: 1px solid #d1d5db;
+                    border-radius: 0.375rem;
+                    font-size: 1rem;
+                    transition: border-color 0.2s, box-shadow 0.2s;
+                }
+                
+                .input-field:focus {
+                    outline: none;
+                    border-color: #3b82f6;
+                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+                }
+                
+                .primary-btn {
+                    background: linear-gradient(135deg, #3b82f6, #2563eb);
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 0.375rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                }
+                
+                .primary-btn:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                }
+                
+                .primary-btn:disabled, .disabled-btn {
+                    background: #9ca3af;
+                    cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
+                }
+                
+                .secondary-btn {
+                    background: #f3f4f6;
+                    color: #374151;
+                    border: 1px solid #d1d5db;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 0.375rem;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }
+                
+                .secondary-btn:hover {
+                    background: #e5e7eb;
+                }
+                
+                .secondary-btn:disabled {
+                    background: #f9fafb;
+                    color: #9ca3af;
+                    cursor: not-allowed;
+                }
+                
+                .small-btn {
+                    padding: 0.5rem 1rem;
+                    font-size: 0.875rem;
+                }
+                
+                /* Layout improvements */
+                .app-container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                }
+                
+                .main-content-wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2rem;
+                }
+                
+                .main-title {
+                    text-align: center;
+                    font-size: 2.5rem;
+                    font-weight: 800;
+                    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    margin-bottom: 1rem;
+                }
+                
+                .section-card {
+                    background: white;
+                    border-radius: 1rem;
+                    padding: 2rem;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    border: 1px solid #e5e7eb;
+                }
+                
+                .two-column-layout {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 2rem;
+                }
+                
+                .carousel-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                    gap: 1.5rem;
+                    margin-bottom: 2rem;
+                }
+                
+                .name-card {
+                    background: white;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 0.75rem;
+                    padding: 1.5rem;
+                    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                    transition: transform 0.2s, box-shadow 0.2s;
+                }
+                
+                .name-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+                }
+                
+                .numerology-summary {
+                    background: #f8fafc;
+                    padding: 1rem;
+                    border-radius: 0.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .numerology-summary p {
+                    margin: 0.5rem 0;
+                    font-size: 0.875rem;
+                }
+                
+                .button-row {
+                    display: flex;
+                    gap: 0.5rem;
+                    margin-top: 1rem;
+                }
+                
+                .carousel-controls {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 1rem;
+                    padding: 1rem;
+                }
+                
+                .confirmed-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                    margin-bottom: 2rem;
+                }
+                
+                .generate-report-btn {
+                    width: 100%;
+                    padding: 1rem;
+                    font-size: 1.1rem;
+                }
+                
+                .loading-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                    color: white;
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                }
+                
+                .custom-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1001;
+                }
+                
+                .modal-content {
+                    background: white;
+                    padding: 2rem;
+                    border-radius: 1rem;
+                    max-width: 500px;
+                    margin: 2rem;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                }
+                
+                .modal-message {
+                    margin-bottom: 1.5rem;
+                    font-size: 1.1rem;
+                    line-height: 1.6;
+                }
+                
+                /* Responsive design */
+                @media (max-width: 768px) {
+                    .form-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .two-column-layout {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .carousel-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .validation-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .app-container {
+                        padding: 1rem;
+                    }
+                    
+                    .main-title {
+                        font-size: 2rem;
+                    }
                 }
             `}</style>
         </div>
