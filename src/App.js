@@ -410,40 +410,41 @@ function App() {
 
     // --- Effects ---
     useEffect(() => {
-    if (suggestions.length > 0) {
-        const initialEditable = suggestions.map((s, index) => {
-            const firstNameValue = calculateFirstNameValue(s.name);
-            const expressionNumber = calculateExpressionNumber(s.name);
-            const soulUrgeNumber = calculateSoulUrgeNumber(s.name);
-            const personalityNumber = calculatePersonalityNumber(s.name);
-            const karmicDebtPresent = checkKarmicDebt(s.name);
-            const firstName = s.name.split(' ')[0];
-            const rawSum = s.name
-                .toUpperCase()
-                .split('')
-                .map(getChaldeanValue)
-                .reduce((acc, val) => acc + val, 0);
-            const isValid = isValidNameNumber(expressionNumber, rawSum);
+  if (suggestions.length > 0) {
+    const initialEditable = suggestions.map((s, index) => {
+      const name = typeof s === 'string' ? s : s.name; // fallback if s is a string
 
-            return {
-                ...s,
-                id: index,
-                currentName: s.name,
-                currentFirstName: firstName,
-                originalName: s.name,
-                firstNameValue,
-                expressionNumber,
-                soulUrgeNumber,
-                personalityNumber,
-                karmicDebtPresent,
-                isEdited: false,
-                validationResult: isValid
-            };
-        });
-        setEditableSuggestions(initialEditable);
-    }
+      const firstNameValue = calculateFirstNameValue(name);
+      const expressionNumber = calculateExpressionNumber(name);
+      const soulUrgeNumber = calculateSoulUrgeNumber(name);
+      const personalityNumber = calculatePersonalityNumber(name);
+      const karmicDebtPresent = checkKarmicDebt(name);
+      const firstName = name.split(' ')[0];
+      const rawSum = name
+        .toUpperCase()
+        .split('')
+        .map(getChaldeanValue)
+        .reduce((acc, val) => acc + val, 0);
+      const isValid = isValidNameNumber(expressionNumber, rawSum);
+
+      return {
+        ...s,
+        id: index,
+        currentName: name,
+        currentFirstName: firstName,
+        originalName: name,
+        firstNameValue,
+        expressionNumber,
+        soulUrgeNumber,
+        personalityNumber,
+        karmicDebtPresent,
+        isEdited: false,
+        validationResult: isValid
+      };
+    });
+    setEditableSuggestions(initialEditable);
+  }
 }, [suggestions]);
-
 
 
     const updateLiveValidationDisplayCore = useCallback((name, currentClientProfile) => {
