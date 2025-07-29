@@ -11,7 +11,16 @@ const BACKEND_URL = 'https://name-corrector-backend.onrender.com'; // <<< IMPORT
 
 // --- Client-Side Numerology Calculation Functions (Ported from Backend) ---
 // These are essential for live updates without constant server calls.
-
+const CHALDEAN_MAP = {
+  A: 1, B: 2, C: 3, D: 4, E: 5, F: 8, G: 3,
+  H: 5, I: 1, J: 1, K: 2, L: 3, M: 4, N: 5,
+  O: 7, P: 8, Q: 1, R: 2, S: 3, T: 4, U: 6,
+  V: 6, W: 6, X: 5, Y: 1, Z: 7
+};
+const MASTER_NUMBERS = new Set([11, 22, 33]);
+const KARMIC_DEBT_NUMBERS = new Set([13, 14, 16, 19]);
+const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
+// eslint-disable-next-line no-unused-vars
 const EXPRESSION_COMPATIBILITY_MAP = {
   1: [1, 3, 5, 6],
   2: [2, 4, 6, 9],
@@ -409,16 +418,12 @@ function App() {
             const personalityNumber = calculatePersonalityNumber(s.name);
             const karmicDebtPresent = checkKarmicDebt(s.name);
             const firstName = s.name.split(' ')[0];
-
-            // ✅ STRICT VALIDATION ADDED BELOW
-            const lifePathNum = calculateLifePathNumber(clientProfile.birth_date);
-            const birthDayNum = calculateBirthDayNumber(clientProfile.birth_date);
-
-            const isLucky = LUCKY_NAME_NUMBERS.has(expressionNumber);
-            const isCompatible =
-                EXPRESSION_COMPATIBILITY_MAP[expressionNumber]?.includes(lifePathNum) &&
-                EXPRESSION_COMPATIBILITY_MAP[expressionNumber]?.includes(birthDayNum);
-            const isValid = isLucky && isCompatible && !UNLUCKY_NAME_NUMBERS.has(expressionNumber);
+            const rawSum = s.name
+                .toUpperCase()
+                .split('')
+                .map(getChaldeanValue)
+                .reduce((acc, val) => acc + val, 0);
+            const isValid = isValidNameNumber(expressionNumber, rawSum);
 
             return {
                 ...s,
@@ -432,16 +437,13 @@ function App() {
                 personalityNumber,
                 karmicDebtPresent,
                 isEdited: false,
-                validationResult: null,
-                // ✅ ADDED FIELDS
-                isLucky,
-                isCompatible,
-                isValid
+                validationResult: isValid
             };
         });
         setEditableSuggestions(initialEditable);
     }
 }, [suggestions]);
+
 
 
     const updateLiveValidationDisplayCore = useCallback((name, currentClientProfile) => {
