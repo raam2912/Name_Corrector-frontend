@@ -791,7 +791,7 @@ function App() {
     return (
         <div className="app-container">
             <div className="main-content-wrapper">
-                <h1 className="main-title">Sheelaa's Numerology Portal - Updated Chaldean Rules (1, 5, 6 System)</h1>
+                <h1 className="main-title">Sheelaa's Numerology Portal </h1>
                 {isLoading && (
                     <div className="loading-overlay">
                         <p>⏳ Processing numerological calculations with updated rules...</p>
@@ -896,7 +896,7 @@ function App() {
                 {/* Enhanced Suggested Names Carousel with NEW RULES */}
                 {editableSuggestions.length > 0 && (
                     <div className="section-card suggestions-carousel">
-                        <h2>Suggested Names - Updated Chaldean Analysis (1, 5, 6 System)</h2>
+                        <h2>Suggested Names</h2>
 
                         <div className="carousel-grid">
                             {paginatedSuggestions.map((s) => (
