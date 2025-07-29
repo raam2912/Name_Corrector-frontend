@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { marked } from 'marked'; // Corrected: For rendering Markdown in report preview
 import debounce from 'lodash.debounce'; // Correctly imported debounce
+import _ from 'lodash';
 
 import './App.css'; // Import the CSS file for styling
 
@@ -208,7 +209,7 @@ function App() {
     const [ setReportPreviewContent] = useState('');
 
     // eslint-disable-next-line no-unused-vars
-    const [setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
 
     // --- Modal Functions ---
@@ -621,6 +622,11 @@ const goToPreviousPage = () => {
   <div className="app-container">
     <div className="main-content-wrapper">
       <h1 className="main-title">Sheelaa's Numerology Portal</h1>
+      {isLoading && (
+  <div className="loading-overlay">
+    <p>⏳ Fetching suggestions...</p>
+  </div>
+        )}
 
       {/* Input Form */}
       <div className="section-card input-form-card">
