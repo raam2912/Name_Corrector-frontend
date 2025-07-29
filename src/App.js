@@ -282,6 +282,7 @@ function App() {
                 birth_place: birthPlace,
             });
             setSuggestions(response.data.suggestions);
+            console.log("💡 Suggestions received:", response.data.suggestions);
             
             // Ensure profile_data is present and an object before setting clientProfile
             const profileData = response.data.profile_data;
@@ -426,6 +427,7 @@ function App() {
                 setEditableSuggestions(initialEditable);
             }
             }, [suggestions]);
+            console.log("✅ Populating editable suggestions from backend data...");
 
 
     const updateLiveValidationDisplayCore = useCallback((name, currentClientProfile) => {
