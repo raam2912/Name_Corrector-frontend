@@ -361,7 +361,7 @@ function App() {
     const [liveValidationOutput, setLiveValidationOutput] = useState(null); // For live client-side calcs of custom input
     const [backendValidationResult, setBackendValidationResult] = useState(null); // For custom validation section
 
-    const [setReportPreviewContent] = useState('');
+    const [reportPreviewContent, setReportPreviewContent] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, message: '' });
 
